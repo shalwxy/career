@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Career — Seungha Lee</title>
+<meta name="description" content="Seungha Lee · Backend Engineer · Go / gRPC / Kafka / PostgreSQL">
+<style>
+:root{--bg:#fff;--fg:#1f2328;--muted:#656d76;--line:#d0d7de;--accent:#0969da;--soft:#f6f8fa;--max:1100px;--col:760px}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#e6edf3;--muted:#8d96a0;--line:#30363d;--accent:#4493f8;--soft:#161b22}}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:76px}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Pretendard,"Noto Sans KR","Segoe UI",Roboto,Helvetica,Arial,sans-serif;word-break:keep-all}
+a{color:var(--accent)}
+.topbar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.topbar .in{max-width:var(--max);margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.topbar .brand{font-weight:700;text-decoration:none;color:var(--fg)}
+.topbar nav{display:flex;gap:4px;flex-wrap:wrap}
+.topbar nav a{padding:6px 10px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:.95rem}
+.topbar nav a:hover{background:var(--soft);color:var(--fg)}
+.topbar nav a.on{color:var(--fg);background:var(--soft);font-weight:600}
+.topbar .ext{margin-left:auto;display:flex;gap:10px;align-items:center}
+.topbar .ext a{font-size:.88rem;text-decoration:none}
+.lang{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;font-size:.78rem}
+.lang a,.lang span{padding:3px 9px;text-decoration:none;color:var(--muted)}
+.lang .on{background:var(--accent);color:#fff;font-weight:600}
+.lang span.off{opacity:.45;cursor:not-allowed}
+.toc-btn{display:none;position:fixed;right:16px;bottom:16px;z-index:30;width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--bg);color:var(--fg);box-shadow:0 4px 14px rgba(0,0,0,.18);cursor:pointer;font-size:1.1rem}
+.hero{border-bottom:1px solid var(--line);background:var(--soft)}
+.hero .in{max-width:var(--max);margin:0 auto;padding:36px 20px 28px}
+.hero h1{margin:0 0 4px;font-size:2rem;letter-spacing:-.01em}
+.hero p{margin:0;color:var(--muted);font-size:1.05rem}
+.wrap{max-width:var(--max);margin:0 auto;padding:24px 20px 56px;display:grid;grid-template-columns:minmax(0,var(--col)) 1fr;gap:40px}
+.wrap.solo{grid-template-columns:minmax(0,var(--col))}
+article>h1{font-size:1.55rem;margin:2em 0 .6em;padding-bottom:.3em;border-bottom:1px solid var(--line)}
+article>h1:first-child{margin-top:.2em}
+article h2{font-size:1.28rem;margin:1.9em 0 .5em;scroll-margin-top:76px}
+article h3{font-size:1.06rem;margin:1.8em 0 .3em;color:var(--fg);display:flex;align-items:center;gap:10px;scroll-margin-top:76px}
+article h4{font-size:1.02rem;margin:1.5em 0 .3em;color:var(--fg);display:flex;align-items:center;gap:10px;scroll-margin-top:76px}
+article h4.sub,article h3+h4{color:var(--muted);font-size:.9rem;letter-spacing:.04em;text-transform:uppercase;margin-top:1.1em}
+article p{margin:.5em 0}article hr{border:0;border-top:1px solid var(--line);margin:1.8em 0}
+article ul,article ol{padding-left:1.4em;margin:.4em 0}article li{margin:.22em 0}article li>ul,article li>ol{margin:.15em 0 .3em}
+article code{background:var(--soft);padding:.1em .35em;border-radius:4px;font-size:.92em}
+article pre{background:var(--soft);padding:12px 14px;border-radius:8px;overflow:auto;font-size:.88em;line-height:1.5}
+article pre code{background:none;padding:0}
+article table{border-collapse:collapse;width:100%;margin:.8em 0;font-size:.95em;display:block;overflow-x:auto}
+article th,article td{border:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}
+article th{background:var(--soft)}
+article table.certs{display:table;font-size:.93em}article table.certs td:last-child,article table.certs th:last-child{white-space:nowrap}
+article blockquote{background:color-mix(in srgb,var(--accent) 8%,var(--soft));border-left:3px solid var(--accent);color:var(--fg);padding:.6em 1em;margin:1em 0;border-radius:0 6px 6px 0}
+article .more{font-size:.9rem;color:var(--muted)}
+article .tag{display:inline-block;font-size:.78rem;padding:1px 8px;border:1px solid var(--line);border-radius:999px;color:var(--muted);margin:0 6px 4px 0;vertical-align:middle}
+article .meta{color:var(--muted);font-size:.95rem;margin:-.4em 0 1.2em;padding-bottom:1em;border-bottom:1px solid var(--line)}
+article .period{color:var(--muted);font-size:.9rem;margin:-.1em 0 .4em}
+article .period a{text-decoration:none;font-weight:500}article .period a:hover{text-decoration:underline}
+article .phase{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-size:.82rem;font-weight:700;flex-shrink:0}
+article .stack{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin:.8em 0;font-size:.95rem}
+article .stack p{margin:.35em 0}
+article .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:1.2em 0}
+article .stats>div{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:14px 10px;text-align:center}
+article .stats strong{display:block;font-size:1.4rem;color:var(--fg);line-height:1.1;margin-bottom:4px}
+article .stats span{display:block;font-size:.78rem;color:var(--muted);line-height:1.3}
+article .badges,article .chips{margin:1em 0 1.2em;line-height:2}
+article .chips{margin:.1em 0 .6em}
+article .b,article .chip{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.8rem;border:1px solid var(--line);background:var(--soft);color:var(--fg);margin:0 2px 2px 0}
+article .chip{font-size:.74rem;color:var(--muted);padding:1px 9px}
+article .b-go{background:color-mix(in srgb,var(--accent) 15%,var(--soft));border-color:color-mix(in srgb,var(--accent) 40%,var(--line));color:var(--accent);font-weight:600}
+article .impact{background:color-mix(in srgb,var(--accent) 7%,var(--bg));border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line));border-radius:8px;padding:10px 14px;margin:.4em 0 1em;font-size:.92rem;line-height:1.6}
+article .impact-k{display:inline-block;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-right:8px;vertical-align:middle}
+article .cta{margin:1.4em 0 .6em;display:flex;gap:10px;flex-wrap:wrap}
+article .btn{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:8px;background:var(--accent);color:#fff;text-decoration:none;font-size:.92rem;font-weight:500}
+article .btn svg{flex-shrink:0}article .btn .arr{transition:transform .15s}article .btn:hover .arr{transform:translateX(3px)}
+article .btn:hover{opacity:.92}
+article .btn-ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+article .diagram{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:1.2em 0}
+article .dg-title{margin:0 0 10px;font-size:.85rem;font-weight:600;color:var(--muted);letter-spacing:.04em}
+article .dg-flow{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap}
+article .dg-box{flex:1 1 120px;min-width:120px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;text-align:center;font-size:.85rem;line-height:1.35}
+article .dg-box b{display:block;margin-bottom:4px}article .dg-box small{color:var(--muted);font-size:.76rem;display:block}
+article .dg-accent{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));background:color-mix(in srgb,var(--accent) 8%,var(--bg))}
+article .dg-arrow{align-self:center;color:var(--muted);font-size:1.2rem}
+article .dg-note{margin:10px 0 0;font-size:.8rem;color:var(--muted)}
+aside.toc{position:sticky;top:76px;align-self:start;max-height:calc(100vh - 96px);overflow:auto;font-size:.86rem;border-left:1px solid var(--line);padding-left:16px}
+aside.toc .t{font-weight:600;margin:0 0 8px;color:var(--muted);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase}
+aside.toc ul{list-style:none;margin:0;padding:0}aside.toc li{margin:4px 0}
+aside.toc ul ul{padding-left:12px}aside.toc a{color:var(--muted);text-decoration:none}aside.toc a:hover,aside.toc a.cur{color:var(--fg);font-weight:600}
+footer{border-top:1px solid var(--line);color:var(--muted);font-size:.85rem}
+footer .in{max-width:var(--max);margin:0 auto;padding:18px 20px 40px;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center}
+footer .links a{margin-right:14px}
+@media(max-width:960px){.wrap{grid-template-columns:minmax(0,1fr)}
+aside.toc{display:none;position:fixed;right:16px;bottom:72px;z-index:30;max-height:60vh;width:min(320px,calc(100vw - 32px));background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:0 10px 30px rgba(0,0,0,.22)}
+aside.toc.open{display:block}.toc-btn{display:block}}
+@media(max-width:600px){article .stats{grid-template-columns:repeat(2,1fr)}article .cta{flex-direction:column}article .btn{justify-content:center}article .dg-flow{flex-direction:column}article .dg-arrow{transform:rotate(90deg)}}
+@media print{:root{--bg:#fff;--fg:#000;--muted:#444;--line:#bbb;--accent:#000;--soft:#fff}
+body{font-size:11pt;line-height:1.45}.topbar,aside.toc,.toc-btn,footer,.more,.cta{display:none}
+.hero{background:none;border:0}.hero .in,.wrap{padding:0}.wrap{display:block}
+article .impact,article .diagram{border:1px solid #bbb;background:#fff}
+article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-break-after:avoid}article li,article p{page-break-inside:avoid}a{text-decoration:none}}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="in">
+<a class="brand" href="index.en.html">Seungha Lee</a>
+<nav><a href="index.en.html" class=on>Career</a><a href="portfolio.html">Portfolio</a><a href="architecture.html">Architecture</a><a href="decisions.html">Design Decisions</a></nav>
+<div class="ext"><a href="mailto:shalwxy@gmail.com" rel="me noopener">Email</a><span class="lang"><a href="index.html">KR</a><span class="on">EN</span></span></div>
+</div></div>
+<div class="hero"><div class="in"><h1>Seungha Lee</h1><p>Backend Engineer · Go / gRPC / Kafka / PostgreSQL</p></div></div>
+<div class="wrap">
+<article>
+<h1 id="career-description">Career Description</h1>
+<p>Hi, I&rsquo;m Seungha Lee — a backend engineer who enjoys the time spent designing and building systems.</p>
+<hr>
+<h1 id="work-experience">Work Experience</h1>
+<h2 id="nexon-universe-maplestory-universe">NEXON UNIVERSE — MapleStory Universe</h2>
+<p class="meta">Backend Developer · Platform Development Team · Nov 2023 – Nov 2026 (3 years)</p>
+
+<p>MapleStory Universe (MSU) is a Web3 platform built on the MapleStory IP. I started on the on-chain/off-chain synchronization layer and went on to be the main contributor for transaction history, bookmarks, the marketplace BFF, account/payment, unified notifications, a policy service, a CDC data pipeline, and an operations AI bot.</p>
+<div class="stats">
+<div><strong>33</strong><span>repositories</span></div>
+<div><strong>3,700+</strong><span>commits</span></div>
+<div><strong>4</strong><span>services · domains · bots<br/>design to operation</span></div>
+<div><strong>3 yrs</strong><span>tenure</span></div>
+</div>
+
+<p class="badges">
+<span class="b b-go">Go</span>
+<span class="b">gRPC</span>
+<span class="b">Kafka</span>
+<span class="b">PostgreSQL</span>
+<span class="b">Redis</span>
+<span class="b">MongoDB</span>
+<span class="b">Snowflake</span>
+<span class="b">AWS EKS</span>
+<span class="b">Helm</span>
+<span class="b">Vertex AI</span>
+</p>
+
+<blockquote>
+<p>My core role: keeping data consistent in distributed systems — <strong>preemption · idempotency · outbox · CDC</strong>.</p>
+</blockquote>
+<p class="cta">
+<a class="btn" href="portfolio.html">Portfolio (KR) — problem · approach · result →</a>
+<a class="btn btn-ghost" href="decisions.html">Design Decisions (KR) →</a>
+</p>
+
+<h3 id="what-i-did">What I did</h3>
+<h4 id="1-on-chain-off-chain-synchronization-data-engine"><span class="phase">1</span> On-chain / off-chain synchronization (Data Engine)</h4>
+<p class="period">Nov 2023 – Apr 2024</p>
+<p class="chips"><span class="chip">Go</span><span class="chip">Saga</span><span class="chip">Redis distributed lock</span><span class="chip">Helm</span></p>
+<div class="impact"><span class="impact-k">Impact</span> Fixed nickname duplication at character mint with <strong>Redis-lock preemption</strong> · turned per-item nft_item validation lookups into <strong>one list query</strong> · 186 commits across 4 repos</div>
+
+<ul>
+<li>Added input validation, a proto ↔ domain converter with unit tests, and gRPC error wrapping while wiring a new core service into the facade</li>
+<li>Added currency/character validators for the Saga v2 migration and reworked nft_item validation from per-item state lookups to a single list query</li>
+<li>Fixed nickname duplication at character mint: dropped the existence check, <strong>preempted with a Redis lock</strong>, released only on successful mint — a small fix, but a pattern I kept reusing</li>
+<li>Ran Helm rollouts for new services, reproduced a DocumentDB incident with throwaway deploys, and established dev-first deployment before test/qa promotion</li>
+</ul>
+<h4 id="2-transaction-history-bookmarks-marketplace-bff"><span class="phase">2</span> Transaction history · bookmarks · marketplace BFF</h4>
+<p class="period">Jun 2024 – Sep 2025</p>
+<p class="chips"><span class="chip">gRPC</span><span class="chip">Kafka</span><span class="chip">PostgreSQL advisory lock</span><span class="chip">Redis NX</span><span class="chip">CDC</span><span class="chip">Snowflake</span></p>
+<div class="impact"><span class="impact-k">Impact</span> Restructured and extended transaction history (<strong>907 commits</strong>) and carried bookmarks from its early stage to production (<strong>550 commits</strong>, majority of the repo) · blocked duplicate writes under concurrent ingestion with Redis NX + advisory locks · narrowed intermittent BFF pod restarts to a cause and fixed them</div>
+
+<ul>
+<li><strong>High-volume transaction ledger (api-activity)</strong> — inherited the early codebase, restructured layers and split the query server from the Kafka consumer, then extended it to trades, mints, transfers, Swap &amp; Warp, bridge-in and USDT. Promoted the transaction hash to a unique key, routed malformed events to a DLQ, and protected concurrent ingestion with Redis NX + PostgreSQL advisory locks</li>
+<li><strong>Query performance</strong> — OR → UNION ALL rewrite with the DBA, cursor-based infinite scroll, conditional caching contributed to the shared library</li>
+<li>Emitted notification events on transaction finalization; moved Snowflake ingestion from Kafka publishes to <strong>CDC</strong>, removing the publish-failure loss path</li>
+<li><strong>Bookmark / view-count service (api-bookmark)</strong> — joined right after the initial scaffold and owned the core features (majority of commits): idempotent writes, Redis counters moved to Kafka-driven aggregation, daily/total limits, account-deletion hook</li>
+<li><strong>Marketplace web BFF</strong> — migrated bookmark/activity calls, built the inventory service, parallelized rendering. Traced intermittent pod restarts to gRPC calls inside async loops holding resources and fixed them with timeouts and chunked calls</li>
+<li>Swap &amp; Warp (cross-chain) domain, domain-split proto repository, shared-library migration across platform and marketplace services</li>
+<li>Probability-disclosure service: requirements, versioning, data ingestion</li>
+<li>Back-office item/token sanctions (single, batch, bulk) and sanction history</li>
+</ul>
+<h4 id="3-account-payment-unified-notifications"><span class="phase">3</span> Account · payment · unified notifications</h4>
+<p class="period">Jul 2025 – Aug 2026</p>
+<p class="chips"><span class="chip">Worldpay</span><span class="chip">Redis Lua</span><span class="chip">SSE</span><span class="chip">gRPC streaming</span><span class="chip">MongoDB</span><span class="chip">Outbox</span></p>
+<div class="impact"><span class="impact-k">Impact</span> Shipped credit-card verification and re-verification through <strong>two review rounds</strong> · enforced the daily limit atomically with <strong>Lua</strong> · bulk recipients moved to <strong>500-row streaming chunks</strong> · full-user KYC migration completed in production</div>
+
+<ul>
+<li><strong>Worldpay (FraudSight 3DS) card verification &amp; re-verification</strong> — mapped vendor 4xx to 200 + outcome codes and 5xx to errors, enforced the daily limit atomically with a Redis Lua script, encrypted payment-instrument data and added a circuit breaker, designed re-verification for OTP reset</li>
+<li><strong>Stablecoin (USDT) launch</strong> — redesigned the off-chain pre-deduction/rollback service and collapsed the rollback topic into a single result-confirmation topic</li>
+<li><strong>Unified notifications (SSE)</strong> — absorbed JWT verification to drop the account-service dependency, capped concurrent subscriptions, generated URLs server-side, and split bulk recipients into a <strong>gRPC streaming RPC</strong> (500-row chunks, 50,000 cap)</li>
+<li>Replaced the gateway&rsquo;s gRPC dependency with HTTP to reduce coupling</li>
+<li><strong>KYC vendor migration (Argos → Sumsub)</strong> — parallel calls, resumable cursor, rate limiter</li>
+<li>Discord auto-badge bot, role-sync batch and community-notice crawler — external side effects retried through an <strong>outbox</strong></li>
+<li>Security-settings lock after e-mail change — moved from Redis TTL to a persisted column, primary reads to close the replication-lag window</li>
+</ul>
+<h4 id="4-policy-service-data-pipeline-ops-automation"><span class="phase">4</span> Policy service · data pipeline · ops automation</h4>
+<p class="period">Jan 2026 – Nov 2026</p>
+<p class="chips"><span class="chip">Debezium</span><span class="chip">Snowflake Stream/Task</span><span class="chip">Vertex AI</span><span class="chip">OpenSearch</span><span class="chip">Slack API</span></p>
+<div class="impact"><span class="impact-k">Impact</span> Consolidated scattered control logic into <strong>one policy service</strong> used by four callers · replaced batch sync jobs with a <strong>CDC pipeline</strong> · automated first-pass error triage and shipped the first fix for a vendor model-deprecation outage <strong>within 3 days</strong> (re-swapped on recurrence)</div>
+
+<ul>
+<li><strong>Policy service (api-sentinel)</strong> — ACL (wallet/IP allow &amp; deny lists), rate limiting (sliding + fixed window with jitter), lockout with flexible failure-count policies, runtime feature flags</li>
+<li><strong>PostgreSQL CDC → Snowflake</strong> — Debezium connectors, Stream/Task, a replication-slot keepalive job, conditional tasks to cut cost</li>
+<li><strong>Error-triage bot</strong> — LLM first-pass analysis of Slack alerts with GitLab commit diffing, OpenSearch history and escalation; handled a vendor model deprecation with model swap, retry/backoff and a semaphore</li>
+<li>Operations console — Discord message re-send, permission-domain split, wallet ↔ SNS lookups</li>
+</ul>
+<h3 id="tech-stack">Tech Stack</h3>
+<div class="stack">
+<p><strong>Language</strong> &nbsp;·&nbsp; Go · Java (Spring)</p>
+<p><strong>Communication</strong> &nbsp;·&nbsp; gRPC (unary / streaming, buf) · HTTP · Envoy · SSE</p>
+<p><strong>Data</strong> &nbsp;·&nbsp; PostgreSQL · MongoDB · AWS DocumentDB · Redis · Snowflake</p>
+<p><strong>Messaging</strong> &nbsp;·&nbsp; Kafka (Watermill · Debezium Connect · Spring Kafka)</p>
+<p><strong>Infra / DevOps</strong> &nbsp;·&nbsp; AWS EKS · Helm · ArgoCD · Rundeck · Jenkins · GitLab CI</p>
+<p><strong>Observability</strong> &nbsp;·&nbsp; Datadog · Jaeger · OpenSearch</p>
+<p><strong>AI</strong> &nbsp;·&nbsp; Vertex AI (LLM)</p>
+</div>
+<hr>
+<h2 id="uclick-ai-engineering-rd">UCLICK — AI Engineering R&amp;D</h2>
+<p class="meta">AI Engineering R&D · AI Service Team 1 · Jan 2021 – Oct 2023 (1 yr 10 mo)</p>
+
+<ul>
+<li><strong>NVIDIA Omniverse R&amp;D (Jun 2022 – Oct 2023)</strong> — robot assembly and simulation in IsaacSim with ROS messaging (Python); VR device integration in CreateXR with an UnrealEngine4 single-player sample (C++)</li>
+<li><strong>GC-GPU solution incident diagnosis (Apr – May 2022)</strong> — kernel-panic log analysis and root-cause fixes at the environment and source level</li>
+<li><strong>NVIDIA GPU MIG support (Mar – Apr 2022)</strong> — on-site MIG enablement for a financial client&rsquo;s dev/prod servers; shell script that recreates MIG profiles after reboot</li>
+<li><strong>GPU monitoring with NVIDIA deepops (Jan – Feb 2022, sole owner)</strong> — Prometheus/Grafana via Ansible; repackaged as scripts and images for air-gapped networks</li>
+</ul>
+<h2 id="uclick-backend-developer">UCLICK — Backend Developer</h2>
+<p class="meta">Backend Developer · R&D Lab 2 · Nov 2019 – Dec 2021 (2 years)</p>
+
+<ul>
+<li><strong>UNO-GATEWAY (Sep 2020 – Dec 2021)</strong> — dynamic OPEN API platform (validation, transformation, auth, rate limiting, routing); WebSocket + performance view, connectors for 7 databases and Elasticsearch/Hazelcast/Redis, Ribbon load-balancing tests, packaging</li>
+<li><strong>UNO-GATEWAY MDB project for a securities firm (Sep – Oct 2021, sole owner)</strong> — JSON ↔ fixed-format message conversion over TCP</li>
+<li><strong>UNO-MSP (Feb 2020 – Dec 2021, lead developer)</strong> — Oracle Cloud MSP platform across four releases: real-time resource collection, dashboards, billing integrity, OCI alarm/rule sync, Slack/mail alerts, monthly reports, HA agents, Zendesk integration, JDBC DB monitoring</li>
+<li><strong>LISTEN2ME-SURVEY (Sep – Oct 2020)</strong> — spreadsheet-to-survey web app; API contract and statistics dashboard data</li>
+</ul>
+<hr>
+<h1 id="other-experiences">Other Experiences</h1>
+<h2 id="certifications">Certifications</h2>
+<table class="certs">
+<thead><tr><th>Certification</th><th>Issuer</th><th>Date</th></tr></thead>
+<tbody>
+<tr><td><strong>Engineer Information Processing</strong></td><td>Ministry of Science and ICT</td><td>Aug 2019</td></tr>
+<tr><td><strong>SQL Developer (SQLD)</strong></td><td>Korea Data Agency</td><td>Sep 2019</td></tr>
+<tr><td><strong>Information Security Engineer</strong></td><td>Ministry of Science and ICT</td><td>May 2023</td></tr>
+<tr><td><strong>Linux Master Level 1</strong></td><td>KAIT</td><td>May 2021</td></tr>
+<tr><td><strong>Network Administrator Level 1</strong></td><td>ICQA</td><td>May 2023</td></tr>
+<tr><td>Linux Master Level 2</td><td>KAIT</td><td>Jul 2020</td></tr>
+<tr><td>Network Administrator Level 2</td><td>ICQA</td><td>Jul 2020</td></tr>
+</tbody>
+</table>
+
+<h2 id="korea-national-open-university-computer-science">Korea National Open University — Computer Science</h2>
+<p class="meta">Mar 2021 – Feb 2024 · A+ in every major course</p>
+
+<p>Enrolled to ground my engineering in computer science fundamentals: digital logic, computer architecture, operating systems, compilers, data structures, algorithms, databases, plus C/C++/Java, security, cloud computing and simulation.</p>
+<h2 id="korea-polytechnic-data-convergence-software">Korea Polytechnic — Data Convergence Software</h2>
+<p class="meta">Mar 2019 – Nov 2019</p>
+
+<p>Hands-on Java/Spring, Python, R, Linux and database training, including TensorFlow regression, large-scale customer SQL analysis with Oracle, and JSP/Open-API web apps.</p>
+<h2 id="ewha-womans-university-mathematics-education">Ewha Womans University — Mathematics Education</h2>
+<p class="meta">Mar 2011 – Feb 2016</p>
+
+<p>Calculus, linear algebra, geometry, probability and statistics, analysis, topology, number theory and abstract algebra.</p>
+<hr>
+<h1 id="skills">Skills</h1>
+<h2 id="backend-development">Backend Development</h2>
+<ul>
+<li><strong>Go and refactoring</strong> — comfortable with goroutine/channel concurrency; I keep splitting complex code into small, loosely coupled units behind interfaces.</li>
+<li><strong>Data design under concurrency</strong> — PostgreSQL advisory locks, Redis distributed locks and Lua atomics, idempotent writes; I design the schema, the application layer and the database layer together so out-of-order messages never create duplicates.</li>
+<li><strong>Failure paths first</strong> — pre-deduction/rollback, outbox retries, DLQs and CDC. When a large feature is rolled back, the defect fixes discovered along the way stay.</li>
+<li><strong>Flexible APIs</strong> — policies come in as enums/config rather than code branches, so policy changes don&rsquo;t become commits.</li>
+</ul>
+<h2 id="architecture-operations">Architecture &amp; Operations</h2>
+<ul>
+<li><strong>New services and domains to production</strong> — the policy service from its first commit, bookmarks and Swap &amp; Warp joined early and carried to production with the majority of commits, and an error-triage bot added to an existing service. Splitting layers and server/consumer early is what lets features land without structural change later.</li>
+<li><strong>Pipelines outside the service</strong> — batch → publish removal → CDC with Debezium and Snowflake Stream/Task, including slot keepalive and conditional tasks.</li>
+<li><strong>Infra &amp; deployment</strong> — Helm, ArgoCD, Rundeck, Jenkins, GitLab CI; dev-first promotion and reproducible incident deploys.</li>
+</ul>
+<h2 id="logging-debugging">Logging / Debugging</h2>
+<ul>
+<li><strong>Meaningful logs and correlation keys</strong> so a request can be traced end to end across Datadog, Jaeger and OpenSearch.</li>
+<li><strong>Hypothesis-driven debugging</strong> — context and environment first, then narrow the scope; hidden causes like async-loop resource exhaustion get found and fixed at the root.</li>
+<li><strong>Closing incidents on recurrence conditions</strong>, not on the first fix — retries, backoff, semaphores and table tests ship together.</li>
+</ul>
+<h2 id="communication">Communication</h2>
+<ul>
+<li><strong>Clarifying requirements</strong> and separating &ldquo;current assumptions&rdquo; from &ldquo;needs verification&rdquo; when working with DBAs, data engineering, security and product.</li>
+<li><strong>Visual, horizontal communication</strong> — diagrams and written proposals; I change direction when a better one appears.</li>
+<li><strong>Proactive risk management</strong> and turning review feedback into team principles (&ldquo;no log-and-swallow on external calls&rdquo;, &ldquo;inject config at boot&rdquo;).</li>
+</ul>
+</article>
+<aside class="toc"><p class="t">Contents</p><ul><li><a href="#career-description">Career Description</a></li><li><a href="#work-experience">Work Experience</a><ul><li><a href="#nexon-universe-maplestory-universe">NEXON UNIVERSE — MapleStory Universe</a></li><li><a href="#uclick-ai-engineering-rd">UCLICK — AI Engineering R&amp;D</a></li><li><a href="#uclick-backend-developer">UCLICK — Backend Developer</a></li></ul></li><li><a href="#other-experiences">Other Experiences</a><ul><li><a href="#certifications">Certifications</a></li><li><a href="#korea-national-open-university-computer-science">Korea National Open University — Computer Science</a></li><li><a href="#korea-polytechnic-data-convergence-software">Korea Polytechnic — Data Convergence Software</a></li><li><a href="#ewha-womans-university-mathematics-education">Ewha Womans University — Mathematics Education</a></li></ul></li><li><a href="#skills">Skills</a><ul><li><a href="#backend-development">Backend Development</a></li><li><a href="#architecture-operations">Architecture &amp; Operations</a></li><li><a href="#logging-debugging">Logging / Debugging</a></li><li><a href="#communication">Communication</a></li></ul></li></ul></aside>
+</div>
+<button class="toc-btn" aria-label="목차">☰</button>
+<footer><div class="in"><span>Last updated 2026-10-26</span><span class="links"><a href="mailto:shalwxy@gmail.com" rel="me noopener">Email</a></span><span>Public summary. Internal identifiers and operational details are intentionally omitted.</span></div></footer>
+<script>
+(function(){
+  var btn=document.querySelector('.toc-btn'),toc=document.querySelector('aside.toc');
+  if(btn&&toc){btn.addEventListener('click',function(){toc.classList.toggle('open')});
+    toc.addEventListener('click',function(e){if(e.target.tagName==='A')toc.classList.remove('open')});}
+  if(!toc)return;
+  var links=[].slice.call(toc.querySelectorAll('a[href^="#"]'));
+  var heads=links.map(function(a){return document.getElementById(decodeURIComponent(a.getAttribute('href').slice(1)))}).filter(Boolean);
+  function cur(){var y=window.scrollY+90,i=-1;heads.forEach(function(h,k){if(h.offsetTop<=y)i=k});
+    links.forEach(function(a,k){a.classList.toggle('cur',k===i)})}
+  window.addEventListener('scroll',cur,{passive:true});cur();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architecture — 이승하</title>
+<meta name="description" content="이승하 · Backend Engineer · Go / gRPC / Kafka / PostgreSQL">
+<style>
+:root{--bg:#fff;--fg:#1f2328;--muted:#656d76;--line:#d0d7de;--accent:#0969da;--soft:#f6f8fa;--max:1100px;--col:760px}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#e6edf3;--muted:#8d96a0;--line:#30363d;--accent:#4493f8;--soft:#161b22}}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:76px}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Pretendard,"Noto Sans KR","Segoe UI",Roboto,Helvetica,Arial,sans-serif;word-break:keep-all}
+a{color:var(--accent)}
+.topbar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.topbar .in{max-width:var(--max);margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.topbar .brand{font-weight:700;text-decoration:none;color:var(--fg)}
+.topbar nav{display:flex;gap:4px;flex-wrap:wrap}
+.topbar nav a{padding:6px 10px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:.95rem}
+.topbar nav a:hover{background:var(--soft);color:var(--fg)}
+.topbar nav a.on{color:var(--fg);background:var(--soft);font-weight:600}
+.topbar .ext{margin-left:auto;display:flex;gap:10px;align-items:center}
+.topbar .ext a{font-size:.88rem;text-decoration:none}
+.lang{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;font-size:.78rem}
+.lang a,.lang span{padding:3px 9px;text-decoration:none;color:var(--muted)}
+.lang .on{background:var(--accent);color:#fff;font-weight:600}
+.lang span.off{opacity:.45;cursor:not-allowed}
+.toc-btn{display:none;position:fixed;right:16px;bottom:16px;z-index:30;width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--bg);color:var(--fg);box-shadow:0 4px 14px rgba(0,0,0,.18);cursor:pointer;font-size:1.1rem}
+.hero{border-bottom:1px solid var(--line);background:var(--soft)}
+.hero .in{max-width:var(--max);margin:0 auto;padding:36px 20px 28px}
+.hero h1{margin:0 0 4px;font-size:2rem;letter-spacing:-.01em}
+.hero p{margin:0;color:var(--muted);font-size:1.05rem}
+.wrap{max-width:var(--max);margin:0 auto;padding:24px 20px 56px;display:grid;grid-template-columns:minmax(0,var(--col)) 1fr;gap:40px}
+.wrap.solo{grid-template-columns:minmax(0,var(--col))}
+article>h1{font-size:1.55rem;margin:2em 0 .6em;padding-bottom:.3em;border-bottom:1px solid var(--line)}
+article>h1:first-child{margin-top:.2em}
+article h2{font-size:1.28rem;margin:1.9em 0 .5em;scroll-margin-top:76px}
+article h3{font-size:1.06rem;margin:1.8em 0 .3em;color:var(--fg);display:flex;align-items:center;gap:10px;scroll-margin-top:76px}
+article h4{font-size:1.02rem;margin:1.5em 0 .3em;color:var(--fg);display:flex;align-items:center;gap:10px;scroll-margin-top:76px}
+article h4.sub,article h3+h4{color:var(--muted);font-size:.9rem;letter-spacing:.04em;text-transform:uppercase;margin-top:1.1em}
+article p{margin:.5em 0}article hr{border:0;border-top:1px solid var(--line);margin:1.8em 0}
+article ul,article ol{padding-left:1.4em;margin:.4em 0}article li{margin:.22em 0}article li>ul,article li>ol{margin:.15em 0 .3em}
+article code{background:var(--soft);padding:.1em .35em;border-radius:4px;font-size:.92em}
+article pre{background:var(--soft);padding:12px 14px;border-radius:8px;overflow:auto;font-size:.88em;line-height:1.5}
+article pre code{background:none;padding:0}
+article table{border-collapse:collapse;width:100%;margin:.8em 0;font-size:.95em;display:block;overflow-x:auto}
+article th,article td{border:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}
+article th{background:var(--soft)}
+article table.certs{display:table;font-size:.93em}article table.certs td:last-child,article table.certs th:last-child{white-space:nowrap}
+article blockquote{background:color-mix(in srgb,var(--accent) 8%,var(--soft));border-left:3px solid var(--accent);color:var(--fg);padding:.6em 1em;margin:1em 0;border-radius:0 6px 6px 0}
+article .more{font-size:.9rem;color:var(--muted)}
+article .tag{display:inline-block;font-size:.78rem;padding:1px 8px;border:1px solid var(--line);border-radius:999px;color:var(--muted);margin:0 6px 4px 0;vertical-align:middle}
+article .meta{color:var(--muted);font-size:.95rem;margin:-.4em 0 1.2em;padding-bottom:1em;border-bottom:1px solid var(--line)}
+article .period{color:var(--muted);font-size:.9rem;margin:-.1em 0 .4em}
+article .period a{text-decoration:none;font-weight:500}article .period a:hover{text-decoration:underline}
+article .phase{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-size:.82rem;font-weight:700;flex-shrink:0}
+article .stack{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin:.8em 0;font-size:.95rem}
+article .stack p{margin:.35em 0}
+article .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:1.2em 0}
+article .stats>div{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:14px 10px;text-align:center}
+article .stats strong{display:block;font-size:1.4rem;color:var(--fg);line-height:1.1;margin-bottom:4px}
+article .stats span{display:block;font-size:.78rem;color:var(--muted);line-height:1.3}
+article .badges,article .chips{margin:1em 0 1.2em;line-height:2}
+article .chips{margin:.1em 0 .6em}
+article .b,article .chip{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.8rem;border:1px solid var(--line);background:var(--soft);color:var(--fg);margin:0 2px 2px 0}
+article .chip{font-size:.74rem;color:var(--muted);padding:1px 9px}
+article .b-go{background:color-mix(in srgb,var(--accent) 15%,var(--soft));border-color:color-mix(in srgb,var(--accent) 40%,var(--line));color:var(--accent);font-weight:600}
+article .impact{background:color-mix(in srgb,var(--accent) 7%,var(--bg));border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line));border-radius:8px;padding:10px 14px;margin:.4em 0 1em;font-size:.92rem;line-height:1.6}
+article .impact-k{display:inline-block;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-right:8px;vertical-align:middle}
+article .cta{margin:1.4em 0 .6em;display:flex;gap:10px;flex-wrap:wrap}
+article .btn{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:8px;background:var(--accent);color:#fff;text-decoration:none;font-size:.92rem;font-weight:500}
+article .btn svg{flex-shrink:0}article .btn .arr{transition:transform .15s}article .btn:hover .arr{transform:translateX(3px)}
+article .btn:hover{opacity:.92}
+article .btn-ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+article .diagram{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:1.2em 0}
+article .dg-title{margin:0 0 10px;font-size:.85rem;font-weight:600;color:var(--muted);letter-spacing:.04em}
+article .dg-flow{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap}
+article .dg-box{flex:1 1 120px;min-width:120px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;text-align:center;font-size:.85rem;line-height:1.35}
+article .dg-box b{display:block;margin-bottom:4px}article .dg-box small{color:var(--muted);font-size:.76rem;display:block}
+article .dg-accent{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));background:color-mix(in srgb,var(--accent) 8%,var(--bg))}
+article .dg-arrow{align-self:center;color:var(--muted);font-size:1.2rem}
+article .dg-note{margin:10px 0 0;font-size:.8rem;color:var(--muted)}
+aside.toc{position:sticky;top:76px;align-self:start;max-height:calc(100vh - 96px);overflow:auto;font-size:.86rem;border-left:1px solid var(--line);padding-left:16px}
+aside.toc .t{font-weight:600;margin:0 0 8px;color:var(--muted);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase}
+aside.toc ul{list-style:none;margin:0;padding:0}aside.toc li{margin:4px 0}
+aside.toc ul ul{padding-left:12px}aside.toc a{color:var(--muted);text-decoration:none}aside.toc a:hover,aside.toc a.cur{color:var(--fg);font-weight:600}
+footer{border-top:1px solid var(--line);color:var(--muted);font-size:.85rem}
+footer .in{max-width:var(--max);margin:0 auto;padding:18px 20px 40px;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center}
+footer .links a{margin-right:14px}
+@media(max-width:960px){.wrap{grid-template-columns:minmax(0,1fr)}
+aside.toc{display:none;position:fixed;right:16px;bottom:72px;z-index:30;max-height:60vh;width:min(320px,calc(100vw - 32px));background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:0 10px 30px rgba(0,0,0,.22)}
+aside.toc.open{display:block}.toc-btn{display:block}}
+@media(max-width:600px){article .stats{grid-template-columns:repeat(2,1fr)}article .cta{flex-direction:column}article .btn{justify-content:center}article .dg-flow{flex-direction:column}article .dg-arrow{transform:rotate(90deg)}}
+@media print{:root{--bg:#fff;--fg:#000;--muted:#444;--line:#bbb;--accent:#000;--soft:#fff}
+body{font-size:11pt;line-height:1.45}.topbar,aside.toc,.toc-btn,footer,.more,.cta{display:none}
+.hero{background:none;border:0}.hero .in,.wrap{padding:0}.wrap{display:block}
+article .impact,article .diagram{border:1px solid #bbb;background:#fff}
+article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-break-after:avoid}article li,article p{page-break-inside:avoid}a{text-decoration:none}}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="in">
+<a class="brand" href="index.html">이승하</a>
+<nav><a href="index.html">Career</a><a href="portfolio.html">Portfolio</a><a href="architecture.html" class=on>Architecture</a><a href="decisions.html">Design Decisions</a></nav>
+<div class="ext"><a href="mailto:shalwxy@gmail.com" rel="me noopener">Email</a><span class="lang"><span class="on">KR</span><span class="off" title="English version: Career page only">EN</span></span></div>
+</div></div>
+
+<div class="wrap">
+<article>
+<h1 id="architecture">Architecture</h1>
+<blockquote>
+<p>제가 일한 플랫폼의 전체 구조와, 그 안에서 제가 담당한 영역입니다. 내부 문서(워크플로우 총람 3종)를 바탕으로 <strong>공개 가능한 수준으로 정제</strong>했습니다 — 서비스 이름과 데이터 흐름만 있고, 호스트·포트·테이블·토픽명·저장소 경로는 없습니다.</p>
+</blockquote>
+<h2 id="landscape">전체 지형</h2>
+<p>플랫폼은 세 그룹으로 나뉩니다. <strong>DE(Data Engine)</strong> 가 온체인 트랜잭션을 오프체인 상태와 동기화하고, <strong>거래소 도메인</strong>이 그 상태 위에서 거래·검색·게임데이터를 제공하며, <strong>portal 플랫폼</strong>이 계정·결제·알림·정책·트랜잭션 이력을 담당합니다. 외부 개발자용 <strong>Synergy</strong> 는 portal 의 계정·OAuth 를 사용합니다.</p>
+<div class="diagram">
+<p class="dg-title">그룹 간 연결 — 굵은 테두리가 제가 담당한 서비스</p>
+<div class="dg-flow">
+<div class="dg-box"><b>DE — 온체인 동기화</b><small>business-provider (gRPC 파사드)<br/>saga-provider (Saga 실행) ★<br/>event-service (상태 저장) ★<br/>analyzer 워커들</small></div>
+<span class="dg-arrow">→</span>
+<div class="dg-box"><b>거래소 도메인</b><small>exchange (거래)<br/>api-gamedata (게임데이터)<br/>api-search · api-avatar<br/>bff-marketplace ★ · bff-navigator ★</small></div>
+<span class="dg-arrow">→</span>
+<div class="dg-box dg-accent"><b>portal 플랫폼</b><small>api-account ★ · api-activity ★<br/>api-bookmark ★ · api-notification ★<br/>api-sentinel ★ · api-blockchain-supporter ★<br/>BFF 3종 ★ · marina 게이트웨이 ★</small></div>
+<span class="dg-arrow">→</span>
+<div class="dg-box"><b>Synergy (외부 개발자)</b><small>devcenter<br/>msu-arcade</small></div>
+</div>
+<p class="dg-note">★ = 제가 메인 담당 또는 과반 기여한 서비스. 모든 외부 요청은 marina(Envoy) 를 지나며 JWT 검증 후 지갑 주소 헤더가 주입됩니다 — 모든 BFF 와 Synergy 가 이 헤더를 신뢰합니다.</p>
+</div>
+
+<h2 id="flow">데이터 흐름 — 트랜잭션 한 건의 여정</h2>
+<p>사용자가 거래소에서 아이템을 구매하면 아래 순서로 세 그룹을 지나갑니다. 제가 만든 부분은 ③~⑤입니다.</p>
+<div class="diagram">
+<p class="dg-title">거래 체결 → 이력 · 알림 · 검색 · 분석</p>
+<div class="dg-flow">
+<div class="dg-box"><b>① exchange</b><small>주문 검증 → 선차감<br/>DE 에 Lock 요청</small></div>
+<span class="dg-arrow">→</span>
+<div class="dg-box"><b>② 블록체인</b><small>트랜잭션 제출<br/>결과 이벤트</small></div>
+<span class="dg-arrow">→</span>
+<div class="dg-box"><b>DE analyzer</b><small>체인 결과를 도메인 이벤트로 정규화<br/>Saga 로 상태 반영</small></div>
+<span class="dg-arrow">→</span>
+<div class="dg-box dg-accent"><b>③ api-activity ★</b><small>거래 이벤트 소비 → 이력 적재<br/>NX + advisory lock 으로 중복 차단</small></div>
+<span class="dg-arrow">→</span>
+<div class="dg-box dg-accent"><b>④ api-notification ★</b><small>결과 확정 이벤트 → 알림 생성<br/>SSE 로 실시간 푸시</small></div>
+</div>
+<p class="dg-note">같은 거래 이벤트를 api-search(검색 인덱스)·분석 적재 컨슈머(⑤, Java)도 각자 소비합니다 — 한 토픽, 네 소비자. api-bookmark ★ 는 북마크/조회수 이벤트를 발행하고, portal DB 변경은 CDC ★ 로 분석 저장소에 실시간 반영됩니다.</p>
+</div>
+
+<h2 id="portal">제가 담당한 portal 서비스 간 의존</h2>
+<div class="diagram">
+<p class="dg-title">호출 관계 — 화살표 방향이 호출</p>
+<div class="dg-flow">
+<div class="dg-box"><b>BFF (msu-web · swapnwarp · marketplace · navigator)</b><small>프론트별 조합 레이어<br/>DB 직결 없음</small></div>
+<span class="dg-arrow">→</span>
+<div class="dg-box dg-accent"><b>api-account</b><small>허브 — 13개 호출자<br/>JWT · KYC · 신용카드 · 제재 · MFA</small></div>
+<span class="dg-arrow">→</span>
+<div class="dg-box dg-accent"><b>api-sentinel</b><small>리프 — 아무것도 호출 안 함<br/>rate limit · ACL · flag · lockout</small></div>
+</div>
+<div class="dg-flow" style="margin-top:8px">
+<div class="dg-box"><b>api-blockchain-supporter</b><small>출금/전송 가드레일<br/>→ account · sentinel</small></div>
+<span class="dg-arrow">·</span>
+<div class="dg-box"><b>api-activity · api-bookmark</b><small>이력 · 북마크<br/>→ gamedata</small></div>
+<span class="dg-arrow">·</span>
+<div class="dg-box"><b>api-notification</b><small>알림<br/>→ account · bookmark · exchange</small></div>
+</div>
+<p class="dg-note">설계 원칙: 정책은 sentinel 이 단일 소유자(다른 서비스는 조회만) · 외부 side effect 는 Outbox 로 재시도 · 데이터 파이프라인에는 서비스가 직접 쓰지 않음(CDC) · 조회 서버와 Kafka 컨슈머는 별도 바이너리.</p>
+</div>
+
+<h2 id="patterns">공통 패턴</h2>
+<p>세 그룹에 걸쳐 제가 만들거나 지킨 패턴입니다. 자세한 이유는 <a href="decisions.html">Design Decisions</a> 에.</p>
+<table>
+<thead>
+<tr>
+<th>패턴</th>
+<th>적용한 곳</th>
+<th>왜</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>확인 대신 선점</strong></td>
+<td>DE 닉네임 Redis 락 → api-activity Redis NX → 신용카드 일일 한도 Lua</td>
+<td>&ldquo;존재 확인 후 생성&rdquo; 은 확인과 생성 사이에 경합 창이 있다</td>
+</tr>
+<tr>
+<td><strong>요청/결과 동시 적재 잠금</strong></td>
+<td>api-activity Swap &amp; Warp (PostgreSQL advisory lock, 키 2개)</td>
+<td>Kafka 메시지 순서 비보장 + 재시도</td>
+</tr>
+<tr>
+<td><strong>선차감 → 결과 확정 토픽</strong></td>
+<td>api-blockchain-supporter (USDT 도입)</td>
+<td>롤백 토픽을 따로 두면 순서·중복 처리가 두 배</td>
+</tr>
+<tr>
+<td><strong>Outbox 재시도</strong></td>
+<td>api-account (디스코드 역할 부여 등 외부 호출)</td>
+<td>&ldquo;배치가 나중에 주워 담는다&rdquo; 는 복구 설계가 아니다</td>
+</tr>
+<tr>
+<td><strong>서비스 밖으로 적재</strong></td>
+<td>배치 → publish 제거 → CDC (Debezium → Snowflake)</td>
+<td>커밋 후 publish 실패 유실 경로 제거</td>
+</tr>
+<tr>
+<td><strong>정책은 enum/설정</strong></td>
+<td>출금 자격 검사 check_type · 토큰 종류 · 시간 정책</td>
+<td>정책은 바뀐다 — 왕복이 커밋이 되면 안 된다</td>
+</tr>
+<tr>
+<td><strong>큰 응답은 스트리밍 + 수신 규약</strong></td>
+<td>api-notification 대량 수신자 (500건 청크)</td>
+<td>쪼개는 것보다 수신측 조립 규약이 핵심</td>
+</tr>
+</tbody>
+</table>
+<h2 id="traps">같은 이름, 다른 것 (문서화해 둔 함정)</h2>
+<p>인수인계 문서에 남긴 것 중 공개해도 되는 항목입니다 — 팀에 들어온 사람이 처음 헷갈리는 지점을 미리 적어 두는 습관의 예시입니다.</p>
+<ul>
+<li><strong>whale</strong> — DE 에서는 ① Kafka 워커 유형 ② 공통 라이브러리의 헬스체커 ③ FlowEngine 저장소 이름, 세 가지 다른 뜻으로 쓰입니다.</li>
+<li><strong>settlement</strong> — DE 의 수불부 서비스와 리액터 보상 정산 워커는 다른 것입니다.</li>
+<li><strong>synergy 폴더</strong> — 로컬 폴더 이름과 GitLab 그룹이 일치하지 않아, 7개 저장소는 실제로는 portal 과 같은 그룹입니다.</li>
+<li><strong>이벤트 producer 이중 경로</strong> — 같은 이벤트 토픽 설정이 신형(saga emit)과 구형(FlowEngine) 양쪽에 남아 있어 이중 발행 여부를 운영에서 확인해야 합니다.</li>
+</ul>
+</article>
+<aside class="toc"><p class="t">목차</p><ul><li><a href="#architecture">Architecture</a><ul><li><a href="#landscape">전체 지형</a></li><li><a href="#flow">데이터 흐름 — 트랜잭션 한 건의 여정</a></li><li><a href="#portal">제가 담당한 portal 서비스 간 의존</a></li><li><a href="#patterns">공통 패턴</a></li><li><a href="#traps">같은 이름, 다른 것 (문서화해 둔 함정)</a></li></ul></li></ul></aside>
+</div>
+<button class="toc-btn" aria-label="목차">☰</button>
+<footer><div class="in"><span>Last updated 2026-10-26</span><span class="links"><a href="mailto:shalwxy@gmail.com" rel="me noopener">Email</a></span><span>공개용으로 정제된 요약이며 사내 식별자·운영 정보는 포함하지 않습니다.</span></div></footer>
+<script>
+(function(){
+  var btn=document.querySelector('.toc-btn'),toc=document.querySelector('aside.toc');
+  if(btn&&toc){btn.addEventListener('click',function(){toc.classList.toggle('open')});
+    toc.addEventListener('click',function(e){if(e.target.tagName==='A')toc.classList.remove('open')});}
+  if(!toc)return;
+  var links=[].slice.call(toc.querySelectorAll('a[href^="#"]'));
+  var heads=links.map(function(a){return document.getElementById(decodeURIComponent(a.getAttribute('href').slice(1)))}).filter(Boolean);
+  function cur(){var y=window.scrollY+90,i=-1;heads.forEach(function(h,k){if(h.offsetTop<=y)i=k});
+    links.forEach(function(a,k){a.classList.toggle('cur',k===i)})}
+  window.addEventListener('scroll',cur,{passive:true});cur();
+})();
+</script>
+</body>
+</html>

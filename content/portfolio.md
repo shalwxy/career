@@ -6,8 +6,8 @@
 
 | 시기 | 영역 | 핵심 |
 |---|---|---|
-| 2023-11 ~ 2024-04 | 온체인-오프체인 동기화(DE) | Saga validator 체계, 닉네임 선점 분산 락, Helm 배포 운영 |
-| 2024-06 ~ 2025-09 | 트랜잭션 이력 · 북마크 · 거래소 BFF | 신규 서비스 2개 설계, 서버와 BFF 양쪽 담당, Swap & Warp 도메인 |
+| 2023-11 ~ 2024-04 | 온체인-오프체인 동기화(DE) | 유효성 검사 추가·보완, 닉네임 중복 생성 수정(Redis 락 선점), Helm 배포 운영 |
+| 2024-06 ~ 2025-09 | 트랜잭션 이력 · 북마크 · 거래소 BFF | 기존 서비스 구조 개선 1 · 초기 합류 후 과반 기여 1, 서버와 BFF 양쪽 담당, Swap & Warp 도메인 |
 | 2025-07 ~ 2026-08 | 계정 · 결제 · 통합 알림 | Worldpay 신용카드 인증, USDT 선차감·롤백, SSE 알림, KYC 마이그레이션 |
 | 2026-01 ~ | 정책 서비스 · 데이터 파이프라인 · 운영 AI | 정책 레이어 신설, PostgreSQL CDC → Snowflake, LLM 에러 분석 봇 |
 
@@ -15,17 +15,15 @@
 
 ---
 
-## 1. 온체인-오프체인 동기화 — Saga validator 와 닉네임 선점 {#de}
+## 1. 온체인-오프체인 동기화 — 유효성 검사와 닉네임 선점 {#de}
 
 <span class="tag">2023-11 ~ 2024-04</span> <span class="tag">Go · gRPC · Redis · Saga</span>
 
-**맥락.** 게임 자산(아이템·캐릭터·재화·닉네임)의 오프체인 상태와 온체인 트랜잭션을 Saga 로 동기화하는 조직에서 첫 업무를 시작했습니다. 게임 서버가 호출하는 gRPC 파사드(business-provider)와 Saga 실행기(saga-provider), 이벤트 저장소(event-service)를 다뤘습니다.
+**맥락.** 게임 자산(아이템·캐릭터·재화·닉네임)의 오프체인 상태와 온체인 트랜잭션을 Saga 로 동기화하는 조직에서 첫 업무를 시작했습니다. 게임 서버가 호출하는 gRPC 파사드(business-provider)와 Saga 실행기(saga-provider), 이벤트 저장소(event-service)를 다뤘습니다. 입사 첫 5개월의 작업이라 규모는 작지만, 이후 작업 방식의 출발점이 된 것들입니다.
 
-**문제 1 — 검증 없는 요청이 Saga 를 오염시킨다.** 신규 코어 서비스 연동 시 잘못된 입력이 그대로 Saga 를 시작하면 보상 트랜잭션까지 번집니다.
-→ 파사드 단에 유효성 검사를 두고, proto ↔ 도메인 변환기를 단위 테스트와 함께 작성, gRPC 서버에서 코어 에러를 래핑했습니다. 이어서 재화·캐릭터·NFT 아이템 도메인별 **Saga v2 validator 체계**를 세우고, 건마다 상태 서비스를 호출하던 검증을 **목록 조회 1회**로 바꿨습니다.
+**유효성 검사 추가·보완.** 신규 코어 서비스 연동 코드를 BP(파사드)에 만들면서 입력 유효성 검사, proto ↔ 도메인 변환기(단위 테스트 포함), gRPC 에러 래핑을 추가했습니다. 이어 Saga v2 전환 브랜치에서 재화(neso/currency)·캐릭터 유효성 검사기를 추가하고, nft_item 검사가 건마다 상태 서비스를 호출하던 것을 **목록 조회 1회**로 바꿨습니다.
 
-**문제 2 — 캐릭터 민트 시 닉네임이 중복 생성된다.** "닉네임이 존재하는지 확인한 뒤 생성"하는 방식은 확인과 생성 사이에 경합 창이 있어, 동시에 들어온 두 요청이 같은 닉네임을 만들었습니다.
-→ 존재 확인 로직을 제거하고 **Redis 분산 락으로 닉네임을 선점**, 선점은 Saga 메시지 처리 시점에, 해제는 민트 **성공 시에만** 하도록 했습니다. 캐릭터 생성 시에도 같은 선점·잠금을 적용했습니다. 이 "확인 대신 선점" 원칙은 이후 모든 작업의 기본이 됐습니다.
+**닉네임 중복 생성 수정.** 캐릭터 민트 시 "닉네임이 존재하는지 확인한 뒤 생성"하던 방식은 확인과 생성 사이에 틈이 있어 같은 닉네임이 두 번 만들어졌습니다. 존재 확인을 없애고 **Redis 락으로 닉네임을 먼저 선점**, 해제는 민트 성공 시에만 하도록 고쳤고 캐릭터 생성에도 같은 방식을 적용했습니다. 작은 수정이지만 "확인 대신 선점" 은 이후 작업에서 계속 쓴 방식입니다.
 
 **운영.** Helm 으로 신규 서비스를 롤아웃하면서, 장애 재현을 위한 임시 배포/롤백을 커밋으로 남기고 **test/qa 승격 전 dev 선행 배포**를 관행으로 정립했습니다.
 
@@ -35,9 +33,9 @@
 
 ## 2. 트랜잭션 이력 플랫폼 — 구조 개선부터 CDC 전환까지 {#activity}
 
-<span class="tag">2024-06 ~ 재직 중</span> <span class="tag">Go · Kafka · PostgreSQL · Redis · Snowflake</span>
+<span class="tag">2024-06 ~ 2026-11</span> <span class="tag">Go · Kafka · PostgreSQL · Redis · Snowflake</span>
 
-**맥락.** 플랫폼의 모든 블록체인 트랜잭션(거래·민팅·전송·크로스체인 전송·스테이블 코인)을 수집·조회·알림 발행하는 핵심 서비스. 3년간 가장 오래 담당했습니다.
+**맥락.** 플랫폼의 블록체인 트랜잭션(거래·민팅·전송·크로스체인 전송·스테이블 코인)을 수집·조회·알림 발행하는 서비스. 초기 코드를 넘겨받은 2024년 6월부터 2년 반, 가장 오래 담당했습니다.
 
 **단계별 진화.**
 
@@ -50,10 +48,24 @@
 | 2026 Q1 | Snowflake 적재를 Kafka 발행에서 **CDC 로 전환** — 발행 실패 유실 경로 제거 |
 | 2026 Q3 | nil 역참조·숫자 오버플로우 가드, DB 에러를 삼키던 경로 정리, 알림 발행을 **커밋 이후**로 이동 |
 
-**Deep dive — Kafka 순서 비보장과 동시 적재.** 크로스체인 전송은 "요청 정보"와 "결과" 메시지가 역순으로 올 수 있고 재시도도 발생합니다. 단순 "exists → insert" 로는 중복이 생겼습니다.
-→ 스키마는 순서 비보장을 전제로 nullable 설계, 애플리케이션은 Redis NX 로 "먼저 잡은 요청만 처리", DB 는 트랜잭션 범위 advisory lock(키 2개, 상한 설정)으로 요청/결과 동시 적재를 막았습니다. 이후 1년간 정합성 이슈로 재작업이 없었습니다.
+<div class="diagram">
+<p class="dg-title">동시 적재 정합성 — 세 층의 방어</p>
+<div class="dg-flow">
+<div class="dg-box"><b>Kafka</b><small>요청/결과 메시지<br/>순서 비보장 · 재시도</small></div>
+<span class="dg-arrow">→</span>
+<div class="dg-box dg-accent"><b>Redis SET NX</b><small>먼저 잡은 요청만 처리<br/>TTL dedup</small></div>
+<span class="dg-arrow">→</span>
+<div class="dg-box dg-accent"><b>PostgreSQL</b><small>advisory_xact_lock(키 2개)<br/>트랜잭션 범위 잠금</small></div>
+<span class="dg-arrow">→</span>
+<div class="dg-box"><b>mat_transaction</b><small>유니크 키 · nullable 스키마<br/>wrapWriteError</small></div>
+</div>
+<p class="dg-note">실패 시: 23505(unique) 는 처리 완료로 간주 · DLQ 재시도 24분 간격 · 알림 이벤트는 커밋 이후 발행</p>
+</div>
 
-**Deep dive — 롤백된 피처에서 남긴 것.** 2026 Q3 에 보안 요건으로 "출금 지연" 피처를 7개 서비스에 걸쳐 구현했으나 기획 변경으로 전체 롤백됐습니다. 롤백을 조율하면서, 그 과정에서 발견한 결함 수정 — DB 에러를 삼켜 "commit unexpectedly resulted in rollback" 을 내던 경로의 통일, 알림 발행 타이밍 수정, 갱신 조건을 식별자 기준으로 고정 — 은 **되돌리지 않고 남겼습니다**. 큰 피처가 사라져도 숨은 결함을 고친 가치는 보존된다는 걸 배웠습니다.
+**Deep dive — Kafka 순서 비보장과 동시 적재.** 크로스체인 전송은 "요청 정보"와 "결과" 메시지가 역순으로 올 수 있고 재시도도 발생합니다. 단순 "exists → insert" 로는 중복이 생겼습니다.
+→ 스키마는 순서 비보장을 전제로 nullable 설계, 애플리케이션은 Redis NX 로 "먼저 잡은 요청만 처리", DB 는 트랜잭션 범위 advisory lock(키 2개, 상한 설정)으로 요청/결과 동시 적재를 막았습니다. 2026년 워프 지연 작업 때 락 시드와 조회 키를 다시 맞추는 보완이 한 번 더 있었습니다.
+
+**Deep dive — 롤백된 피처에서 남긴 것.** 2026 Q3 에 보안 요건으로 "출금 지연" 피처를 7개 저장소(서비스 4 · proto · DDL · 게이트웨이)에 걸쳐 구현했으나 기획 변경으로 전체 롤백됐습니다. 롤백을 조율하면서, 그 과정에서 발견한 결함 수정 — DB 에러를 삼켜 "commit unexpectedly resulted in rollback" 을 내던 경로의 통일, 알림 발행 타이밍 수정, 갱신 조건을 식별자 기준으로 고정 — 은 **되돌리지 않고 남겼습니다**. 큰 피처가 사라져도 숨은 결함을 고친 가치는 보존된다는 걸 배웠습니다.
 
 <p class="more">관련 설계 결정: <a href="decisions.html#d-unique">유니크 키 승격</a> · <a href="decisions.html#d-lock">동시 적재 정합성</a> · <a href="decisions.html#d-cdc">publish 대신 CDC</a> · <a href="decisions.html#d-rollback">롤백에서 남긴 것</a></p>
 
@@ -63,15 +75,15 @@
 
 <span class="tag">2024-06 ~ 2025-09</span> <span class="tag">Go · gRPC · Kafka · Redis</span>
 
-**북마크 서비스(서버).** proto 설계부터 라이브까지 단독 담당. 북마크는 더블클릭·재시도가 흔해 **멱등**이 기본이어야 했습니다 — 중복 요청은 성공 반환, 카운트는 DB 저장 성공 시에만 증가, 0 이하면 캐시 키 제거. 카운트 갱신은 요청 경로의 동기 처리에서 **Kafka 이벤트 기반**으로 옮겨 레이턴시와 정합성을 함께 잡았고, 하루/총량 제한과 회원 탈퇴 연동을 더했습니다.
+**북마크 서비스(서버).** 초기 뼈대 직후 합류해 proto 설계부터 라이브까지 메인 담당(리포 커밋 과반). 북마크는 더블클릭·재시도가 흔해 **멱등**이 기본이어야 했습니다 — 중복 요청은 성공 반환, 카운트는 DB 저장 성공 시에만 증가, 0 이하면 캐시 키 제거. 카운트 갱신은 요청 경로의 동기 처리에서 **Kafka 이벤트 기반**으로 옮겨 레이턴시와 정합성을 함께 잡았고, 하루/총량 제한과 회원 탈퇴 연동을 더했습니다.
 
 **거래소 BFF(소비자).** 같은 서비스를 소비하는 거래소 웹 BFF 도 직접 마이그레이션해, 서버 proto 변경이 BFF 에 어떻게 닿는지 양쪽에서 확인했습니다. 인벤토리 서비스 신설, 조회수 증가 비동기화, 캐릭터 이미지 렌더 병렬화·bulk 호출, 외부 조회 chunk 분할.
 
-**장애 — 간헐적 pod 재시작.** 원인 불명으로 BFF pod 가 재시작되던 문제를 로그 추적으로 **비동기 반복문 안의 gRPC 호출이 자원을 점유**하는 것으로 규명하고, timeout 과 chunk 호출로 근본 해결했습니다.
+**장애 — 간헐적 pod 재시작.** 원인 불명으로 BFF pod 가 재시작되던 문제를 로그 추적으로 **비동기 반복문 안의 gRPC 호출이 자원을 점유**하는 것으로 좁히고, timeout 과 chunk 호출로 해결했습니다.
 
 **캐시의 교훈.** BFF 북마크 캐시를 "변경 시 무효화" 로 설계했다가 비동기 무효화 실패·context 취소 문제로 timeout 을 늘려가던 끝에 **3초 TTL, 무효화 없음** 으로 단순화했습니다. 무효화보다 짧은 TTL 이 낫다는 걸 체감한 사례입니다.
 
-**같은 시기.** 전사 proto 저장소를 도메인별 모듈로 재구성하고, 공통 라이브러리 마이그레이션을 플랫폼·거래소 서비스에 같은 주에 적용했습니다. Java/Spring Kafka 컨슈머에 북마크 이벤트 적재를 추가하고, 확률 고지 서비스의 요구사항 분석·버저닝·데이터 적재, 백오피스 제재 기능(단건·일괄·대량)과 제재 이력 화면을 구축했습니다.
+**같은 시기.** 전사 proto 저장소를 도메인별 모듈로 재구성하고, 공통 라이브러리 마이그레이션을 플랫폼·거래소 서비스에 같은 주에 적용했습니다. Java/Spring Kafka 컨슈머에 북마크 이벤트 적재를 추가했고(이후 요구 변경으로 제거), 확률 고지 서비스의 요구사항 분석·버저닝·데이터 적재, 백오피스 제재 기능(단건·일괄·대량)과 제재 이력 화면을 공동 구축했습니다.
 
 <p class="more">관련 설계 결정: <a href="decisions.html#d-idempotent">북마크 멱등성</a> · <a href="decisions.html#d-ttl">무효화 대신 TTL</a> · <a href="decisions.html#d-proto">proto 모듈화</a></p>
 
@@ -85,11 +97,11 @@
 
 **설계가 복잡했던 지점.**
 - **벤더 응답 분기** — 벤더는 실패를 400대와 500대에 섞어 반환합니다. 400대 대부분은 사용자가 고칠 수 있는 실패, 500대는 벤더 장애. 400대는 **200 + outcome 코드**로 바꿔 프론트가 안내를 분기하게 하고, 500대만 에러로 올려 재시도를 유도했습니다.
-- **일일 3회 제한의 원자성** — incr + 조건 분기는 동시 요청에서 4회를 허용했습니다. **Redis Lua 스크립트**로 "확인 + 증가 + TTL" 을 원자 처리하고, 키에 날짜를 넣지 않고 TTL 로만 관리해 자정 reset 의 애매함을 없앴습니다.
-- **PCI 암호화와 서킷 브레이커** — 카드 소유자 정보 비교를 해시 기반으로 전환하고, 벤더 지연이 전체 응답성을 끌어내리지 않도록 fail-fast 서킷 브레이커를 도입했습니다.
+- **일일 3회 제한의 원자성** — incr 후 조건 분기로는 동시 요청에서 한도를 넘길 수 있습니다. **Redis Lua 스크립트**로 "확인 + 증가 + TTL" 을 원자 처리하고, 키에 날짜를 넣지 않고 TTL 로만 관리해 자정 reset 의 애매함을 없앴습니다.
+- **암호화와 서킷 브레이커** — 결제수단·발급사 정보를 암호화하고 카드 소유자 정보 비교를 해시 기반으로 전환했으며, 벤더 호출에 fail-fast 서킷 브레이커를 도입했습니다.
 - **OTP 리셋용 재인증** — "새 카드 인증 / 기존 카드 재사용" 두 타입을 설계하고 일일 한도를 합산 적용, 벤더 오류는 횟수에서 차감하지 않았습니다.
 
-**결과.** 라이브 승격 후 1년간 큰 장애 없이 운영. 기획 변경(소유자명 검사 제거 등)에 따라 네이밍과 정책을 세 차례 조정하며 "컬럼 이름에 용도를 넣지 말 것" 이라는 교훈을 얻었습니다.
+**결과.** 2025 Q4 라이브 승격 후 재인증·OTP 리셋 재인증으로 확장되며 운영 중. 기획 변경(소유자명 검사 제거 등)에 따라 네이밍과 정책을 세 차례 조정하며 "컬럼 이름에 용도를 넣지 말 것" 이라는 교훈을 얻었습니다.
 
 <p class="more">관련 설계 결정: <a href="decisions.html#d-worldpay">벤더 응답 분기</a> · <a href="decisions.html#d-lua">Lua 원자 처리</a> · <a href="decisions.html#d-naming">네이밍 교훈</a></p>
 
@@ -99,7 +111,7 @@
 
 <span class="tag">2025-10 ~ 2025-12</span> <span class="tag">Go · Kafka · 블록체인</span>
 
-온체인에 기록되기 전 발생할 수 있는 리스크(한도 초과, 중복 출금)를 막기 위해 **오프체인에서 먼저 차감하고 결과에 따라 롤백**하는 서비스를 스테이블 코인(USDT) 도입에 맞춰 재설계했습니다. 별도 롤백 토픽을 두는 대신 **결과 확정 토픽 하나**에서 성공/실패를 받아 롤백 여부를 결정해 순서·중복 처리 복잡도를 절반으로 줄였고, 같은 nonce 로 여러 트랜잭션이 들어오는 케이스의 보정을 넣었습니다. 토큰 추가 시 enum 만 늘리면 되도록 테이블을 재설계했습니다.
+온체인에 기록되기 전 발생할 수 있는 리스크(한도 초과, 중복 출금)를 막기 위해 **오프체인에서 먼저 차감하고 결과에 따라 롤백**하는 서비스를 스테이블 코인(USDT) 도입에 맞춰 재설계했습니다. 별도 롤백 토픽을 두는 대신 **결과 확정 토픽 하나**에서 성공/실패를 받아 롤백 여부를 결정해 순서·중복 처리를 단순화했고, 같은 nonce 로 여러 트랜잭션이 들어오는 케이스의 보정을 넣었습니다. 토큰 추가 시 enum 만 늘리면 되도록 테이블을 재설계했습니다.
 
 <p class="more">관련 설계 결정: <a href="decisions.html#d-settle">롤백 토픽 → 결과 확정 토픽</a></p>
 
@@ -107,7 +119,7 @@
 
 ## 6. 통합 알림 서비스 — SSE 와 streaming RPC {#notification}
 
-<span class="tag">2025-07 ~ 재직 중</span> <span class="tag">Go · SSE · gRPC streaming · MongoDB</span>
+<span class="tag">2025-07 ~ 2026-11</span> <span class="tag">Go · SSE · gRPC streaming · MongoDB</span>
 
 - 계정 서비스를 호출해 하던 JWT 검증을 알림 서비스가 **자체 흡수**해, SSE 연결마다 계정 서비스를 때리던 비용과 의존을 제거했습니다.
 - "모든 사용자에게 통합 알림" 기능은 기획과 합의해 **제거** — 대량 fan-out 은 알림 서비스가 지지 않습니다.
@@ -121,7 +133,7 @@
 
 ## 7. 정책 서비스 신설 — rate limit · ACL · feature flag · lockout {#sentinel}
 
-<span class="tag">2026-01 ~ 재직 중</span> <span class="tag">Go · Redis · PostgreSQL</span>
+<span class="tag">2026-01 ~ 2026-11</span> <span class="tag">Go · Redis · PostgreSQL</span>
 
 **문제.** 서킷 브레이커는 공통 라이브러리에, rate limit 은 계정 서비스에, 화이트리스트는 블록체인 서비스에 — 제어 로직이 흩어져 중복과 운영 혼란의 원인이었습니다.
 
@@ -135,14 +147,30 @@
 
 ## 8. PostgreSQL CDC → Snowflake 파이프라인 {#cdc}
 
-<span class="tag">2026-06 ~ 재직 중</span> <span class="tag">Debezium · Kafka Connect · Snowflake</span>
+<span class="tag">2026-06 ~ 2026-11</span> <span class="tag">Debezium · Kafka Connect · Snowflake</span>
 
-데이터 팀이 운영 DB 를 거의 실시간으로 조회하길 원했고, 기존 야간 배치 ETL 은 하루 지연과 코드 유지 비용이 있었습니다. Debezium 으로 변경 이벤트를 Kafka 로 흘리고 Snowflake Stream/Task 로 적재하는 파이프라인을 구축했습니다.
+데이터 팀이 운영 DB 변경을 더 빠르게 조회하길 원했고, 기존 배치 동기화 잡은 지연과 잡별 코드 유지 비용이 있었습니다. Debezium 으로 변경 이벤트를 Kafka 로 흘리고 Snowflake Stream/Task 로 적재하는 파이프라인을 구축했습니다.
+
+<div class="diagram">
+<p class="dg-title">PostgreSQL CDC → Snowflake</p>
+<div class="dg-flow">
+<div class="dg-box"><b>PostgreSQL</b><small>publication · slot<br/>상태성/이력성 분리</small></div>
+<span class="dg-arrow">→</span>
+<div class="dg-box dg-accent"><b>Debezium</b><small>MSK Connector<br/>tombstone 처리</small></div>
+<span class="dg-arrow">→</span>
+<div class="dg-box"><b>Kafka</b><small>테이블별 토픽<br/>DLQ factor 3</small></div>
+<span class="dg-arrow">→</span>
+<div class="dg-box dg-accent"><b>Snowflake Sink</b><small>Snowpipe Streaming</small></div>
+<span class="dg-arrow">→</span>
+<div class="dg-box"><b>Stream → Task</b><small>MERGE · 조건부 실행<br/>(데이터 있을 때만)</small></div>
+</div>
+<p class="dg-note">보조: replication slot keepalive 배치가 변경이 뜸한 테이블의 WAL 누적을 방지 · 이력 테이블은 delete 이벤트 제외</p>
+</div>
 
 - **상태성/이력성 테이블 구분** — 현재 상태 테이블은 upsert, 이력 테이블은 insert 만, delete 이벤트는 적재 제외. publication 레벨에서 제어.
 - **replication slot keepalive 배치** — 변경이 뜸한 테이블의 slot 이 밀려 WAL 디스크가 차는 것을 방지.
 - **조건부 task** — stream 에 데이터가 있을 때만 task 를 실행해 실행 횟수 과금을 최적화.
-- 커넥터 계정 교체를 다운타임 없이 수행.
+- 커넥터 계정 교체 및 publication 대상 테이블 추가.
 
 <p class="more">관련 설계 결정: <a href="decisions.html#d-cdc">publish 대신 CDC</a></p>
 
@@ -150,7 +178,7 @@
 
 ## 9. LLM 에러 분석 봇과 모델 폐기 장애 대응 {#ai}
 
-<span class="tag">2026-07 ~ 재직 중</span> <span class="tag">Go · Vertex AI · Slack API · OpenSearch · GitLab API</span>
+<span class="tag">2026-07 ~ 2026-11</span> <span class="tag">Go · Vertex AI · Slack API · OpenSearch · GitLab API</span>
 
 **문제.** 운영 에러가 Slack 에 들어오면 담당자가 매번 "어느 코드인지", "전에도 봤는지"를 수동 검색. 밤·주말 대응이 느렸습니다.
 
@@ -168,5 +196,6 @@
 - **디스코드 자동 뱃지** — 게임 내 달성도에 따라 역할을 자동 부여. 비동기 → 동기 전환으로 누락 방지, 연결 해제 시 식별 정보는 보존, 외부 side effect 는 **Outbox 재시도**로.
 - **이메일 변경 후 보안 설정 잠금** — Redis TTL 에서 DB 컬럼 영속화로 전환, 선검사 API 대신 응답 필드 하나로 UX 통합, Primary 조회로 복제 지연 창 제거.
 - **운영 콘솔** — 디스코드 메시지 재전송(rate limit·변경 감지), 권한 도메인 분리, 지갑↔SNS 조회.
+- **그 밖의 운영 기여** — 담당 서비스 전부의 DB DDL·CDC·Kafka Connect SQL 을 DBA 검토를 거쳐 관리(103 커밋), Envoy 게이트웨이 route·transcoder 설정(82 커밋), 커뮤니티 공지 → 디스코드 크롤러와 역할 동기화 배치, 거래소 런칭 전 네비게이터·게임데이터 버그 픽스, 트레이싱을 Datadog 에서 Jaeger 로 전환.
 
 <p class="more">관련 설계 결정: <a href="decisions.html#d-outbox">외부 side effect 는 Outbox</a> · <a href="decisions.html#d-batch">배치는 continue-and-count</a> · <a href="decisions.html#d-lock-email">잠금은 Redis 가 아니라 컬럼</a></p>
