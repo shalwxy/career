@@ -1,0 +1,39 @@
+%% title: Card verification · re-verification — Worldpay 3DS
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant GW as API gateway
+    box rgb(219,234,254) Built by me
+    participant A as api-account ★
+    end
+    participant R as Redis
+    participant W as Worldpay FraudSight
+    participant N as api-notification
+    U->>GW: Card verification request
+    GW->>A: authorize
+    A->>R: Check daily attempt count
+    alt more than 3
+        A-->>U: Daily limit reached
+    else allowed
+        A->>R: Increment + expiry (Lua · resets at UTC midnight)
+        A->>W: Zero-amount payment · 3DS · FraudSight
+        W-->>A: Device-data / challenge step
+        A-->>U: 3DS step (supply-device-data · complete-challenge)
+        U->>A: 3DS step completed
+        A->>W: Final authorisation
+        alt 4xx · fraudHighRisk
+            W-->>A: User-side failure
+            A->>A: Store rejection history
+            A->>N: Failure notification
+            A-->>U: 200 + outcome code
+        else 5xx · unexpected response
+            W-->>A: Vendor failure
+            A->>R: Roll back attempt count
+            A-->>U: Error · ask to retry
+        else approved
+            A->>A: Per-issuer circuit breaker (block) check
+            A->>A: Store card token · history (part of card data encrypted)
+            A-->>U: Success (credit level derived from holding a card)
+        end
+    end
+    note over GW,W: Re-verification: same endpoint · no daily limit · updates re-verification status + approval/rejection notification

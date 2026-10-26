@@ -44,10 +44,10 @@ MapleStory Universe (MSU) is a Web3 platform built on the MapleStory IP. I start
 #### <span class="phase">1</span> On-chain / off-chain synchronization (Data Engine)
 <p class="period">Nov 2023 – Apr 2024</p>
 <p class="chips"><span class="chip">Go</span><span class="chip">Saga</span><span class="chip">Redis distributed lock</span><span class="chip">Helm</span></p>
-<div class="impact"><span class="impact-k">Impact</span> Fixed nickname duplication at character mint with <strong>Redis-lock preemption</strong> · turned per-item NFT 아이템 validation lookups into <strong>one list query</strong> · 186 commits across 4 repos</div>
+<div class="impact"><span class="impact-k">Impact</span> Fixed nickname duplication at character mint with <strong>Redis-lock preemption</strong> · turned per-item NFT validation lookups into <strong>one list query</strong> · 186 commits across 4 repos</div>
 
 - Added input validation, a proto ↔ domain converter with unit tests, and gRPC error wrapping while wiring a new core service into the facade
-- Added currency/character validators for the [Saga v2](#dg:saga) migration and reworked NFT 아이템 validation from per-item state lookups to a single list query
+- Added currency/character validators for the [Saga v2](#dg:saga) migration and reworked NFT item validation from per-item state lookups to a single list query
 - Fixed nickname duplication at character mint: dropped the existence check, **preempted with a Redis lock**, released only on successful mint — a small fix, but a pattern I kept reusing
 - Ran Helm rollouts for new services, reproduced a DocumentDB incident with throwaway deploys, and established dev-first deployment before test/qa promotion
 

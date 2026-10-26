@@ -1,27 +1,29 @@
-%% title: DE — Saga 실행과 캐릭터 민트·닉네임 선점
-%% title_en: DE — Saga execution, character mint & nickname pre-emption
+%% title: DE — Saga 실행과 캐릭터 민트·닉네임 선점 (2024-04 기준)
+%% title_en: DE — Saga execution, character mint & nickname pre-emption (as of 2024-04)
 sequenceDiagram
     autonumber
     participant G as 게임 서버
-    box rgb(219,234,254) 내가 기여한 부분
-    participant BP as business-provider<br/>(gRPC 파사드 · 유효성 검사 ★)
-    participant S as saga-provider<br/>(Saga 실행)
+    box rgb(219,234,254) 내가 기여한 부분 ★
+    participant BP as business-provider<br/>(gRPC 파사드 · 입력 검증 ★)
+    participant S as saga-provider<br/>(Saga 실행 · 도메인 validator ★)
+    participant A as 트랜잭션 분석 워커<br/>(체인 결과 분석 · 일부 기여 ★)
     end
     participant R as Redis
-    participant E as event-service<br/>(상태 저장)
+    participant E as event-service<br/>(상태 저장 · Prepare/Commit/Rollback)
     participant BC as 블록체인
-    participant A as analyzer 워커
-    G->>BP: 캐릭터 민트 요청
-    BP->>BP: 입력 검증 · converter ★
-    BP->>S: SagaRequest
-    S->>R: 닉네임 선점 · 캐릭터 잠금 ★<br/>(존재 확인 대신 락)
-    S->>E: 상태 MINTING
+    G->>BP: 캐릭터 민트 요청 (gRPC)
+    BP->>BP: 입력 검증 · converter
+    BP->>S: Saga Execute (gRPC 동기 호출)
+    S->>R: 닉네임 선점 · 캐릭터 잠금 ★<br/>(존재 확인 대신 분산 락)
+    S->>E: Prepare (새 닉네임 생성 · 기존 닉네임 제거)
     S->>BC: 민트 트랜잭션
-    BC-->>A: 체인 결과 이벤트
-    A->>S: ApplyMint 성공/실패
+    BC-->>A: 체인 결과 이벤트 (Kafka)
+    A->>S: ApplyMint 성공/실패 + 닉네임 ★ (Kafka)
     alt 성공
-        S->>R: 이전 선점 해제 ★
-        S->>E: 상태 UNLOCK · 닉네임 반영
+        S->>E: 상태 UNLOCK · 닉네임 반영 (Prepare → Commit)
+        S->>R: 기존 닉네임 선점 해제 ★
     else 실패
-        S->>S: 보상(compensate) 실행
+        S->>E: Rollback · 실패 상태 UNLOCK 기록
+        S->>R: 새 닉네임 선점 해제 ★
     end
+    S->>R: 캐릭터 잠금 해제 ★

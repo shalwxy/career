@@ -1,0 +1,12 @@
+%% title: Swap & Warp — cross-chain transfer history
+flowchart LR
+    U[User] --> SW[bff-swapnwarp<br/>swap · warp queries ★]
+    U --> BC[Blockchain<br/>swap · bridge]
+    BC --> DEA[DE Swap/Warp analyzer<br/>normalises chain results]
+    DEA -- cross-chain history events --> ACT[api-activity ★<br/>out-of-order Warp info/result handling<br/>advisory lock]
+    ACT -- one result topic --> NT[api-notification ★<br/>result notifications]
+    ACT -- one result topic --> BCS[api-blockchain-supporter ★<br/>rolls back pre-deduction on failure]
+    SW --> ACT
+    SW --> GD[api-account · api-gamedata<br/>nickname · profile image enrichment]
+    classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    class SW,ACT,NT,BCS mine

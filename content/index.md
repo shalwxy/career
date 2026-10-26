@@ -72,8 +72,8 @@
 <p class="chips"><span class="chip">Worldpay</span><span class="chip">Redis Lua</span><span class="chip">SSE</span><span class="chip">gRPC streaming</span><span class="chip">MongoDB</span><span class="chip">Outbox</span></p>
 <div class="impact"><span class="impact-k">Impact</span> 신용카드 인증·재인증을 <strong>리뷰 2회차</strong>로 라이브 승격 · 일일 한도를 <strong>Lua 원자 처리</strong>로 동시 요청에도 보장 · 대량 수신자 응답을 <strong>500건 청크 스트리밍</strong>으로 분리 · KYC 전 사용자 마이그레이션 live 완료</div>
 
-- **월드페이(FraudSight 3DS) [신용카드 인증 · 재인증](#dg:creditcard)** — 벤더 응답 분기(400대는 outcome, 500대는 에러), Redis Lua 로 일일 3회 **원자 처리**, 결제수단 정보 암호화·서킷 브레이커, OTP 리셋용 재인증
-- **[스테이블 코인(USDT) 도입](#dg:usdt)** — 오프체인 선차감·롤백 서비스 재설계, 롤백 토픽을 결과 확정 토픽으로 통합해 복잡도 축소
+- **월드페이(FraudSight 3DS) [신용카드 인증 · 재인증](#dg:creditcard)** — 벤더 응답 분기(400대는 outcome, 500대는 에러), Redis Lua 로 일일 3회 카운트 **증가+만료 원자 처리**, 카드 정보 일부 암호화·발급사별 서킷 브레이커(차단), OTP 리셋용 재인증
+- **[스테이블 코인(USDT) 도입](#dg:usdt)** — 오프체인 선차감·롤백 서비스 재설계, 별도 롤백 토픽 대신 트랜잭션 결과 토픽을 구독해 실패 시만 되돌리도록 단순화
 - **[MSU 통합 알림(SSE)](#dg:notification)** — JWT 검증 자체 흡수로 의존 제거, 동시 구독 커넥션 상한, 백엔드 URL 생성, 대량 수신자를 **gRPC streaming RPC**(500건 청크·5만 건 상한)로 분리
 - Envoy 게이트웨이의 gRPC 의존성을 **HTTP 로 전환**해 결합도 축소
 - **KYC 업체 변경(Argos → Sumsub) 마이그레이션** — 병렬 호출·재진입 가능한 커서·rate limiter

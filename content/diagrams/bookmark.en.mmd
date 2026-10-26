@@ -1,0 +1,24 @@
+%% title: api-bookmark — bookmarks / view counts and marketplace BFFs
+flowchart LR
+    subgraph BFF[Marketplace BFFs ★]
+        M[bff-marketplace<br/>bookmarks · views · bookmarked inventory<br/>inventory cached 3 s]
+        NV[bff-navigator<br/>bookmarks · views]
+    end
+    subgraph BK[api-bookmark ★]
+        H[Bookmark / UnBookmark / SetView<br/>idempotent: duplicate = success<br/>views counted once per IP · wallet · target per 24 h]
+        L[Limits: 100 / day · 5,000 total<br/>configurable · 24 h window from first action]
+        PG[(Bookmarks)]
+        RD[(Redis counters<br/>per user · per target<br/>cleaned up on read when ≤ 0)]
+    end
+    AC[api-account<br/>bulk delete on account closure]
+    NT[api-notification<br/>who bookmarked a target]
+    GD[api-gamedata<br/>item · character details]
+    EX[exchange<br/>sale cards]
+    K[[Bookmark · view events]]
+    M & NV --> H --> L --> PG
+    H --> RD
+    AC & NT --> H
+    H -- publish --> K --> AN[Analytics pipeline]
+    M --> GD & EX
+    classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    class M,NV,H,L,PG,RD mine

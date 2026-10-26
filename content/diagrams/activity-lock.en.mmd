@@ -1,0 +1,20 @@
+%% title: Concurrent ingestion — defence per event type
+flowchart TB
+    K[["Kafka messages<br/>retries · no ordering → the same item can arrive twice at once"]]
+    subgraph A["Trade · asset · Swap — single-message events"]
+        R["Redis SET NX + TTL<br/>first one wins · released after processing"]
+        W1["DB write<br/>unique violation = already processed → succeed"]
+        R --> W1
+    end
+    subgraph B["Warp — request/result may arrive out of order"]
+        P["Transaction + advisory lock<br/>namespace key + hash-bucket key"]
+        S["Look up → create if missing / update if present<br/>whichever arrives first is stored as PENDING · NO_CONTENT<br/>(nullable schema)"]
+        P --> S
+    end
+    N["Emit result event → notification · pre-deduction rollback"]
+    K --> R
+    K --> P
+    W1 --> N
+    S --> N
+    classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    class R,W1,P,S,N mine

@@ -1,0 +1,24 @@
+%% title: api-sentinel — single owner of business policies
+flowchart LR
+    subgraph CALL[Runtime callers — read only]
+        AC[api-account<br/>auth-mail · card · sign-up rate limits<br/>OTP lockout · ACL · flags]
+        BC["api-blockchain-supporter<br/>withdrawal whitelist (exemption) · country/IP restrictions"]
+        AI["portal-ai<br/>error dedupe (rate limit)"]
+        CS[portal-console<br/>Discord reply rate limit]
+    end
+    CON[portal-console · back office<br/>manages ACL · flags · rate-limit policies]
+    subgraph SEN[api-sentinel ★]
+        RT[4 runtime gRPC services<br/>RateLimit · Lockout · ACL · FeatureFlag<br/>TryAcquire · RecordFailure · CheckBlocked · ExistsWhitelist · CheckEnabled]
+        RF[rate-limit · lockout policy refresher<br/>every 1 min ± 5 s jitter]
+        BOG[Back-office gRPC]
+    end
+    RD[("Redis<br/>fixed / sliding window (Lua)<br/>lockout failures as sorted set")]
+    PG[(Policies · ACL · flags<br/>flags cached 30 min)]
+    AC & BC & AI & CS --> RT
+    RT --> RD
+    RT -- ACL · flags --> PG
+    RF --> PG
+    RF -.-> RT
+    CON --> BOG --> PG
+    classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    class RT,RF,BOG,RD,PG mine

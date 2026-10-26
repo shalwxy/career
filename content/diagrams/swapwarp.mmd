@@ -4,10 +4,10 @@ flowchart LR
     U[사용자] --> SW[bff-swapnwarp<br/>swap · warp 조회 ★]
     U --> BC[블록체인<br/>스왑 · 브릿지]
     BC --> DEA[DE Swap/Warp analyzer<br/>체인 결과 정규화]
-    DEA -- 크로스체인 이력 이벤트 --> ACT[api-activity ★<br/>info/result 순서 비보장 처리<br/>advisory lock]
-    ACT -- 결과 확정 이벤트 --> NT[api-notification ★]
-    ACT -- 결과 확정 이벤트 --> BCS[api-blockchain-supporter ★<br/>선차감 롤백/확정]
+    DEA -- 크로스체인 이력 이벤트 --> ACT[api-activity ★<br/>Warp info/result 순서 비보장 처리<br/>advisory lock]
+    ACT -- 결과 이벤트 1토픽 --> NT[api-notification ★<br/>결과 알림]
+    ACT -- 결과 이벤트 1토픽 --> BCS[api-blockchain-supporter ★<br/>실패 시 선차감 롤백]
     SW --> ACT
-    SW --> GD[api-gamedata · account<br/>닉네임 · 썸네일 enrich]
+    SW --> GD[api-account · api-gamedata<br/>닉네임 · 프로필 이미지 enrich]
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
     class SW,ACT,NT,BCS mine

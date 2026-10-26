@@ -252,13 +252,15 @@ def toc_html(tokens, depth=2) -> str:
 DG_RE = re.compile(r'<a href="#dg:([a-z0-9-]+)">')
 MODAL = {
     "ko": ('도식 보기', '닫기', '확대', '<i></i>강조된 상자가 제가 설계·구현한 부분입니다. 내부 식별자는 생략했습니다.'),
-    "en": ('Diagram', 'Close', 'Zoom', '<i></i>Highlighted boxes are the parts I designed and built. Internal identifiers are omitted. Labels are in Korean.'),
+    "en": ('Diagram', 'Close', 'Zoom', '<i></i>Highlighted boxes are the parts I designed and built. Internal identifiers are omitted.'),
 }
 
 
 def diagram_src(dg_id: str, lang: str) -> str:
     """content/diagrams/ID.mmd → 페이지에 묻어 둘 <script type=text/plain>. 제목은 `%% title:` / `%% title_en:` 주석에서 읽음"""
     path = DIAGRAMS / f"{dg_id}.mmd"
+    if lang == "en" and (DIAGRAMS / f"{dg_id}.en.mmd").exists():
+        path = DIAGRAMS / f"{dg_id}.en.mmd"
     if not path.exists():
         sys.exit(f"missing diagram: {path}")
     title, body = "", []

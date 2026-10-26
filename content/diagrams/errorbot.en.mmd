@@ -1,0 +1,29 @@
+%% title: Error-triage bot — first-pass analysis in Slack
+sequenceDiagram
+    autonumber
+    participant S as Slack error channel
+    box rgb(219,234,254) Built by me
+    participant B as portal-ai error-triage bot ★
+    end
+    participant P as Policy (sentinel)
+    participant O as OpenSearch (analysis history)
+    participant G as GitLab API
+    participant L as Vertex AI (LLM)
+    S->>B: Error-alert thread event (Socket Mode)
+    B->>B: Detect truncated message → re-fetch thread
+    B->>P: Dedupe by signature (TTL policy)
+    B->>B: Count repeats
+    opt threshold exceeded within window
+        B-->>S: 🚨 escalation warning (once)
+    end
+    alt duplicate
+        B-->>S: 👀 reaction only (skip analysis)
+    else new
+        B->>O: Look up past analyses · first occurrence by signature
+        B->>G: Last 5 commits per file in stack trace (circuit breaker)
+        B->>L: Analyse (semaphore 2 · retry 3× on 429/5xx · backoff + jitter)
+        L-->>B: First-pass analysis
+        B->>O: Save analysis
+        B-->>S: Thread reply (+ first-seen time · link to earlier thread)
+    end
+    S->>B: 👍/👎 feedback · 🔍 re-analyse · follow-up via mention

@@ -1,0 +1,29 @@
+%% title: api-activity — transaction ledger ingest · query · notify
+flowchart LR
+    subgraph IN[Event sources]
+        MK[Marketplace trade events]
+        DE1[DE asset events<br/>items FT·NFT · characters · nicknames]
+        DE2[DE cross-chain<br/>Swap · Warp events]
+    end
+    subgraph ACT[api-activity ★]
+        C[Kafka consumers<br/>6 handlers, one per topic]
+        DD[Redis SET NX<br/>trade · asset · Swap<br/>blocks concurrent duplicates]
+        LK[PostgreSQL advisory lock<br/>Warp request↔result<br/>look up, then create or update]
+        DB[(Transaction ledger<br/>unique keys on hashes)]
+        Q[gRPC query server<br/>by wallet · token · Swap · Warp · hash]
+        RT[[Retry queue 24 min × 5 → DLQ]]
+    end
+    N[api-notification<br/>result notifications]
+    BCS[api-blockchain-supporter<br/>rolls back pre-deduction on failure]
+    B[bff-swapnwarp · bff-marketplace]
+    SF[(Snowflake · CDC)]
+    MK & DE1 --> C
+    DE2 --> C
+    C --> DD --> DB
+    C -- Warp --> LK --> DB
+    C -. failure .-> RT
+    DB -- one result topic --> N & BCS
+    DB -. Debezium .-> SF
+    B --> Q --> DB
+    classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    class C,DD,LK,DB,Q,RT mine

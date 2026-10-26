@@ -189,7 +189,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 </tr>
 <tr>
 <td>2025 Q2~Q3</td>
-<td>Redis NX + PostgreSQL advisory lock 으로 동시 적재 정합성, 결과 확정 시 알림 이벤트 발행, 브릿지-인 확장</td>
+<td>Redis NX(거래·자산·Swap) + PostgreSQL advisory lock(Warp) 으로 동시 적재 정합성, 결과 적재 시 알림 이벤트 발행, 브릿지-인 확장</td>
 </tr>
 <tr>
 <td>2026 Q1</td>
@@ -197,14 +197,14 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 </tr>
 <tr>
 <td>2026 Q3</td>
-<td>nil 역참조·숫자 오버플로우 가드, DB 에러를 삼키던 경로 정리, 알림 발행을 <strong>커밋 이후</strong>로 이동</td>
+<td>출금 지연 피처 구현 중 기존 결함(DB 에러 삼킴·커밋 전 알림 발행·갱신 조건) 발견·수정 → 피처 전체 롤백에 함께 되돌아감, 재적용 과제로 인수인계</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Deep dive — <a href="#" class="dg" data-dg="activity-lock" title="도식 보기">Kafka 순서 비보장과 동시 적재</a>.</strong> 크로스체인 전송은 &ldquo;요청 정보&rdquo;와 &ldquo;결과&rdquo; 메시지가 역순으로 올 수 있고 재시도도 발생합니다. 단순 &ldquo;exists → insert&rdquo; 로는 중복이 생겼습니다.
-→ 스키마는 순서 비보장을 전제로 nullable 설계, 애플리케이션은 Redis NX 로 &ldquo;먼저 잡은 요청만 처리&rdquo;, DB 는 트랜잭션 범위 advisory lock(키 2개, 상한 설정)으로 요청/결과 동시 적재를 막았습니다. 2026년 워프 지연 작업 때 락 시드와 조회 키를 다시 맞추는 보완이 한 번 더 있었습니다.</p>
-<p><strong>Deep dive — 롤백된 피처에서 남긴 것.</strong> 2026 Q3 에 보안 요건으로 &ldquo;출금 지연&rdquo; 피처를 7개 저장소(서비스 4 · proto · DDL · 게이트웨이)에 걸쳐 구현했으나 기획 변경으로 전체 롤백됐습니다. 롤백을 조율하면서, 그 과정에서 발견한 결함 수정 — DB 에러를 삼켜 &ldquo;commit unexpectedly resulted in rollback&rdquo; 을 내던 경로의 통일, 알림 발행 타이밍 수정, 갱신 조건을 식별자 기준으로 고정 — 은 <strong>되돌리지 않고 남겼습니다</strong>. 큰 피처가 사라져도 숨은 결함을 고친 가치는 보존된다는 걸 배웠습니다.</p>
-<p class="more">관련 설계 결정: <a href="decisions.html#d-unique">유니크 키 승격</a> · <a href="decisions.html#d-lock">동시 적재 정합성</a> · <a href="decisions.html#d-cdc">publish 대신 CDC</a> · <a href="decisions.html#d-rollback">롤백에서 남긴 것</a></p>
+→ 이벤트 종류별로 방어를 달리했습니다. 거래·자산·Swap 처럼 단건으로 끝나는 이벤트는 Redis SET NX 로 &ldquo;먼저 잡은 쪽만 처리&rdquo;(TTL, 처리 후 해제). 요청/결과가 뒤집혀 올 수 있는 Warp 는 스키마를 nullable 로 설계하고, 트랜잭션 범위 advisory lock(네임스페이스 키 + 해시 버킷 키, 버킷 상한 설정) 아래에서 선조회 후 생성/수정 — 먼저 온 쪽을 PENDING·NO_CONTENT 상태로 적재해 두고 나중에 온 쪽이 채웁니다. 2026년 워프 지연 작업 때 락 시드와 조회 키를 다시 맞추는 보완을 넣었으나 피처 롤백에 함께 되돌아갔습니다.</p>
+<p><strong>Deep dive — 롤백된 피처에서 배운 것.</strong> 2026 Q3 에 보안 요건으로 &ldquo;출금 지연&rdquo; 피처를 7개 저장소(서비스 4 · proto · DDL · 게이트웨이)에 걸쳐 구현했으나 기획 변경으로 전체 롤백됐습니다. 구현 중에 기존 결함 — DB 에러를 삼켜 &ldquo;commit unexpectedly resulted in rollback&rdquo; 을 내던 경로, 알림 발행이 커밋 전에 일어나는 경로, 갱신 조건이 식별자가 아닌 문제 — 을 찾아 고쳤지만 피처 커밋 흐름에 섞여 있어 <strong>롤백에 함께 되돌아갔습니다</strong>. 결함 수정은 피처와 분리해 먼저 머지해야 한다는 것을 배웠고, 되돌아간 수정은 분석 기록과 함께 재적용 과제로 인수인계했습니다.</p>
+<p class="more">관련 설계 결정: <a href="decisions.html#d-unique">유니크 키 승격</a> · <a href="decisions.html#d-lock">동시 적재 정합성</a> · <a href="decisions.html#d-cdc">publish 대신 CDC</a> · <a href="decisions.html#d-rollback">롤백에서 배운 것</a></p>
 
 <hr>
 <h2 id="bookmark">3. 북마크 · 조회수 서비스 신설과 거래소 BFF</h2>
@@ -231,8 +231,8 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <hr>
 <h2 id="usdt">5. 스테이블 코인 도입과 선차감·롤백</h2>
 <p><span class="tag">2025-10 ~ 2025-12</span> <span class="tag">Go · Kafka · 블록체인</span></p>
-<p>온체인에 기록되기 전 발생할 수 있는 리스크(한도 초과, 중복 출금)를 막기 위해 <strong><a href="#" class="dg" data-dg="usdt" title="도식 보기">오프체인에서 먼저 차감하고 결과에 따라 롤백</a></strong>하는 서비스를 스테이블 코인(USDT) 도입에 맞춰 재설계했습니다. 별도 롤백 토픽을 두는 대신 <strong>결과 확정 토픽 하나</strong>에서 성공/실패를 받아 롤백 여부를 결정해 순서·중복 처리를 단순화했고, 같은 nonce 로 여러 트랜잭션이 들어오는 케이스의 보정을 넣었습니다. 토큰 추가 시 enum 만 늘리면 되도록 테이블을 재설계했습니다.</p>
-<p class="more">관련 설계 결정: <a href="decisions.html#d-settle">롤백 토픽 → 결과 확정 토픽</a></p>
+<p>온체인에 기록되기 전 발생할 수 있는 리스크(한도 초과, 중복 출금)를 막기 위해 <strong><a href="#" class="dg" data-dg="usdt" title="도식 보기">오프체인에서 먼저 차감하고 결과에 따라 롤백</a></strong>하는 서비스를 스테이블 코인(USDT) 도입에 맞춰 재설계했습니다. 별도 롤백 토픽을 두는 대신 <strong>트랜잭션 결과 토픽</strong>에서 성공/실패/드랍을 받아 실패일 때만 선차감을 되돌리도록(선차감이 곧 확정) 순서·중복 처리를 단순화했고, 같은 nonce 로 여러 트랜잭션이 들어오는 케이스의 보정을 넣었습니다. 토큰 추가 시 enum 만 늘리면 되도록 테이블을 재설계했습니다.</p>
+<p class="more">관련 설계 결정: <a href="decisions.html#d-settle">롤백 토픽 → 결과 토픽</a></p>
 
 <hr>
 <h2 id="notification">6. 통합 알림 서비스 — SSE 와 streaming RPC</h2>
@@ -290,110 +290,120 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <button class="toc-btn" aria-label="목차">☰</button>
 <footer><div class="in"><span>Last updated 2026-10-26</span><span class="links"><a href="mailto:shalwxy@gmail.com" rel="me noopener">Email</a><a href="https://github.com/shalwxy" rel="me noopener">GitHub</a><a href="https://www.linkedin.com/in/seungha-lee-2aa442229" rel="me noopener">LinkedIn</a><a href="https://shalwxy.github.io/" rel="me noopener">Blog</a></span><span>공개용으로 정제된 요약이며 사내 식별자·운영 정보는 포함하지 않습니다.</span></div></footer>
 <div class="modal" role="dialog" aria-modal="true"><div class="box"><div class="hd"><h3></h3><button class="zoom" type="button">확대</button><button class="close" type="button">닫기 ✕</button></div><div class="bd"><div class="mm"></div><p class="legend"><i></i>강조된 상자가 제가 설계·구현한 부분입니다. 내부 식별자는 생략했습니다.</p></div></div></div>
-<script type="text/plain" id="dg-src-saga" data-title="DE — Saga 실행과 캐릭터 민트·닉네임 선점">
+<script type="text/plain" id="dg-src-saga" data-title="DE — Saga 실행과 캐릭터 민트·닉네임 선점 (2024-04 기준)">
 sequenceDiagram
     autonumber
     participant G as 게임 서버
-    box rgb(219,234,254) 내가 기여한 부분
-    participant BP as business-provider<br/>(gRPC 파사드 · 유효성 검사 ★)
-    participant S as saga-provider<br/>(Saga 실행)
+    box rgb(219,234,254) 내가 기여한 부분 ★
+    participant BP as business-provider<br/>(gRPC 파사드 · 입력 검증 ★)
+    participant S as saga-provider<br/>(Saga 실행 · 도메인 validator ★)
+    participant A as 트랜잭션 분석 워커<br/>(체인 결과 분석 · 일부 기여 ★)
     end
     participant R as Redis
-    participant E as event-service<br/>(상태 저장)
+    participant E as event-service<br/>(상태 저장 · Prepare/Commit/Rollback)
     participant BC as 블록체인
-    participant A as analyzer 워커
-    G->>BP: 캐릭터 민트 요청
-    BP->>BP: 입력 검증 · converter ★
-    BP->>S: SagaRequest
-    S->>R: 닉네임 선점 · 캐릭터 잠금 ★<br/>(존재 확인 대신 락)
-    S->>E: 상태 MINTING
+    G->>BP: 캐릭터 민트 요청 (gRPC)
+    BP->>BP: 입력 검증 · converter
+    BP->>S: Saga Execute (gRPC 동기 호출)
+    S->>R: 닉네임 선점 · 캐릭터 잠금 ★<br/>(존재 확인 대신 분산 락)
+    S->>E: Prepare (새 닉네임 생성 · 기존 닉네임 제거)
     S->>BC: 민트 트랜잭션
-    BC-->>A: 체인 결과 이벤트
-    A->>S: ApplyMint 성공/실패
+    BC-->>A: 체인 결과 이벤트 (Kafka)
+    A->>S: ApplyMint 성공/실패 + 닉네임 ★ (Kafka)
     alt 성공
-        S->>R: 이전 선점 해제 ★
-        S->>E: 상태 UNLOCK · 닉네임 반영
+        S->>E: 상태 UNLOCK · 닉네임 반영 (Prepare → Commit)
+        S->>R: 기존 닉네임 선점 해제 ★
     else 실패
-        S->>S: 보상(compensate) 실행
+        S->>E: Rollback · 실패 상태 UNLOCK 기록
+        S->>R: 새 닉네임 선점 해제 ★
     end
+    S->>R: 캐릭터 잠금 해제 ★
 </script>
 <script type="text/plain" id="dg-src-activity" data-title="api-activity — 트랜잭션 이력 적재·조회·알림">
 flowchart LR
     subgraph IN[이벤트 소스]
         MK[거래소 거래 이벤트]
-        DE1[DE 자산 이벤트<br/>아이템 · 캐릭터 · 닉네임]
+        DE1[DE 자산 이벤트<br/>아이템 FT·NFT · 캐릭터 · 닉네임]
         DE2[DE 크로스체인<br/>Swap · Warp 이벤트]
     end
     subgraph ACT[api-activity ★]
         C[Kafka 컨슈머<br/>토픽별 핸들러 6종]
-        DD[Redis SET NX<br/>중복 수신 차단]
-        LK[PostgreSQL advisory lock<br/>요청↔결과 동시 적재 잠금]
+        DD[Redis SET NX<br/>거래 · 자산 · Swap<br/>동시 중복 처리 차단]
+        LK[PostgreSQL advisory lock<br/>Warp 요청↔결과<br/>선조회 후 생성/수정]
         DB[(트랜잭션 이력<br/>해시 유니크 키)]
-        Q[gRPC 조회 서버<br/>지갑 · 토큰 · Swap · Warp]
-        DLQ[[DLQ · 24분 재시도]]
+        Q[gRPC 조회 서버<br/>지갑 · 토큰 · Swap · Warp · 해시]
+        RT[[재시도 큐 24분 × 5회 → DLQ]]
     end
-    N[api-notification<br/>결과 확정 알림]
+    N[api-notification<br/>결과 알림]
+    BCS[api-blockchain-supporter<br/>실패 시 선차감 롤백]
     B[bff-swapnwarp · bff-marketplace]
     SF[(Snowflake · CDC)]
-    MK & DE1 & DE2 --> C --> DD --> LK --> DB
-    C -. 실패 .-> DLQ
-    DB -- 커밋 이후 발행 --> N
+    MK & DE1 --> C
+    DE2 --> C
+    C --> DD --> DB
+    C -- Warp --> LK --> DB
+    C -. 실패 .-> RT
+    DB -- 결과 이벤트 1토픽 --> N & BCS
     DB -. Debezium .-> SF
     B --> Q --> DB
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
-    class C,DD,LK,DB,Q,DLQ mine
+    class C,DD,LK,DB,Q,RT mine
 </script>
 <script type="text/plain" id="dg-src-swapwarp" data-title="Swap &amp; Warp — 크로스체인 전송 이력">
 flowchart LR
     U[사용자] --> SW[bff-swapnwarp<br/>swap · warp 조회 ★]
     U --> BC[블록체인<br/>스왑 · 브릿지]
     BC --> DEA[DE Swap/Warp analyzer<br/>체인 결과 정규화]
-    DEA -- 크로스체인 이력 이벤트 --> ACT[api-activity ★<br/>info/result 순서 비보장 처리<br/>advisory lock]
-    ACT -- 결과 확정 이벤트 --> NT[api-notification ★]
-    ACT -- 결과 확정 이벤트 --> BCS[api-blockchain-supporter ★<br/>선차감 롤백/확정]
+    DEA -- 크로스체인 이력 이벤트 --> ACT[api-activity ★<br/>Warp info/result 순서 비보장 처리<br/>advisory lock]
+    ACT -- 결과 이벤트 1토픽 --> NT[api-notification ★<br/>결과 알림]
+    ACT -- 결과 이벤트 1토픽 --> BCS[api-blockchain-supporter ★<br/>실패 시 선차감 롤백]
     SW --> ACT
-    SW --> GD[api-gamedata · account<br/>닉네임 · 썸네일 enrich]
+    SW --> GD[api-account · api-gamedata<br/>닉네임 · 프로필 이미지 enrich]
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
     class SW,ACT,NT,BCS mine
 </script>
-<script type="text/plain" id="dg-src-activity-lock" data-title="동시 적재 정합성 — 세 층의 방어">
+<script type="text/plain" id="dg-src-activity-lock" data-title="동시 적재 정합성 — 이벤트 종류별 방어">
 flowchart TB
-    K[["Kafka 요청/결과 메시지<br/>순서 비보장 · 재시도 → 같은 건이 동시에 들어올 수 있음"]]
-    subgraph L1["1층 · Redis"]
-        R["SET NX + TTL<br/>먼저 잡은 요청만 처리 · 중복 수신 차단"]
+    K[["Kafka 메시지<br/>재시도 · 순서 비보장 → 같은 건이 동시에 들어올 수 있음"]]
+    subgraph A["거래 · 자산 · Swap — 단건으로 끝나는 이벤트"]
+        R["Redis SET NX + TTL<br/>먼저 잡은 쪽만 처리 · 처리 후 해제"]
+        W1["DB 쓰기<br/>unique 위반 = 이미 처리됨 → 성공 종료"]
+        R --> W1
     end
-    subgraph L2["2층 · PostgreSQL"]
-        P["advisory_xact_lock(키 2개)<br/>요청↔결과 같은 트랜잭션 범위에서 직렬화"]
+    subgraph B["Warp — 요청/결과가 뒤집혀 올 수 있는 이벤트"]
+        P["트랜잭션 + advisory lock<br/>네임스페이스 키 + 해시 버킷 키"]
+        S["선조회 → 없으면 생성 / 있으면 수정<br/>먼저 온 쪽을 PENDING · NO_CONTENT 로 선행 적재<br/>(nullable 스키마)"]
+        P --> S
     end
-    subgraph L3["3층 · 스키마 · 쓰기"]
-        S["nullable 스키마 + 해시 유니크 키<br/>어느 쪽이 먼저 와도 적재"]
-        W["wrapWriteError<br/>unique 충돌 = 이미 처리됨 → 성공으로 종료"]
-    end
-    N["알림 이벤트<br/>커밋 이후에만 발행"]
-    K --> R --> P --> S --> W --> N
-    R -. Redis 장애 시 건너뜀 .-> P
+    N["결과 이벤트 발행 → 알림 · 선차감 롤백"]
+    K --> R
+    K --> P
+    W1 --> N
+    S --> N
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
-    class R,P,S,W,N mine
+    class R,W1,P,S,N mine
 </script>
 <script type="text/plain" id="dg-src-bookmark" data-title="api-bookmark — 북마크·조회수와 거래소 BFF">
 flowchart LR
     subgraph BFF[거래소 BFF ★]
-        M[bff-marketplace<br/>인벤토리 · 북마크 목록<br/>3초 TTL 캐시]
-        NV[bff-navigator<br/>지켜보기 · 조회수]
+        M[bff-marketplace<br/>북마크 · 조회수 · 북마크 인벤토리<br/>인벤토리 3초 TTL 캐시]
+        NV[bff-navigator<br/>북마크 · 조회수]
     end
     subgraph BK[api-bookmark ★]
-        H[bookmark / unbookmark / 조회수 기록<br/>멱등: 중복 요청 = 성공]
-        L[일일 50 · 총 1000 제한]
+        H[Bookmark / UnBookmark / SetView<br/>멱등: 중복 요청 = 성공<br/>조회수는 IP·지갑·대상 당 24h 1회]
+        L[일일 100 · 총 5000 제한<br/>설정값 · 첫 행동 기준 24h 창]
         PG[(북마크)]
-        RD[(Redis 카운트<br/>0 이하면 키 제거)]
+        RD[(Redis 카운트<br/>사용자별 · 대상별<br/>0 이하면 조회 시 정리)]
     end
+    AC[api-account<br/>탈퇴 시 일괄 삭제]
+    NT[api-notification<br/>북마크한 사용자 조회]
     GD[api-gamedata<br/>아이템 · 캐릭터 상세]
     EX[exchange<br/>판매 카드]
     K[[북마크 · 조회수 이벤트]]
-    SF[(Snowflake)]
     M & NV --> H --> L --> PG
     H --> RD
-    H -- 이벤트 발행 --> K --> SF
+    AC & NT --> H
+    H -- 이벤트 발행 --> K --> AN[분석 파이프라인]
     M --> GD & EX
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
     class M,NV,H,L,PG,RD mine
@@ -402,100 +412,120 @@ flowchart LR
 sequenceDiagram
     autonumber
     participant U as 사용자
-    participant B as bff-msu-web
+    participant GW as API 게이트웨이
     box rgb(219,234,254) 내가 구현
     participant A as api-account ★
     end
-    participant R as Redis (Lua)
+    participant R as Redis
     participant W as Worldpay FraudSight
     participant N as api-notification
-    U->>B: 카드 인증 요청
-    B->>A: Authorize
-    A->>R: 일일 한도 확인+증가+TTL (원자)
+    U->>GW: 카드 인증 요청
+    GW->>A: authorize
+    A->>R: 일일 시도 횟수 확인
     alt 3회 초과
-        R-->>A: 거부
         A-->>U: 한도 초과 안내
     else 허용
-        A->>W: 0원 결제 · 3DS (서킷 브레이커)
-        alt 4xx
+        A->>R: 증가 + 만료 (Lua · UTC 자정 리셋)
+        A->>W: 0원 결제 · 3DS · FraudSight
+        W-->>A: 디바이스 데이터 / 챌린지 단계
+        A-->>U: 3DS 단계 안내 (supply-device-data · complete-challenge)
+        U->>A: 3DS 단계 완료
+        A->>W: 최종 승인 요청
+        alt 4xx · fraudHighRisk
             W-->>A: 사용자 실패
+            A->>A: 거절 이력 저장
+            A->>N: 실패 알림
             A-->>U: 200 + outcome 코드
-        else 5xx
+        else 5xx · 예상 밖 응답
             W-->>A: 벤더 장애
+            A->>R: 시도 횟수 롤백
             A-->>U: 에러 · 재시도 안내
-        else 성공
-            A->>A: 토큰 암호화 저장 · credit level 갱신
-            A->>N: 인증 결과 알림
-            A-->>U: 성공
+        else 승인
+            A->>A: 발급사별 서킷 브레이커(차단) 확인
+            A->>A: 카드 토큰 · 이력 저장 (카드 정보 일부 암호화)
+            A-->>U: 성공 (등급은 카드 보유로 산정)
         end
     end
+    note over GW,W: 재인증: 같은 엔드포인트 · 일일 한도 미적용 · 결과로 재인증 상태 갱신 + 승인/거절 알림
 </script>
-<script type="text/plain" id="dg-src-usdt" data-title="스테이블 코인 — 선차감과 결과 확정 롤백">
+<script type="text/plain" id="dg-src-usdt" data-title="스테이블 코인 출금 — 선차감과 결과 기반 롤백">
 sequenceDiagram
     autonumber
     participant U as 사용자
-    participant B as bff-swapnwarp
+    participant GW as 블록체인 게이트웨이<br/>(브리지 · RPC 프록시)
     box rgb(219,234,254) 내가 구현
     participant S as api-blockchain-supporter ★
     end
     participant P as 정책 (sentinel)
+    participant AC as api-account
     participant BC as 블록체인
-    participant K as 결과 확정 토픽
-    U->>B: 출금 요청 (USDT / NXPC)
-    B->>S: TryWithdrawal
-    S->>P: 화이트리스트 · 국가 제한 · 한도
-    S->>S: 일일 한도 선차감 (멱등 · request id)
-    S-->>B: 허용
-    B->>BC: 트랜잭션 제출
-    BC-->>K: 성공 / 실패 / 드랍
-    K->>S: 결과 컨슈머
-    alt 실패 · 드랍
-        S->>S: 선차감 롤백 (같은 nonce 보정)
-    else 성공
-        S->>S: 차감 확정
+    participant K as 결과 토픽<br/>(블록체인 백엔드 · api-activity 발행)
+    U->>GW: 출금 요청 (USDT 브리지 / NXPC 전송)
+    GW->>S: TryWithdrawal / TryTransfer (request id · nonce)
+    S->>P: 화이트리스트(면제) · 국가/IP 제한 조회
+    S->>AC: MVP 랭크 · 기능 잠금(OTP) 확인
+    S->>S: KYC 레벨별 일일 한도 검사 + 선차감<br/>(한 트랜잭션 · FOR UPDATE · request id 멱등)
+    alt 한도 초과 · 제한
+        S-->>GW: 거부
+    else 허용
+        S-->>GW: 허용
+        GW->>BC: 트랜잭션 전달
+        BC-->>K: 성공 / 실패 / 드랍
+        K->>S: 결과 컨슈머
+        S->>S: 같은 주소·nonce 의 경합 요청 롤백
+        alt 실패 · 드랍
+            S->>S: 선차감 롤백 (누적 감산 · 이력 cancelled)
+        end
     end
+    note over GW,AC: 선차감이 곧 확정 — 실패일 때만 되돌림 · bff-swapnwarp 는 한도·자격 조회만 호출
 </script>
-<script type="text/plain" id="dg-src-notification" data-title="통합 알림 — SSE와 대량 수신자 스트리밍">
-flowchart LR
-    subgraph SRC[발행자]
-        AC[api-account<br/>KYC · 제재 · 카드 · MFA]
-        AT[api-activity ★<br/>거래 · Swap · Warp 결과]
-        EX[거래소 · 리액터]
-        BO[백오피스<br/>운영자 알림]
-    end
-    K[[알림 이벤트 토픽 5종]]
+<script type="text/plain" id="dg-src-notification" data-title="통합 알림 — SSE 와 대량 수신자 스트리밍">
+flowchart TB
+    AC[api-account<br/>KYC · 본인인증 · 재인증 · 카드 · 닉네임 · 밴 · MFA]
+    K[[도메인 이벤트 토픽 3종<br/>거래소 · Swap/Warp 결과 · 리액터]]
+    CON[portal-console<br/>운영자 대량 알림]
     subgraph NT[api-notification ★]
-        C[컨슈머 5종]
-        S[알림 생성<br/>URL · 제목 백엔드 생성]
-        DB[(MongoDB 30일 보관)]
-        SSE[SSE 서버<br/>동시 커넥션 상한 · JWT 자체 검증]
+        G1[gRPC Notify 7종]
+        C[도메인 컨슈머 3종]
+        Q[[내부 큐 · 단건 / 대량]]
+        CR[생성 컨슈머<br/>URL · 제목 · 본문 백엔드 생성]
+        DB[(MongoDB · TTL 30일)]
+        PS[(Redis pub/sub)]
+        SSE[SSE 서버<br/>Pod 당 커넥션 상한 · JWT 자체 검증]
         G[gRPC 조회 · 읽음 처리]
         ST[백오피스 gRPC streaming<br/>수신자 500건 청크 · 5만 상한]
+        SCH[예약 발송 스케줄러]
+        RDB[(발송 설정 · 수신자)]
     end
     U[사용자 브라우저]
-    AC & AT & EX --> K --> C --> S --> DB
-    BO --> ST --> DB
-    DB --> SSE --> U
+    AC -- gRPC --> G1 --> Q
+    K --> C --> Q
+    Q --> CR --> DB
+    CR --> PS --> SSE --> U
     U --> G --> DB
+    CON --> ST --> RDB --> SCH --> Q
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
-    class C,S,DB,SSE,G,ST mine
+    class G1,C,Q,CR,DB,PS,SSE,G,ST,SCH,RDB mine
 </script>
 <script type="text/plain" id="dg-src-sentinel" data-title="api-sentinel — 정책 서비스 단일 소유자">
 flowchart LR
-    subgraph CALL[호출자 — 조회만]
-        AC[api-account<br/>로그인 rate limit · lockout]
-        BC[api-blockchain-supporter<br/>출금 화이트리스트 · 국가 제한]
-        AI[portal-ai<br/>dedupe TTL]
+    subgraph CALL[런타임 호출자 — 조회만]
+        AC[api-account<br/>인증메일 · 카드 · 가입 rate limit<br/>OTP lockout · ACL · flag]
+        BC["api-blockchain-supporter<br/>출금 화이트리스트(면제) · 국가/IP 제한"]
+        AI["portal-ai<br/>에러 dedupe (rate limit)"]
+        CS[portal-console<br/>Discord 답장 rate limit]
     end
-    CON[portal-console<br/>정책 CRUD]
+    CON[portal-console · 백오피스<br/>ACL · flag · rate limit 정책 관리]
     subgraph SEN[api-sentinel ★]
-        RT[런타임 gRPC<br/>TryAcquire · CheckBlocked · ExistsWhitelist]
-        RF[정책 refresher<br/>1분 ± jitter]
+        RT[런타임 gRPC 4종<br/>RateLimit · Lockout · ACL · FeatureFlag<br/>TryAcquire · RecordFailure · CheckBlocked · ExistsWhitelist · CheckEnabled]
+        RF[rate limit · lockout 정책 refresher<br/>1분 ± 5초 jitter]
         BOG[백오피스 gRPC]
     end
-    RD[(Redis<br/>sliding / fixed window<br/>lockout 실패 횟수)]
-    PG[(정책 테이블<br/>rate limit · lockout · ACL · flag)]
-    AC & BC & AI --> RT --> RD
+    RD[("Redis<br/>fixed / sliding window (Lua)<br/>lockout 실패 시각 sorted set")]
+    PG[(정책 · ACL · flag<br/>flag 는 30분 캐시)]
+    AC & BC & AI & CS --> RT
+    RT --> RD
+    RT -- ACL · flag --> PG
     RF --> PG
     RF -.-> RT
     CON --> BOG --> PG
@@ -504,15 +534,15 @@ flowchart LR
 </script>
 <script type="text/plain" id="dg-src-cdc" data-title="PostgreSQL CDC → Snowflake">
 flowchart LR
-    PG[(PostgreSQL<br/>publication · slot<br/>상태성/이력성 테이블 구분)]
-    DZ[Debezium<br/>MSK Connector<br/>tombstone 처리]
-    K[[Kafka<br/>테이블별 토픽 · DLQ]]
-    SK[Snowflake Sink<br/>Snowpipe Streaming]
-    ST[Stream → Task<br/>MERGE · 데이터 있을 때만 실행]
+    PG[(PostgreSQL<br/>publication · slot 수동 생성<br/>pgoutput)]
+    DZ[Debezium · Kafka Connect<br/>tombstone 끄고 op 필드로 rewrite<br/>signal 테이블 증분 스냅샷]
+    K[[Kafka<br/>테이블별 토픽<br/>connector 별 DLQ]]
+    SK[Snowflake Sink<br/>Snowpipe Streaming<br/>schematization]
+    ST[Stream → Task<br/>1분 주기 · 데이터 있을 때만<br/>PK 별 최신 변경만 MERGE<br/>상태성 = 삭제 반영 / 이력성 = 삭제 무시]
     T[(분석 테이블)]
-    KA[keepalive 배치 ★<br/>변경 뜸한 테이블의<br/>WAL 누적 방지]
+    KA[replication slot keepalive 배치 ★<br/>변경 뜸한 테이블 최신 1행 UPDATE pk=pk<br/>slot LSN 전진 → WAL/디스크 누적 방지]
     PG --> DZ --> K --> SK --> ST --> T
-    KA -. UPDATE pk=pk .-> PG
+    KA -. 주기 실행 .-> PG
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
     class PG,DZ,K,SK,ST,T,KA mine
 </script>
@@ -523,21 +553,28 @@ sequenceDiagram
     box rgb(219,234,254) 내가 구현
     participant B as portal-ai 에러시로봇 ★
     end
+    participant P as 정책 (sentinel)
+    participant O as OpenSearch (분석 이력)
     participant G as GitLab API
-    participant O as OpenSearch
     participant L as Vertex AI (LLM)
-    S->>B: 에러 알림 이벤트
-    B->>B: 잘린 메시지 감지 → 원문 재조회
-    B->>O: signature 로 과거 분석 조회
-    alt 이미 분석됨
-        B-->>S: 최초 감지 시각 · 기존 스레드 링크
+    S->>B: 에러 알림 스레드 이벤트 (Socket Mode)
+    B->>B: 잘린 메시지 감지 → 스레드 원문 재조회
+    B->>P: signature dedupe (TTL 정책)
+    B->>B: 반복 횟수 카운트
+    opt 창 내 임계 초과
+        B-->>S: 🚨 escalation 경고 (1회)
+    end
+    alt 중복
+        B-->>S: 👀 리액션만 (분석 생략)
     else 신규
-        B->>G: 스택 파일별 최근 5커밋
-        B->>L: 분석 요청 (세마포어 · 재시도/백오프)
+        B->>O: signature 로 과거 분석 · 최초 감지 조회
+        B->>G: 스택 파일별 최근 5커밋 (서킷 브레이커)
+        B->>L: 분석 요청 (세마포어 2 · 429/5xx 재시도 3회 · 백오프+지터)
         L-->>B: 1차 분석
         B->>O: 분석 저장
-        B-->>S: 스레드 답글 + escalation 여부
+        B-->>S: 스레드 답글 (+ 최초 감지 시각 · 기존 스레드 링크)
     end
+    S->>B: 👍/👎 피드백 · 🔍 재분석 · 멘션 후속 대화
 </script>
 <script>var MERMAID_CDN="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js";
 (function(){

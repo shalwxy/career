@@ -1,0 +1,30 @@
+%% title: Stablecoin withdrawals — pre-deduction and result-driven rollback
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant GW as Blockchain gateway<br/>(bridge · RPC proxy)
+    box rgb(219,234,254) Built by me
+    participant S as api-blockchain-supporter ★
+    end
+    participant P as Policy (sentinel)
+    participant AC as api-account
+    participant BC as Blockchain
+    participant K as Result topics<br/>(published by blockchain backend · api-activity)
+    U->>GW: Withdrawal (USDT bridge / NXPC transfer)
+    GW->>S: TryWithdrawal / TryTransfer (request id · nonce)
+    S->>P: Whitelist (exemption) · country/IP restrictions
+    S->>AC: MVP rank · feature lock (OTP)
+    S->>S: Daily limit per KYC level + pre-deduct<br/>(one transaction · FOR UPDATE · idempotent by request id)
+    alt over limit · restricted
+        S-->>GW: Reject
+    else allowed
+        S-->>GW: Allow
+        GW->>BC: Forward transaction
+        BC-->>K: Success / failure / dropped
+        K->>S: Result consumer
+        S->>S: Roll back competing requests with the same address · nonce
+        alt failure · dropped
+            S->>S: Roll back pre-deduction (decrement · mark cancelled)
+        end
+    end
+    note over GW,AC: Pre-deduction is final — only reversed on failure · bff-swapnwarp only reads limits and eligibility

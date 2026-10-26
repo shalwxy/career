@@ -164,7 +164,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 </tr>
 <tr>
 <td>2026 Q2~Q3</td>
-<td><a href="#d-enum">정책은 enum 으로</a> · <a href="#d-rollback">롤백에서 남긴 것</a> · <a href="#d-lock-email">잠금은 컬럼으로</a></td>
+<td><a href="#d-enum">정책은 enum 으로</a> · <a href="#d-rollback">롤백에서 배운 것</a> · <a href="#d-lock-email">잠금은 컬럼으로</a></td>
 </tr>
 <tr>
 <td>2026 Q4</td>
@@ -196,7 +196,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <h2 id="d-cursor">페이지네이션은 커서로 🔁</h2>
 <p><strong>2024 Q2 → 2025 Q1.</strong> 공통 파라미터와 전체 건수 를 먼저 노출했다가, 테이블이 커지며 count 비용이 문제가 되어 커서(커서 키) 기반 무한 스크롤로 전환. 첫 페이지만 캐시. <strong>교훈</strong>: 전체 건수 를 한 번 노출하면 프론트가 의존해 빼기 어렵다 — 처음부터 커서였어야.</p>
 <h2 id="d-lock"><a href="#" class="dg" data-dg="activity-lock" title="도식 보기">동시 적재 정합성 — NX + advisory lock</a> ✅</h2>
-<p><strong>2025 Q2~Q3 · 크로스체인 전송.</strong> 메시지 순서 비보장 + 재시도로 요청/결과 동시 적재·중복 발생. 스키마는 nullable 로, 애플리케이션은 Redis NX 로 먼저 잡은 요청만, DB 는 트랜잭션 범위 advisory lock(키 2개 — 발신자 해시가 없는 경우 때문, 상한 설정). 락의 의도는 &ldquo;요청↔결과 동시 적재 방지&rdquo; 이지 &ldquo;결과 자기 중복 방지&rdquo; 가 아님을 나중에 명문화.</p>
+<p><strong>2025 Q2~Q3 · 크로스체인 전송.</strong> 메시지 순서 비보장 + 재시도로 요청/결과 동시 적재·중복 발생. 이벤트 종류별로 방어를 달리했다 — 거래·자산·Swap 은 Redis SET NX(TTL, 처리 후 해제)로 동시 중복 처리만 막고, 순서가 뒤집히는 Warp 요청/결과는 nullable 스키마 + 트랜잭션 범위 advisory lock(네임스페이스 키 + 해시 버킷 키, 버킷 상한 설정) 아래에서 선조회 후 생성/수정(먼저 온 쪽을 PENDING·NO_CONTENT 상태로 선행 적재). 락의 의도는 &ldquo;요청↔결과 동시 적재 방지&rdquo; 이지 &ldquo;결과 자기 중복 방지&rdquo; 가 아님을 나중에 명문화.</p>
 <h2 id="d-cdc"><a href="#" class="dg" data-dg="cdc" title="도식 보기">서비스는 데이터 파이프라인에 직접 쓰지 않는다</a> ✅</h2>
 <p><strong>2025 Q2 → 2026 Q1.</strong> 요청 경로에서 데이터 레이크에 직접 적재하던 실험을 취소하고 배치로 분리(2025 Q2) → Kafka publish 로 적재(2025 Q3) → 커밋 후 publish 실패 유실 때문에 <strong>CDC</strong> 로 전환(2026 Q1). CDC 는 DB 커밋이 곧 발행. 상태성/이력성 테이블 구분, slot keepalive, 조건부 task 까지 세트로.</p>
 <h2 id="d-worldpay"><a href="#" class="dg" data-dg="creditcard" title="도식 보기">벤더 응답은 200+outcome 과 에러로 분기</a> ✅</h2>
@@ -204,21 +204,21 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <h2 id="d-lua">일일 횟수 제한은 Lua 로 원자 처리 ✅</h2>
 <p><strong>2025 Q3.</strong> incr + 조건 분기로는 동시 요청에서 한도를 넘길 수 있다. &ldquo;확인 + 증가 + TTL&rdquo; 을 Lua 한 번에. 키에 날짜를 넣지 않고 TTL 로만(자정 reset 애매함 제거). 대역별로 횟수를 다르게 두는 설정은 곧 <strong>revert</strong> — 2026 Q4 에 시간 정책만 설정으로 외부화.</p>
 <h2 id="d-notify">통합 알림 — 3가지 결정 ✅</h2>
-<p><strong>2025 Q3~Q4.</strong> (1) &ldquo;모든 사용자에게 알림&rdquo; 기능 제거 — 대량 fan-out 은 알림 서비스가 지지 않는다. (2) URL·타이틀·본문을 백엔드에서 생성 — 프론트별 조립 중복 제거. (3) JWT 검증을 자체 흡수 — SSE 연결마다 계정 서비스를 호출하던 비용 제거. 알림 이벤트는 DB 커밋 이후 발행.</p>
+<p><strong>2025 Q3~Q4.</strong> (1) &ldquo;모든 사용자에게 알림&rdquo; 기능 제거 — 대량 fan-out 은 알림 서비스가 지지 않는다. (2) URL·타이틀·본문을 백엔드에서 생성 — 프론트별 조립 중복 제거. (3) JWT 검증을 자체 흡수 — SSE 연결마다 계정 서비스를 호출하던 비용 제거. </p>
 <h2 id="d-ttl">캐시 무효화 대신 짧은 TTL ✅</h2>
 <p><strong>2025 Q3 · 거래소 BFF.</strong> 북마크 변경 시 캐시 무효화 → 비동기 무효화 → context 취소로 실패 → timeout 10s/30s/1m 으로 늘리다가 <strong>3초 TTL, 무효화 없음</strong> 으로 수렴. 무효화 경로가 요청 context 에 묶이면 실패 모드가 늘어난다. 3초 stale 은 UX 상 허용 가능. 서버 쪽 페이지 캐시도 같은 날 제거하고 캐시 소유자를 BFF 로 일원화.</p>
 <h2 id="d-naming">컬럼 이름에 용도를 넣지 않는다 🔁</h2>
 <p><strong>2025 Q4.</strong> 해시 컬럼 이름을 기획 변경에 맞춰 세 번 바꿨고(검사 자체가 제거되기도), 정책 테이블 이름도 네 번. 이름이 바뀔 때마다 DBA 검토·마이그레이션·리뷰가 따라붙는다. 중립적 이름을 처음부터.</p>
-<h2 id="d-settle"><a href="#" class="dg" data-dg="usdt" title="도식 보기">롤백 토픽 대신 결과 확정 토픽</a> ✅</h2>
-<p><strong>2025 Q4 · 스테이블 코인 선차감.</strong> 선차감 후 별도 롤백 토픽을 두면 순서·중복 처리가 두 배. 결과 확정 토픽 하나에서 성공/실패를 받아 롤백 여부를 결정. 토큰 종류는 enum 으로 받아 추가 시 테이블 변경이 없게.</p>
+<h2 id="d-settle"><a href="#" class="dg" data-dg="usdt" title="도식 보기">롤백 토픽 대신 결과 토픽</a> ✅</h2>
+<p><strong>2025 Q4 · 스테이블 코인 선차감.</strong> 선차감 후 별도 롤백 토픽을 두면 순서·중복 처리가 두 배. 트랜잭션 결과 토픽에서 성공/실패/드랍을 받아 실패일 때만 선차감을 되돌림(선차감이 곧 확정). 토큰 종류는 enum 으로 받아 추가 시 테이블 변경이 없게.</p>
 <h2 id="d-sentinel"><a href="#" class="dg" data-dg="sentinel" title="도식 보기">정책 전용 서비스로 분리</a> ✅</h2>
 <p><strong>2026 Q1.</strong> 제어 로직이 공통 라이브러리·계정·블록체인 서비스에 흩어져 있었다. 1단계로 기존 서비스가 흡수했으나 콘텐츠 도메인과 섞여 <strong>정책 전용 서비스</strong>를 신설. refresh 를 각 서비스가 전체 정책을 메모리에 올리던 방식에서 정책 서비스가 단일 소유자가 되는 구조로(메모리 이슈). 이후 블록체인 서비스의 화이트리스트까지 이전해 통합 완료.</p>
 <h2 id="d-jitter">jitter 와 cadence — ticker 로 돌아온 이유 ✅</h2>
 <p><strong>2026 Q1.</strong> sliding window 의 refresh 가 같은 경계에 몰려 스파이크. timer 로 바꿔 jitter 를 넣었더니 cadence 가 흔들림. <strong>ticker 기반 + 틱 내부 랜덤 지연</strong> 으로 안정화. fixed window 는 한 번 제거했다가 다시 둘 다 지원.</p>
 <h2 id="d-enum">정책은 코드 분기가 아니라 enum/설정으로 ✅</h2>
 <p><strong>2026 Q2~Q3.</strong> 출금 가드가 &ldquo;OTP 냐 잠금이냐&rdquo; 를 몇 번 왕복했다. 정책은 바뀐다 — API 가 어떤 검사를 할지 <strong>enum 으로 받게</strong> 해 왕복이 코드 변경으로 번지지 않게. 같은 이유로 토큰 종류·시간 정책도 설정/enum 으로.</p>
-<h2 id="d-rollback">롤백에서 남긴 것 ↩️</h2>
-<p><strong>2026 Q3 · 출금 지연 피처.</strong> 7개 서비스에 걸친 피처가 기획 변경으로 전체 롤백. 되돌리면서도 그 과정에서 발견한 결함 수정 — DB 에러를 삼켜 &ldquo;commit unexpectedly resulted in rollback&rdquo; 을 내던 경로 통일, 알림 발행을 커밋 이후로, 갱신 조건을 식별자 기준으로 고정 — 은 남겼다. 큰 피처는 <strong>브랜치 + 메모</strong> 를 남겨야 재개 비용이 줄고, 롤백돼도 숨은 결함을 고친 가치는 보존된다.</p>
+<h2 id="d-rollback">롤백에서 배운 것 ↩️</h2>
+<p><strong>2026 Q3 · 출금 지연 피처.</strong> 7개 서비스에 걸친 피처가 기획 변경으로 전체 롤백. 그 과정에서 찾은 기존 결함 — DB 에러를 삼켜 &ldquo;commit unexpectedly resulted in rollback&rdquo; 을 내던 경로, 알림 발행이 커밋 전에 일어나는 경로, 갱신 조건이 식별자가 아닌 문제 — 을 수정했지만 피처와 한 커밋 흐름에 섞여 있어 <strong>롤백에 함께 되돌아갔다</strong>. 결함 수정은 피처 브랜치와 분리해 먼저 머지해야 롤백에서 살아남는다는 것, 큰 피처는 <strong>브랜치 + 메모</strong> 를 남겨야 재개 비용이 준다는 것을 배웠다. 되돌아간 수정은 재적용 과제로 인수인계에 기록.</p>
 <h2 id="d-lock-email">잠금은 Redis 가 아니라 컬럼으로 ✅</h2>
 <p><strong>2026 Q3 · 이메일 변경 후 보안 설정 잠금.</strong> Redis TTL 이면 기간 변경이 기존 키에 반영되지 않고 영속성도 없다. 변경 시각 컬럼으로 전환. 선검사 API 를 따로 두면 프론트 호출이 하나 늘어 응답 필드 하나로 통합. Primary 조회로 복제 지연 창 제거, 설정이 0 이면 조회 생략.</p>
 <h2 id="d-outbox">외부 side effect 는 Outbox 로 ✅</h2>
@@ -239,68 +239,72 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <li><strong>리뷰 2회차가 기본</strong> — 결제·보안은 1회차로 끝내지 않는다.</li>
 </ol>
 </article>
-<aside class="toc"><p class="t">목차</p><ul><li><a href="#design-decisions">Design Decisions</a><ul><li><a href="#timeline">시기별 목차</a></li><li><a href="#d-facade">파사드 단에서 검증한다 ✅</a></li><li><a href="#d-preempt">확인 대신 선점한다 ✅</a></li><li><a href="#d-validator">검증은 단건 반복이 아니라 목록 조회로 ✅</a></li><li><a href="#d-devfirst">test/qa 승격 전 dev 선행 배포 ✅</a></li><li><a href="#d-split">조회 서버와 Kafka 컨슈머를 분리한다 ✅</a></li><li><a href="#d-idempotent">북마크는 멱등이 기본 ✅</a></li><li><a href="#d-proto">proto 저장소는 도메인별 모듈로 ✅</a></li><li><a href="#d-unique">트랜잭션 해시를 유니크 키로 ✅</a></li><li><a href="#d-dlq">비정상 이벤트는 DB 가 아니라 DLQ ✅</a></li><li><a href="#d-count">카운트는 요청 경로가 아니라 이벤트로 ✅</a></li><li><a href="#d-cursor">페이지네이션은 커서로 🔁</a></li><li><a href="#d-lock">동시 적재 정합성 — NX + advisory lock ✅</a></li><li><a href="#d-cdc">서비스는 데이터 파이프라인에 직접 쓰지 않는다 ✅</a></li><li><a href="#d-worldpay">벤더 응답은 200+outcome 과 에러로 분기 ✅</a></li><li><a href="#d-lua">일일 횟수 제한은 Lua 로 원자 처리 ✅</a></li><li><a href="#d-notify">통합 알림 — 3가지 결정 ✅</a></li><li><a href="#d-ttl">캐시 무효화 대신 짧은 TTL ✅</a></li><li><a href="#d-naming">컬럼 이름에 용도를 넣지 않는다 🔁</a></li><li><a href="#d-settle">롤백 토픽 대신 결과 확정 토픽 ✅</a></li><li><a href="#d-sentinel">정책 전용 서비스로 분리 ✅</a></li><li><a href="#d-jitter">jitter 와 cadence — ticker 로 돌아온 이유 ✅</a></li><li><a href="#d-enum">정책은 코드 분기가 아니라 enum/설정으로 ✅</a></li><li><a href="#d-rollback">롤백에서 남긴 것 ↩️</a></li><li><a href="#d-lock-email">잠금은 Redis 가 아니라 컬럼으로 ✅</a></li><li><a href="#d-outbox">외부 side effect 는 Outbox 로 ✅</a></li><li><a href="#d-stream">대량 수신자는 streaming RPC 로 ✅</a></li><li><a href="#d-llm">LLM 호출 내성 ✅</a></li><li><a href="#d-batch">배치는 continue-and-count ✅</a></li><li><a href="#반복된-패턴">반복된 패턴</a></li></ul></li></ul></aside>
+<aside class="toc"><p class="t">목차</p><ul><li><a href="#design-decisions">Design Decisions</a><ul><li><a href="#timeline">시기별 목차</a></li><li><a href="#d-facade">파사드 단에서 검증한다 ✅</a></li><li><a href="#d-preempt">확인 대신 선점한다 ✅</a></li><li><a href="#d-validator">검증은 단건 반복이 아니라 목록 조회로 ✅</a></li><li><a href="#d-devfirst">test/qa 승격 전 dev 선행 배포 ✅</a></li><li><a href="#d-split">조회 서버와 Kafka 컨슈머를 분리한다 ✅</a></li><li><a href="#d-idempotent">북마크는 멱등이 기본 ✅</a></li><li><a href="#d-proto">proto 저장소는 도메인별 모듈로 ✅</a></li><li><a href="#d-unique">트랜잭션 해시를 유니크 키로 ✅</a></li><li><a href="#d-dlq">비정상 이벤트는 DB 가 아니라 DLQ ✅</a></li><li><a href="#d-count">카운트는 요청 경로가 아니라 이벤트로 ✅</a></li><li><a href="#d-cursor">페이지네이션은 커서로 🔁</a></li><li><a href="#d-lock">동시 적재 정합성 — NX + advisory lock ✅</a></li><li><a href="#d-cdc">서비스는 데이터 파이프라인에 직접 쓰지 않는다 ✅</a></li><li><a href="#d-worldpay">벤더 응답은 200+outcome 과 에러로 분기 ✅</a></li><li><a href="#d-lua">일일 횟수 제한은 Lua 로 원자 처리 ✅</a></li><li><a href="#d-notify">통합 알림 — 3가지 결정 ✅</a></li><li><a href="#d-ttl">캐시 무효화 대신 짧은 TTL ✅</a></li><li><a href="#d-naming">컬럼 이름에 용도를 넣지 않는다 🔁</a></li><li><a href="#d-settle">롤백 토픽 대신 결과 토픽 ✅</a></li><li><a href="#d-sentinel">정책 전용 서비스로 분리 ✅</a></li><li><a href="#d-jitter">jitter 와 cadence — ticker 로 돌아온 이유 ✅</a></li><li><a href="#d-enum">정책은 코드 분기가 아니라 enum/설정으로 ✅</a></li><li><a href="#d-rollback">롤백에서 배운 것 ↩️</a></li><li><a href="#d-lock-email">잠금은 Redis 가 아니라 컬럼으로 ✅</a></li><li><a href="#d-outbox">외부 side effect 는 Outbox 로 ✅</a></li><li><a href="#d-stream">대량 수신자는 streaming RPC 로 ✅</a></li><li><a href="#d-llm">LLM 호출 내성 ✅</a></li><li><a href="#d-batch">배치는 continue-and-count ✅</a></li><li><a href="#반복된-패턴">반복된 패턴</a></li></ul></li></ul></aside>
 </div>
 <button class="toc-btn" aria-label="목차">☰</button>
 <footer><div class="in"><span>Last updated 2026-10-26</span><span class="links"><a href="mailto:shalwxy@gmail.com" rel="me noopener">Email</a><a href="https://github.com/shalwxy" rel="me noopener">GitHub</a><a href="https://www.linkedin.com/in/seungha-lee-2aa442229" rel="me noopener">LinkedIn</a><a href="https://shalwxy.github.io/" rel="me noopener">Blog</a></span><span>공개용으로 정제된 요약이며 사내 식별자·운영 정보는 포함하지 않습니다.</span></div></footer>
 <div class="modal" role="dialog" aria-modal="true"><div class="box"><div class="hd"><h3></h3><button class="zoom" type="button">확대</button><button class="close" type="button">닫기 ✕</button></div><div class="bd"><div class="mm"></div><p class="legend"><i></i>강조된 상자가 제가 설계·구현한 부분입니다. 내부 식별자는 생략했습니다.</p></div></div></div>
-<script type="text/plain" id="dg-src-saga" data-title="DE — Saga 실행과 캐릭터 민트·닉네임 선점">
+<script type="text/plain" id="dg-src-saga" data-title="DE — Saga 실행과 캐릭터 민트·닉네임 선점 (2024-04 기준)">
 sequenceDiagram
     autonumber
     participant G as 게임 서버
-    box rgb(219,234,254) 내가 기여한 부분
-    participant BP as business-provider<br/>(gRPC 파사드 · 유효성 검사 ★)
-    participant S as saga-provider<br/>(Saga 실행)
+    box rgb(219,234,254) 내가 기여한 부분 ★
+    participant BP as business-provider<br/>(gRPC 파사드 · 입력 검증 ★)
+    participant S as saga-provider<br/>(Saga 실행 · 도메인 validator ★)
+    participant A as 트랜잭션 분석 워커<br/>(체인 결과 분석 · 일부 기여 ★)
     end
     participant R as Redis
-    participant E as event-service<br/>(상태 저장)
+    participant E as event-service<br/>(상태 저장 · Prepare/Commit/Rollback)
     participant BC as 블록체인
-    participant A as analyzer 워커
-    G->>BP: 캐릭터 민트 요청
-    BP->>BP: 입력 검증 · converter ★
-    BP->>S: SagaRequest
-    S->>R: 닉네임 선점 · 캐릭터 잠금 ★<br/>(존재 확인 대신 락)
-    S->>E: 상태 MINTING
+    G->>BP: 캐릭터 민트 요청 (gRPC)
+    BP->>BP: 입력 검증 · converter
+    BP->>S: Saga Execute (gRPC 동기 호출)
+    S->>R: 닉네임 선점 · 캐릭터 잠금 ★<br/>(존재 확인 대신 분산 락)
+    S->>E: Prepare (새 닉네임 생성 · 기존 닉네임 제거)
     S->>BC: 민트 트랜잭션
-    BC-->>A: 체인 결과 이벤트
-    A->>S: ApplyMint 성공/실패
+    BC-->>A: 체인 결과 이벤트 (Kafka)
+    A->>S: ApplyMint 성공/실패 + 닉네임 ★ (Kafka)
     alt 성공
-        S->>R: 이전 선점 해제 ★
-        S->>E: 상태 UNLOCK · 닉네임 반영
+        S->>E: 상태 UNLOCK · 닉네임 반영 (Prepare → Commit)
+        S->>R: 기존 닉네임 선점 해제 ★
     else 실패
-        S->>S: 보상(compensate) 실행
+        S->>E: Rollback · 실패 상태 UNLOCK 기록
+        S->>R: 새 닉네임 선점 해제 ★
     end
+    S->>R: 캐릭터 잠금 해제 ★
 </script>
-<script type="text/plain" id="dg-src-activity-lock" data-title="동시 적재 정합성 — 세 층의 방어">
+<script type="text/plain" id="dg-src-activity-lock" data-title="동시 적재 정합성 — 이벤트 종류별 방어">
 flowchart TB
-    K[["Kafka 요청/결과 메시지<br/>순서 비보장 · 재시도 → 같은 건이 동시에 들어올 수 있음"]]
-    subgraph L1["1층 · Redis"]
-        R["SET NX + TTL<br/>먼저 잡은 요청만 처리 · 중복 수신 차단"]
+    K[["Kafka 메시지<br/>재시도 · 순서 비보장 → 같은 건이 동시에 들어올 수 있음"]]
+    subgraph A["거래 · 자산 · Swap — 단건으로 끝나는 이벤트"]
+        R["Redis SET NX + TTL<br/>먼저 잡은 쪽만 처리 · 처리 후 해제"]
+        W1["DB 쓰기<br/>unique 위반 = 이미 처리됨 → 성공 종료"]
+        R --> W1
     end
-    subgraph L2["2층 · PostgreSQL"]
-        P["advisory_xact_lock(키 2개)<br/>요청↔결과 같은 트랜잭션 범위에서 직렬화"]
+    subgraph B["Warp — 요청/결과가 뒤집혀 올 수 있는 이벤트"]
+        P["트랜잭션 + advisory lock<br/>네임스페이스 키 + 해시 버킷 키"]
+        S["선조회 → 없으면 생성 / 있으면 수정<br/>먼저 온 쪽을 PENDING · NO_CONTENT 로 선행 적재<br/>(nullable 스키마)"]
+        P --> S
     end
-    subgraph L3["3층 · 스키마 · 쓰기"]
-        S["nullable 스키마 + 해시 유니크 키<br/>어느 쪽이 먼저 와도 적재"]
-        W["wrapWriteError<br/>unique 충돌 = 이미 처리됨 → 성공으로 종료"]
-    end
-    N["알림 이벤트<br/>커밋 이후에만 발행"]
-    K --> R --> P --> S --> W --> N
-    R -. Redis 장애 시 건너뜀 .-> P
+    N["결과 이벤트 발행 → 알림 · 선차감 롤백"]
+    K --> R
+    K --> P
+    W1 --> N
+    S --> N
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
-    class R,P,S,W,N mine
+    class R,W1,P,S,N mine
 </script>
 <script type="text/plain" id="dg-src-cdc" data-title="PostgreSQL CDC → Snowflake">
 flowchart LR
-    PG[(PostgreSQL<br/>publication · slot<br/>상태성/이력성 테이블 구분)]
-    DZ[Debezium<br/>MSK Connector<br/>tombstone 처리]
-    K[[Kafka<br/>테이블별 토픽 · DLQ]]
-    SK[Snowflake Sink<br/>Snowpipe Streaming]
-    ST[Stream → Task<br/>MERGE · 데이터 있을 때만 실행]
+    PG[(PostgreSQL<br/>publication · slot 수동 생성<br/>pgoutput)]
+    DZ[Debezium · Kafka Connect<br/>tombstone 끄고 op 필드로 rewrite<br/>signal 테이블 증분 스냅샷]
+    K[[Kafka<br/>테이블별 토픽<br/>connector 별 DLQ]]
+    SK[Snowflake Sink<br/>Snowpipe Streaming<br/>schematization]
+    ST[Stream → Task<br/>1분 주기 · 데이터 있을 때만<br/>PK 별 최신 변경만 MERGE<br/>상태성 = 삭제 반영 / 이력성 = 삭제 무시]
     T[(분석 테이블)]
-    KA[keepalive 배치 ★<br/>변경 뜸한 테이블의<br/>WAL 누적 방지]
+    KA[replication slot keepalive 배치 ★<br/>변경 뜸한 테이블 최신 1행 UPDATE pk=pk<br/>slot LSN 전진 → WAL/디스크 누적 방지]
     PG --> DZ --> K --> SK --> ST --> T
-    KA -. UPDATE pk=pk .-> PG
+    KA -. 주기 실행 .-> PG
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
     class PG,DZ,K,SK,ST,T,KA mine
 </script>
@@ -308,105 +312,125 @@ flowchart LR
 sequenceDiagram
     autonumber
     participant U as 사용자
-    participant B as bff-msu-web
+    participant GW as API 게이트웨이
     box rgb(219,234,254) 내가 구현
     participant A as api-account ★
     end
-    participant R as Redis (Lua)
+    participant R as Redis
     participant W as Worldpay FraudSight
     participant N as api-notification
-    U->>B: 카드 인증 요청
-    B->>A: Authorize
-    A->>R: 일일 한도 확인+증가+TTL (원자)
+    U->>GW: 카드 인증 요청
+    GW->>A: authorize
+    A->>R: 일일 시도 횟수 확인
     alt 3회 초과
-        R-->>A: 거부
         A-->>U: 한도 초과 안내
     else 허용
-        A->>W: 0원 결제 · 3DS (서킷 브레이커)
-        alt 4xx
+        A->>R: 증가 + 만료 (Lua · UTC 자정 리셋)
+        A->>W: 0원 결제 · 3DS · FraudSight
+        W-->>A: 디바이스 데이터 / 챌린지 단계
+        A-->>U: 3DS 단계 안내 (supply-device-data · complete-challenge)
+        U->>A: 3DS 단계 완료
+        A->>W: 최종 승인 요청
+        alt 4xx · fraudHighRisk
             W-->>A: 사용자 실패
+            A->>A: 거절 이력 저장
+            A->>N: 실패 알림
             A-->>U: 200 + outcome 코드
-        else 5xx
+        else 5xx · 예상 밖 응답
             W-->>A: 벤더 장애
+            A->>R: 시도 횟수 롤백
             A-->>U: 에러 · 재시도 안내
-        else 성공
-            A->>A: 토큰 암호화 저장 · credit level 갱신
-            A->>N: 인증 결과 알림
-            A-->>U: 성공
+        else 승인
+            A->>A: 발급사별 서킷 브레이커(차단) 확인
+            A->>A: 카드 토큰 · 이력 저장 (카드 정보 일부 암호화)
+            A-->>U: 성공 (등급은 카드 보유로 산정)
         end
     end
+    note over GW,W: 재인증: 같은 엔드포인트 · 일일 한도 미적용 · 결과로 재인증 상태 갱신 + 승인/거절 알림
 </script>
-<script type="text/plain" id="dg-src-usdt" data-title="스테이블 코인 — 선차감과 결과 확정 롤백">
+<script type="text/plain" id="dg-src-usdt" data-title="스테이블 코인 출금 — 선차감과 결과 기반 롤백">
 sequenceDiagram
     autonumber
     participant U as 사용자
-    participant B as bff-swapnwarp
+    participant GW as 블록체인 게이트웨이<br/>(브리지 · RPC 프록시)
     box rgb(219,234,254) 내가 구현
     participant S as api-blockchain-supporter ★
     end
     participant P as 정책 (sentinel)
+    participant AC as api-account
     participant BC as 블록체인
-    participant K as 결과 확정 토픽
-    U->>B: 출금 요청 (USDT / NXPC)
-    B->>S: TryWithdrawal
-    S->>P: 화이트리스트 · 국가 제한 · 한도
-    S->>S: 일일 한도 선차감 (멱등 · request id)
-    S-->>B: 허용
-    B->>BC: 트랜잭션 제출
-    BC-->>K: 성공 / 실패 / 드랍
-    K->>S: 결과 컨슈머
-    alt 실패 · 드랍
-        S->>S: 선차감 롤백 (같은 nonce 보정)
-    else 성공
-        S->>S: 차감 확정
+    participant K as 결과 토픽<br/>(블록체인 백엔드 · api-activity 발행)
+    U->>GW: 출금 요청 (USDT 브리지 / NXPC 전송)
+    GW->>S: TryWithdrawal / TryTransfer (request id · nonce)
+    S->>P: 화이트리스트(면제) · 국가/IP 제한 조회
+    S->>AC: MVP 랭크 · 기능 잠금(OTP) 확인
+    S->>S: KYC 레벨별 일일 한도 검사 + 선차감<br/>(한 트랜잭션 · FOR UPDATE · request id 멱등)
+    alt 한도 초과 · 제한
+        S-->>GW: 거부
+    else 허용
+        S-->>GW: 허용
+        GW->>BC: 트랜잭션 전달
+        BC-->>K: 성공 / 실패 / 드랍
+        K->>S: 결과 컨슈머
+        S->>S: 같은 주소·nonce 의 경합 요청 롤백
+        alt 실패 · 드랍
+            S->>S: 선차감 롤백 (누적 감산 · 이력 cancelled)
+        end
     end
+    note over GW,AC: 선차감이 곧 확정 — 실패일 때만 되돌림 · bff-swapnwarp 는 한도·자격 조회만 호출
 </script>
 <script type="text/plain" id="dg-src-sentinel" data-title="api-sentinel — 정책 서비스 단일 소유자">
 flowchart LR
-    subgraph CALL[호출자 — 조회만]
-        AC[api-account<br/>로그인 rate limit · lockout]
-        BC[api-blockchain-supporter<br/>출금 화이트리스트 · 국가 제한]
-        AI[portal-ai<br/>dedupe TTL]
+    subgraph CALL[런타임 호출자 — 조회만]
+        AC[api-account<br/>인증메일 · 카드 · 가입 rate limit<br/>OTP lockout · ACL · flag]
+        BC["api-blockchain-supporter<br/>출금 화이트리스트(면제) · 국가/IP 제한"]
+        AI["portal-ai<br/>에러 dedupe (rate limit)"]
+        CS[portal-console<br/>Discord 답장 rate limit]
     end
-    CON[portal-console<br/>정책 CRUD]
+    CON[portal-console · 백오피스<br/>ACL · flag · rate limit 정책 관리]
     subgraph SEN[api-sentinel ★]
-        RT[런타임 gRPC<br/>TryAcquire · CheckBlocked · ExistsWhitelist]
-        RF[정책 refresher<br/>1분 ± jitter]
+        RT[런타임 gRPC 4종<br/>RateLimit · Lockout · ACL · FeatureFlag<br/>TryAcquire · RecordFailure · CheckBlocked · ExistsWhitelist · CheckEnabled]
+        RF[rate limit · lockout 정책 refresher<br/>1분 ± 5초 jitter]
         BOG[백오피스 gRPC]
     end
-    RD[(Redis<br/>sliding / fixed window<br/>lockout 실패 횟수)]
-    PG[(정책 테이블<br/>rate limit · lockout · ACL · flag)]
-    AC & BC & AI --> RT --> RD
+    RD[("Redis<br/>fixed / sliding window (Lua)<br/>lockout 실패 시각 sorted set")]
+    PG[(정책 · ACL · flag<br/>flag 는 30분 캐시)]
+    AC & BC & AI & CS --> RT
+    RT --> RD
+    RT -- ACL · flag --> PG
     RF --> PG
     RF -.-> RT
     CON --> BOG --> PG
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
     class RT,RF,BOG,RD,PG mine
 </script>
-<script type="text/plain" id="dg-src-notification" data-title="통합 알림 — SSE와 대량 수신자 스트리밍">
-flowchart LR
-    subgraph SRC[발행자]
-        AC[api-account<br/>KYC · 제재 · 카드 · MFA]
-        AT[api-activity ★<br/>거래 · Swap · Warp 결과]
-        EX[거래소 · 리액터]
-        BO[백오피스<br/>운영자 알림]
-    end
-    K[[알림 이벤트 토픽 5종]]
+<script type="text/plain" id="dg-src-notification" data-title="통합 알림 — SSE 와 대량 수신자 스트리밍">
+flowchart TB
+    AC[api-account<br/>KYC · 본인인증 · 재인증 · 카드 · 닉네임 · 밴 · MFA]
+    K[[도메인 이벤트 토픽 3종<br/>거래소 · Swap/Warp 결과 · 리액터]]
+    CON[portal-console<br/>운영자 대량 알림]
     subgraph NT[api-notification ★]
-        C[컨슈머 5종]
-        S[알림 생성<br/>URL · 제목 백엔드 생성]
-        DB[(MongoDB 30일 보관)]
-        SSE[SSE 서버<br/>동시 커넥션 상한 · JWT 자체 검증]
+        G1[gRPC Notify 7종]
+        C[도메인 컨슈머 3종]
+        Q[[내부 큐 · 단건 / 대량]]
+        CR[생성 컨슈머<br/>URL · 제목 · 본문 백엔드 생성]
+        DB[(MongoDB · TTL 30일)]
+        PS[(Redis pub/sub)]
+        SSE[SSE 서버<br/>Pod 당 커넥션 상한 · JWT 자체 검증]
         G[gRPC 조회 · 읽음 처리]
         ST[백오피스 gRPC streaming<br/>수신자 500건 청크 · 5만 상한]
+        SCH[예약 발송 스케줄러]
+        RDB[(발송 설정 · 수신자)]
     end
     U[사용자 브라우저]
-    AC & AT & EX --> K --> C --> S --> DB
-    BO --> ST --> DB
-    DB --> SSE --> U
+    AC -- gRPC --> G1 --> Q
+    K --> C --> Q
+    Q --> CR --> DB
+    CR --> PS --> SSE --> U
     U --> G --> DB
+    CON --> ST --> RDB --> SCH --> Q
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
-    class C,S,DB,SSE,G,ST mine
+    class G1,C,Q,CR,DB,PS,SSE,G,ST,SCH,RDB mine
 </script>
 <script type="text/plain" id="dg-src-errorbot" data-title="에러시로봇 — Slack 에러 1차 분석">
 sequenceDiagram
@@ -415,21 +439,28 @@ sequenceDiagram
     box rgb(219,234,254) 내가 구현
     participant B as portal-ai 에러시로봇 ★
     end
+    participant P as 정책 (sentinel)
+    participant O as OpenSearch (분석 이력)
     participant G as GitLab API
-    participant O as OpenSearch
     participant L as Vertex AI (LLM)
-    S->>B: 에러 알림 이벤트
-    B->>B: 잘린 메시지 감지 → 원문 재조회
-    B->>O: signature 로 과거 분석 조회
-    alt 이미 분석됨
-        B-->>S: 최초 감지 시각 · 기존 스레드 링크
+    S->>B: 에러 알림 스레드 이벤트 (Socket Mode)
+    B->>B: 잘린 메시지 감지 → 스레드 원문 재조회
+    B->>P: signature dedupe (TTL 정책)
+    B->>B: 반복 횟수 카운트
+    opt 창 내 임계 초과
+        B-->>S: 🚨 escalation 경고 (1회)
+    end
+    alt 중복
+        B-->>S: 👀 리액션만 (분석 생략)
     else 신규
-        B->>G: 스택 파일별 최근 5커밋
-        B->>L: 분석 요청 (세마포어 · 재시도/백오프)
+        B->>O: signature 로 과거 분석 · 최초 감지 조회
+        B->>G: 스택 파일별 최근 5커밋 (서킷 브레이커)
+        B->>L: 분석 요청 (세마포어 2 · 429/5xx 재시도 3회 · 백오프+지터)
         L-->>B: 1차 분석
         B->>O: 분석 저장
-        B-->>S: 스레드 답글 + escalation 여부
+        B-->>S: 스레드 답글 (+ 최초 감지 시각 · 기존 스레드 링크)
     end
+    S->>B: 👍/👎 피드백 · 🔍 재분석 · 멘션 후속 대화
 </script>
 <script>var MERMAID_CDN="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js";
 (function(){
