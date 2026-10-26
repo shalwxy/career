@@ -151,7 +151,7 @@ MapleStory Universe (MSU) is a Web3 platform built on the MapleStory IP. I start
 
 <p class="meta">Mar 2021 – Feb 2024</p>
 
-Enrolled to ground my engineering in computer science fundamentals: digital logic, computer architecture, operating systems, compilers, data structures, algorithms, databases, plus C/C++/Java, security, cloud computing and simulation.
+Enrolled to ground my engineering in computer science fundamentals: digital logic, computer architecture, operating systems, compilers, data structures, algorithms, databases, plus C/C++/Java, security, cloud computing and simulation — A+ in each of these courses.
 
 ## Korea Polytechnic — Data Convergence Software
 
