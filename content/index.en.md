@@ -1,6 +1,6 @@
 # Career Description
 
-Hi, I'm Seungha Lee — a backend engineer who enjoys the time spent designing and building systems.
+Hi, I'm Seungha Lee — a backend engineer who enjoys nothing more than the time spent solving problems.
 
 ---
 
