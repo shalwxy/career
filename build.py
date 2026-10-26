@@ -21,9 +21,9 @@ CONFIG = {
     "title": "Backend Engineer · Go / gRPC / Kafka / PostgreSQL",
     "links": {                # 값이 비어 있으면 숨김. 상단 바와 푸터에 표시
         "Email": "mailto:shalwxy@gmail.com",
-        "GitHub": "",         # "https://github.com/your-id"
-        "LinkedIn": "",
-        "Blog": "",           # 기술 블로그
+        "GitHub": "https://github.com/shalwxy",
+        "LinkedIn": "https://www.linkedin.com/in/seungha-lee-2aa442229",
+        "Blog": "https://shalwxy.github.io/",
     },
     # (파일 stem, KR 라벨, EN 라벨, 사이드 목차 표시)
     "pages": [
