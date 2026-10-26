@@ -1,0 +1,27 @@
+%% title: DE — Saga 실행과 캐릭터 민트·닉네임 선점
+%% title_en: DE — Saga execution, character mint & nickname pre-emption
+sequenceDiagram
+    autonumber
+    participant G as 게임 서버
+    box rgb(219,234,254) 내가 기여한 부분
+    participant BP as business-provider<br/>(gRPC 파사드 · 유효성 검사 ★)
+    participant S as saga-provider<br/>(Saga 실행)
+    end
+    participant R as Redis
+    participant E as event-service<br/>(상태 저장)
+    participant BC as 블록체인
+    participant A as analyzer 워커
+    G->>BP: 캐릭터 민트 요청
+    BP->>BP: 입력 검증 · converter ★
+    BP->>S: SagaRequest
+    S->>R: 닉네임 선점 · 캐릭터 잠금 ★<br/>(존재 확인 대신 락)
+    S->>E: 상태 MINTING
+    S->>BC: 민트 트랜잭션
+    BC-->>A: 체인 결과 이벤트
+    A->>S: ApplyMint 성공/실패
+    alt 성공
+        S->>R: 이전 선점 해제 ★
+        S->>E: 상태 UNLOCK · 닉네임 반영
+    else 실패
+        S->>S: 보상(compensate) 실행
+    end

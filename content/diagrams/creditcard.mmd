@@ -1,0 +1,32 @@
+%% title: 신용카드 인증 · 재인증 — Worldpay 3DS
+%% title_en: Card verification · re-verification — Worldpay 3DS
+sequenceDiagram
+    autonumber
+    participant U as 사용자
+    participant B as bff-msu-web
+    box rgb(219,234,254) 내가 구현
+    participant A as api-account ★
+    end
+    participant R as Redis (Lua)
+    participant W as Worldpay FraudSight
+    participant N as api-notification
+    U->>B: 카드 인증 요청
+    B->>A: Authorize
+    A->>R: 일일 한도 확인+증가+TTL (원자)
+    alt 3회 초과
+        R-->>A: 거부
+        A-->>U: 한도 초과 안내
+    else 허용
+        A->>W: 0원 결제 · 3DS (서킷 브레이커)
+        alt 4xx
+            W-->>A: 사용자 실패
+            A-->>U: 200 + outcome 코드
+        else 5xx
+            W-->>A: 벤더 장애
+            A-->>U: 에러 · 재시도 안내
+        else 성공
+            A->>A: 토큰 암호화 저장 · credit level 갱신
+            A->>N: 인증 결과 알림
+            A-->>U: 성공
+        end
+    end

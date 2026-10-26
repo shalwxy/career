@@ -6,6 +6,7 @@ Career Description · Portfolio · Design Decisions 를 정적 HTML 로 발행�
 content/index.md      Career Description (원고)
 content/portfolio.md  프로젝트별 상세 (공개용 정제본)
 content/decisions.md  설계 결정 기록 (공개용 정제본)
+content/diagrams/*.mmd 본문 용어 클릭 시 모달로 뜨는 mermaid 도식 (내가 만든 부분만)
 build.py              content/*.md → docs/*.html
 docs/                 발행 결과물 (GitHub Pages 가 서빙)
 ```
@@ -29,6 +30,7 @@ git push
 
 이름 · 직함 · 상단 링크(Email/GitHub/LinkedIn) 는 `build.py` 의 `CONFIG` 에서 바꾼다. 빈 값은 표시하지 않는다.
 페이지 추가는 `content/<name>.md` 를 만들고 `CONFIG["pages"]` 에 등록한다. 제목에 `{#id}` 를 붙이면 다른 페이지에서 `page.html#id` 로 링크할 수 있다.
+도식은 `content/diagrams/<id>.mmd` 를 만들고 본문에서 `[용어](#dg:<id>)` 로 걸면 클릭 시 모달에 그려진다(mermaid 는 첫 클릭 때 CDN 에서 지연 로드). `page.html#dg:<id>` 로 열면 바로 뜬다.
 
 ## GitHub Pages (최초 1회)
 

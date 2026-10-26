@@ -1,0 +1,22 @@
+%% title: api-sentinel — 정책 서비스 단일 소유자
+%% title_en: api-sentinel — single owner of business policies
+flowchart LR
+    subgraph CALL[호출자 — 조회만]
+        AC[api-account<br/>로그인 rate limit · lockout]
+        BC[api-blockchain-supporter<br/>출금 화이트리스트 · 국가 제한]
+        AI[portal-ai<br/>dedupe TTL]
+    end
+    CON[portal-console<br/>정책 CRUD]
+    subgraph SEN[api-sentinel ★]
+        RT[런타임 gRPC<br/>TryAcquire · CheckBlocked · ExistsWhitelist]
+        RF[정책 refresher<br/>1분 ± jitter]
+        BOG[백오피스 gRPC]
+    end
+    RD[(Redis<br/>sliding / fixed window<br/>lockout 실패 횟수)]
+    PG[(정책 테이블<br/>rate limit · lockout · ACL · flag)]
+    AC & BC & AI --> RT --> RD
+    RF --> PG
+    RF -.-> RT
+    CON --> BOG --> PG
+    classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    class RT,RF,BOG,RD,PG mine

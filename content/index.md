@@ -46,10 +46,10 @@
 #### <span class="phase">1</span> 온체인-오프체인 동기화 (DE)
 <p class="period">2023.11 ~ 2024.04 · <a href="portfolio.html#de">자세히 보기 →</a></p>
 <p class="chips"><span class="chip">Go</span><span class="chip">Saga</span><span class="chip">Redis 분산 락</span><span class="chip">Helm</span></p>
-<div class="impact"><span class="impact-k">Impact</span> 캐릭터 민트 시 <strong>닉네임 중복 생성 이슈를 Redis 락 선점으로 수정</strong> · nft_item 유효성 검사의 건별 반복 조회를 <strong>목록 조회 1회</strong>로 개선 · DE 리포 4개에 186 커밋</div>
+<div class="impact"><span class="impact-k">Impact</span> 캐릭터 민트 시 <strong>닉네임 중복 생성 이슈를 Redis 락 선점으로 수정</strong> · NFT 아이템 유효성 검사의 건별 반복 조회를 <strong>목록 조회 1회</strong>로 개선 · DE 리포 4개에 186 커밋</div>
 
 - 신규 코어 서비스 연동 시 **BP 단 유효성 검사·converter·gRPC 에러 래핑** 추가
-- Saga v2 전환에 맞춰 **재화(neso/currency)·캐릭터 유효성 검사기 추가**, nft_item 검사는 단건 반복 조회 → 목록 조회로 보완
+- [Saga v2](#dg:saga) 전환에 맞춰 **재화(neso/currency)·캐릭터 유효성 검사기 추가**, NFT 아이템 검사는 단건 반복 조회 → 목록 조회로 보완
 - 캐릭터 민트 **닉네임 중복 생성 이슈 수정** — 존재 확인 대신 Redis 락으로 선점, 민트 성공 시에만 해제
 - Helm 배포 운영 — 신규 서비스 롤아웃, 장애 재현용 임시 배포/롤백, test/qa 전 dev 선행 배포
 
@@ -58,12 +58,12 @@
 <p class="chips"><span class="chip">gRPC</span><span class="chip">Kafka</span><span class="chip">PostgreSQL advisory lock</span><span class="chip">Redis NX</span><span class="chip">CDC</span><span class="chip">Snowflake</span></p>
 <div class="impact"><span class="impact-k">Impact</span> api-activity 구조 개선 후 확장(<strong>907 커밋</strong>) · api-bookmark 초기 합류 후 과반 커밋(<strong>550 커밋</strong>) 모두 라이브 승격 · Redis NX + advisory lock 으로 동시 적재 중복 차단 · 간헐적 pod 재시작 원인 규명·해결</div>
 
-- **대용량 트랜잭션 이력 서비스(api-activity)** — 초기 코드를 넘겨받아 레이어·서버/컨슈머 분리 후 거래/민팅/전송/Swap&Warp/USDT 를 차례로 확장. transaction_hash 유니크 승격, Redis NX + PostgreSQL advisory lock 으로 동시 적재 정합성, 비정상 이벤트는 DLQ
+- **대용량 트랜잭션 이력 서비스([api-activity](#dg:activity))** — 초기 코드를 넘겨받아 레이어·서버/컨슈머 분리 후 거래/민팅/전송/Swap&Warp/USDT 를 차례로 확장. 트랜잭션 해시 유니크 승격, Redis NX + PostgreSQL advisory lock 으로 [동시 적재 정합성](#dg:activity-lock), 비정상 이벤트는 DLQ
 - **쿼리 튜닝·성능 개선** — DBA 와 협업한 OR → UNION ALL 전환, 커서 기반 무한 스크롤, 조건부 캐싱(공통 라이브러리 직접 개발)
 - **알림 이벤트 발행 구조**, Snowflake 적재를 Kafka 발행 → **CDC 로 전환**해 유실 경로 제거
-- **북마크/조회수 서비스(api-bookmark)** 신규 설계 — 멱등 처리, Redis 카운트 캐시 → Kafka 이벤트 집계, 하루/총량 제한, 회원 탈퇴 연동
+- **북마크/조회수 서비스([api-bookmark](#dg:bookmark))** 신규 설계 — 멱등 처리, Redis 카운트 캐시 → Kafka 이벤트 집계, 하루/총량 제한, 회원 탈퇴 연동
 - **거래소 웹 BFF(bff-marketplace)** — 북마크/액티비티 마이그레이션, 인벤토리 서비스 신설. 간헐적 pod 재시작을 로그 추적으로 비동기 루프 내 gRPC 호출 자원 점유로 좁혀 timeout·chunk 호출로 해결
-- Swap & Warp 신규 도메인(bff-swapnwarp 포함) · 전사 proto 저장소 도메인별 모듈화(165 커밋) · 공통 라이브러리 마이그레이션을 플랫폼·거래소 서비스 7곳에 동시 적용 · Envoy 게이트웨이 route 운영 · Java/Spring Kafka 컨슈머(sync-market-event) · 런칭 전 거래소 BFF·게임데이터 버그 픽스
+- [Swap & Warp](#dg:swapwarp) 신규 도메인(bff-swapnwarp 포함) · 전사 proto 저장소 도메인별 모듈화(165 커밋) · 공통 라이브러리 마이그레이션을 플랫폼·거래소 서비스 7곳에 동시 적용 · Envoy 게이트웨이 route 운영 · Java/Spring Kafka 컨슈머(sync-market-event) · 런칭 전 거래소 BFF·게임데이터 버그 픽스
 - 확률 고지 서비스 요구사항 분석·버저닝·데이터 적재
 - 백오피스 아이템/토큰 제재(단건·일괄·대량) 및 제재 이력 시스템
 
@@ -72,9 +72,9 @@
 <p class="chips"><span class="chip">Worldpay</span><span class="chip">Redis Lua</span><span class="chip">SSE</span><span class="chip">gRPC streaming</span><span class="chip">MongoDB</span><span class="chip">Outbox</span></p>
 <div class="impact"><span class="impact-k">Impact</span> 신용카드 인증·재인증을 <strong>리뷰 2회차</strong>로 라이브 승격 · 일일 한도를 <strong>Lua 원자 처리</strong>로 동시 요청에도 보장 · 대량 수신자 응답을 <strong>500건 청크 스트리밍</strong>으로 분리 · KYC 전 사용자 마이그레이션 live 완료</div>
 
-- **월드페이(FraudSight 3DS) 신용카드 인증 · 재인증** — 벤더 응답 분기(400대는 outcome, 500대는 에러), Redis Lua 로 일일 3회 **원자 처리**, 결제수단 정보 암호화·서킷 브레이커, OTP 리셋용 재인증
-- **스테이블 코인(USDT) 도입** — 오프체인 선차감·롤백 서비스 재설계, 롤백 토픽을 결과 확정 토픽으로 통합해 복잡도 축소
-- **MSU 통합 알림(SSE)** — JWT 검증 자체 흡수로 의존 제거, 동시 구독 커넥션 상한, 백엔드 URL 생성, 대량 수신자를 **gRPC streaming RPC**(500건 청크·5만 건 상한)로 분리
+- **월드페이(FraudSight 3DS) [신용카드 인증 · 재인증](#dg:creditcard)** — 벤더 응답 분기(400대는 outcome, 500대는 에러), Redis Lua 로 일일 3회 **원자 처리**, 결제수단 정보 암호화·서킷 브레이커, OTP 리셋용 재인증
+- **[스테이블 코인(USDT) 도입](#dg:usdt)** — 오프체인 선차감·롤백 서비스 재설계, 롤백 토픽을 결과 확정 토픽으로 통합해 복잡도 축소
+- **[MSU 통합 알림(SSE)](#dg:notification)** — JWT 검증 자체 흡수로 의존 제거, 동시 구독 커넥션 상한, 백엔드 URL 생성, 대량 수신자를 **gRPC streaming RPC**(500건 청크·5만 건 상한)로 분리
 - Envoy 게이트웨이의 gRPC 의존성을 **HTTP 로 전환**해 결합도 축소
 - **KYC 업체 변경(Argos → Sumsub) 마이그레이션** — 병렬 호출·재진입 가능한 커서·rate limiter
 - 디스코드 자동 뱃지 봇·역할 동기화 배치·커뮤니티 공지 크롤링 봇 — 외부 side effect 는 **Outbox 재시도**로
@@ -85,10 +85,10 @@
 <p class="chips"><span class="chip">Debezium</span><span class="chip">Snowflake Stream/Task</span><span class="chip">Vertex AI</span><span class="chip">OpenSearch</span><span class="chip">Slack API</span></p>
 <div class="impact"><span class="impact-k">Impact</span> 흩어진 제어 로직을 <strong>정책 서비스 1개로 통합</strong>(4개 서비스가 단일 진입점 사용) · 배치 동기화 잡을 <strong>CDC 파이프라인</strong>으로 대체 · 운영 에러 1차 분석 자동화, 벤더 모델 폐기 장애 <strong>3일 내 1차 대응</strong>(재발 시 재교체)</div>
 
-- **비즈니스 정책 서비스(api-sentinel) 신설** — 여러 서비스에 흩어져 있던 제어 로직을 단일 서비스로 통합
+- **비즈니스 정책 서비스([api-sentinel](#dg:sentinel)) 신설** — 여러 서비스에 흩어져 있던 제어 로직을 단일 서비스로 통합
     - **ACL** (지갑/IP 화이트·블랙리스트), **Rate Limit** (Sliding/Fixed Window + jitter), **Lockout** (실패 횟수 보존/초기화 유연 설계), **Feature Flag** (런타임 변경)
-- **PostgreSQL CDC → Snowflake 파이프라인** — Debezium 커넥터, Stream/Task, replication slot keepalive 배치, 조건부 task 로 비용 최적화
-- **에러시로봇(운영 AI)** — Slack 에러 알림을 LLM 으로 1차 분석(GitLab 커밋 대조·OpenSearch 히스토리·escalation), 벤더 모델 폐기 장애를 모델 교체·재시도/백오프·세마포어로 3일 내 대응
+- **[PostgreSQL CDC → Snowflake 파이프라인](#dg:cdc)** — Debezium 커넥터, Stream/Task, replication slot keepalive 배치, 조건부 task 로 비용 최적화
+- **[에러시로봇(운영 AI)](#dg:errorbot)** — Slack 에러 알림을 LLM 으로 1차 분석(GitLab 커밋 대조·OpenSearch 히스토리·escalation), 벤더 모델 폐기 장애를 모델 교체·재시도/백오프·세마포어로 3일 내 대응
 - 운영 콘솔 — 디스코드 메시지 재전송, SNS 권한 도메인 분리, 지갑↔SNS ID 조회
 
 ### Tech Stack

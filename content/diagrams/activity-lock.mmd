@@ -1,0 +1,19 @@
+%% title: 동시 적재 정합성 — 세 층의 방어
+%% title_en: Concurrent ingestion — three layers of defence
+flowchart TB
+    K[["Kafka 요청/결과 메시지<br/>순서 비보장 · 재시도 → 같은 건이 동시에 들어올 수 있음"]]
+    subgraph L1["1층 · Redis"]
+        R["SET NX + TTL<br/>먼저 잡은 요청만 처리 · 중복 수신 차단"]
+    end
+    subgraph L2["2층 · PostgreSQL"]
+        P["advisory_xact_lock(키 2개)<br/>요청↔결과 같은 트랜잭션 범위에서 직렬화"]
+    end
+    subgraph L3["3층 · 스키마 · 쓰기"]
+        S["nullable 스키마 + 해시 유니크 키<br/>어느 쪽이 먼저 와도 적재"]
+        W["wrapWriteError<br/>unique 충돌 = 이미 처리됨 → 성공으로 종료"]
+    end
+    N["알림 이벤트<br/>커밋 이후에만 발행"]
+    K --> R --> P --> S --> W --> N
+    R -. Redis 장애 시 건너뜀 .-> P
+    classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    class R,P,S,W,N mine

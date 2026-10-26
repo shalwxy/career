@@ -1,0 +1,23 @@
+%% title: api-bookmark — 북마크·조회수와 거래소 BFF
+%% title_en: api-bookmark — bookmarks / view counts and marketplace BFFs
+flowchart LR
+    subgraph BFF[거래소 BFF ★]
+        M[bff-marketplace<br/>인벤토리 · 북마크 목록<br/>3초 TTL 캐시]
+        NV[bff-navigator<br/>지켜보기 · 조회수]
+    end
+    subgraph BK[api-bookmark ★]
+        H[bookmark / unbookmark / 조회수 기록<br/>멱등: 중복 요청 = 성공]
+        L[일일 50 · 총 1000 제한]
+        PG[(북마크)]
+        RD[(Redis 카운트<br/>0 이하면 키 제거)]
+    end
+    GD[api-gamedata<br/>아이템 · 캐릭터 상세]
+    EX[exchange<br/>판매 카드]
+    K[[북마크 · 조회수 이벤트]]
+    SF[(Snowflake)]
+    M & NV --> H --> L --> PG
+    H --> RD
+    H -- 이벤트 발행 --> K --> SF
+    M --> GD & EX
+    classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    class M,NV,H,L,PG,RD mine

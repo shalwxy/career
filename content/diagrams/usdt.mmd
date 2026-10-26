@@ -1,0 +1,25 @@
+%% title: 스테이블 코인 — 선차감과 결과 확정 롤백
+%% title_en: Stablecoin — pre-deduction and settlement rollback
+sequenceDiagram
+    autonumber
+    participant U as 사용자
+    participant B as bff-swapnwarp
+    box rgb(219,234,254) 내가 구현
+    participant S as api-blockchain-supporter ★
+    end
+    participant P as 정책 (sentinel)
+    participant BC as 블록체인
+    participant K as 결과 확정 토픽
+    U->>B: 출금 요청 (USDT / NXPC)
+    B->>S: TryWithdrawal
+    S->>P: 화이트리스트 · 국가 제한 · 한도
+    S->>S: 일일 한도 선차감 (멱등 · request id)
+    S-->>B: 허용
+    B->>BC: 트랜잭션 제출
+    BC-->>K: 성공 / 실패 / 드랍
+    K->>S: 결과 컨슈머
+    alt 실패 · 드랍
+        S->>S: 선차감 롤백 (같은 nonce 보정)
+    else 성공
+        S->>S: 차감 확정
+    end

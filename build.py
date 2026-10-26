@@ -2,7 +2,9 @@
 """content/*.md → docs/*.html. 의존성: pip install markdown"""
 import datetime
 import html
+import json
 import pathlib
+import re
 import sys
 
 try:
@@ -29,10 +31,12 @@ CONFIG = {
     "pages": [
         ("index", "Career", "Career", True),
         ("portfolio", "Portfolio", "Portfolio", True),
-        ("architecture", "Architecture", "Architecture", True),
         ("decisions", "Design Decisions", "Design Decisions", True),
     ],
+    # 본문의 [용어](#dg:ID) 링크 → 클릭 시 content/diagrams/ID.mmd 를 mermaid 로 그려 모달로 표시
+    "mermaid_cdn": "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js",
 }
+DIAGRAMS = ROOT / "content" / "diagrams"
 
 CSS = """
 :root{--bg:#fff;--fg:#1f2328;--muted:#656d76;--line:#d0d7de;--accent:#0969da;--soft:#f6f8fa;--max:1100px;--col:760px}
@@ -100,14 +104,24 @@ article .btn{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;bor
 article .btn svg{flex-shrink:0}article .btn .arr{transition:transform .15s}article .btn:hover .arr{transform:translateX(3px)}
 article .btn:hover{opacity:.92}
 article .btn-ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
-article .diagram{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:1.2em 0}
-article .dg-title{margin:0 0 10px;font-size:.85rem;font-weight:600;color:var(--muted);letter-spacing:.04em}
-article .dg-flow{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap}
-article .dg-box{flex:1 1 120px;min-width:120px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;text-align:center;font-size:.85rem;line-height:1.35}
-article .dg-box b{display:block;margin-bottom:4px}article .dg-box small{color:var(--muted);font-size:.76rem;display:block}
-article .dg-accent{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));background:color-mix(in srgb,var(--accent) 8%,var(--bg))}
-article .dg-arrow{align-self:center;color:var(--muted);font-size:1.2rem}
-article .dg-note{margin:10px 0 0;font-size:.8rem;color:var(--muted)}
+a.dg{color:inherit;text-decoration:none;border-bottom:1px dashed var(--accent);cursor:zoom-in;padding-right:1.05em;position:relative}
+a.dg::after{content:"";position:absolute;right:0;top:50%;width:.8em;height:.8em;transform:translateY(-55%);opacity:.7;background:currentColor;-webkit-mask:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="6" rx="1.5"/><rect x="14" y="15" width="7" height="6" rx="1.5"/><path d="M10 6h4v9"/></svg>') center/contain no-repeat;mask:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="6" rx="1.5"/><rect x="14" y="15" width="7" height="6" rx="1.5"/><path d="M10 6h4v9"/></svg>') center/contain no-repeat}
+a.dg:hover{background:color-mix(in srgb,var(--accent) 10%,transparent);border-bottom-style:solid}
+h2 a.dg{border-bottom-width:2px}
+.modal{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);padding:16px}
+.modal.open{display:flex}
+.modal .box{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:14px;width:min(1240px,96vw);max-height:92vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.modal .hd{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--line)}
+.modal .hd h3{margin:0;font-size:1rem;flex:1}
+.modal .hd button{border:1px solid var(--line);background:var(--soft);color:var(--fg);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:.9rem}
+.modal .bd{overflow:auto;padding:18px 22px 22px;flex:1}
+.modal .bd .mm{min-height:120px;text-align:center}
+.modal .bd .mm svg{height:auto}
+.modal .bd .mm.z{text-align:left}.modal .bd .mm.z svg{max-width:none!important;width:1800px!important}
+.modal .bd .legend{margin:12px 0 0;font-size:.8rem;color:var(--muted);text-align:left}
+.modal .bd .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;background:#dbeafe;border:2px solid #2563eb;vertical-align:-2px;margin-right:6px}
+.modal .bd .err{color:#b42318;font-size:.9rem;white-space:pre-wrap}
+body.lock{overflow:hidden}
 aside.toc{position:sticky;top:76px;align-self:start;max-height:calc(100vh - 96px);overflow:auto;font-size:.86rem;border-left:1px solid var(--line);padding-left:16px}
 aside.toc .t{font-weight:600;margin:0 0 8px;color:var(--muted);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase}
 aside.toc ul{list-style:none;margin:0;padding:0}aside.toc li{margin:4px 0}
@@ -118,11 +132,12 @@ footer .links a{margin-right:14px}
 @media(max-width:960px){.wrap{grid-template-columns:minmax(0,1fr)}
 aside.toc{display:none;position:fixed;right:16px;bottom:72px;z-index:30;max-height:60vh;width:min(320px,calc(100vw - 32px));background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:0 10px 30px rgba(0,0,0,.22)}
 aside.toc.open{display:block}.toc-btn{display:block}}
-@media(max-width:600px){article .stats{grid-template-columns:repeat(2,1fr)}article .cta{flex-direction:column}article .btn{justify-content:center}article .dg-flow{flex-direction:column}article .dg-arrow{transform:rotate(90deg)}}
+@media(max-width:600px){article .stats{grid-template-columns:repeat(2,1fr)}article .cta{flex-direction:column}article .btn{justify-content:center}.modal{padding:0}.modal .box{width:100vw;max-height:100vh;border-radius:0}}
 @media print{:root{--bg:#fff;--fg:#000;--muted:#444;--line:#bbb;--accent:#000;--soft:#fff}
-body{font-size:11pt;line-height:1.45}.topbar,aside.toc,.toc-btn,footer,.more,.cta{display:none}
+body{font-size:11pt;line-height:1.45}.topbar,aside.toc,.toc-btn,footer,.more,.cta,.modal{display:none}
 .hero{background:none;border:0}.hero .in,.wrap{padding:0}.wrap{display:block}
-article .impact,article .diagram{border:1px solid #bbb;background:#fff}
+a.dg{border-bottom:0;padding-right:0}a.dg::after{display:none}
+article .impact{border:1px solid #bbb;background:#fff}
 article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-break-after:avoid}article li,article p{page-break-inside:avoid}a{text-decoration:none}}
 """
 
@@ -137,6 +152,27 @@ JS = """
   function cur(){var y=window.scrollY+90,i=-1;heads.forEach(function(h,k){if(h.offsetTop<=y)i=k});
     links.forEach(function(a,k){a.classList.toggle('cur',k===i)})}
   window.addEventListener('scroll',cur,{passive:true});cur();
+})();
+(function(){
+  var modal=document.querySelector('.modal');if(!modal)return;
+  var box=modal.querySelector('.mm'),ttl=modal.querySelector('h3'),zoom=modal.querySelector('.zoom'),lib=null,cache={},n=0;
+  var dark=window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches;
+  function load(){if(lib)return lib;lib=new Promise(function(ok,no){var s=document.createElement('script');s.src=MERMAID_CDN;
+    s.onload=function(){window.mermaid.initialize({startOnLoad:false,theme:dark?'dark':'neutral',securityLevel:'strict',
+      fontFamily:'inherit',flowchart:{htmlLabels:true,curve:'basis',padding:12,nodeSpacing:34,rankSpacing:44},sequence:{useMaxWidth:true,mirrorActors:false,wrap:true}});ok(window.mermaid)};
+    s.onerror=function(){no(new Error('mermaid load failed'))};document.head.appendChild(s)});return lib}
+  function open(id){var src=document.getElementById('dg-src-'+id);if(!src)return;
+    ttl.textContent=src.getAttribute('data-title');box.className='mm';box.innerHTML='<p style="color:var(--muted)">…</p>';
+    modal.classList.add('open');document.body.classList.add('lock');
+    if(cache[id]){box.innerHTML=cache[id];return}
+    load().then(function(m){return m.render('dg-svg-'+(n++),src.textContent.trim())}).then(function(r){cache[id]=r.svg;box.innerHTML=r.svg;if(r.bindFunctions)r.bindFunctions(box)})
+      .catch(function(e){box.innerHTML='<p class="err">'+String(e.message||e).replace(/</g,'&lt;')+'</p>'})}
+  function close(){modal.classList.remove('open');document.body.classList.remove('lock')}
+  document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a.dg');if(a){e.preventDefault();open(a.getAttribute('data-dg'))}});
+  modal.addEventListener('click',function(e){if(e.target===modal||e.target.classList.contains('close'))close()});
+  if(zoom)zoom.addEventListener('click',function(){box.classList.toggle('z')});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')close()});
+  if(location.hash.indexOf('#dg:')===0)open(location.hash.slice(4));
 })();
 """
 
@@ -163,7 +199,8 @@ PAGE = """<!DOCTYPE html>
 </div>
 <button class="toc-btn" aria-label="목차">☰</button>
 <footer><div class="in"><span>Last updated {updated}</span><span class="links">{footer_links}</span><span>{footer_note}</span></div></footer>
-<script>{js}</script>
+{modal}
+<script>var MERMAID_CDN={cdn};{js}</script>
 </body>
 </html>
 """
@@ -212,6 +249,51 @@ def toc_html(tokens, depth=2) -> str:
     return walk(tokens, 1)
 
 
+DG_RE = re.compile(r'<a href="#dg:([a-z0-9-]+)">')
+MODAL = {
+    "ko": ('도식 보기', '닫기', '확대', '<i></i>강조된 상자가 제가 설계·구현한 부분입니다. 내부 식별자는 생략했습니다.'),
+    "en": ('Diagram', 'Close', 'Zoom', '<i></i>Highlighted boxes are the parts I designed and built. Internal identifiers are omitted. Labels are in Korean.'),
+}
+
+
+def diagram_src(dg_id: str, lang: str) -> str:
+    """content/diagrams/ID.mmd → 페이지에 묻어 둘 <script type=text/plain>. 제목은 `%% title:` / `%% title_en:` 주석에서 읽음"""
+    path = DIAGRAMS / f"{dg_id}.mmd"
+    if not path.exists():
+        sys.exit(f"missing diagram: {path}")
+    title, body = "", []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.startswith("%% title_en:"):
+            if lang == "en":
+                title = line.split(":", 1)[1].strip()
+        elif line.startswith("%% title:"):
+            if lang != "en" or not title:
+                title = line.split(":", 1)[1].strip()
+        else:
+            body.append(line)
+    text = "\n".join(body).replace("</", "<\\/")
+    return f'<script type="text/plain" id="dg-src-{dg_id}" data-title="{html.escape(title)}">\n{text}\n</script>'
+
+
+def inject_diagrams(body: str, lang: str) -> tuple[str, str]:
+    """[용어](#dg:ID) 링크를 모달 트리거로 바꾸고, 이 페이지가 참조하는 도식만 묻어 둠"""
+    ids = []
+    def repl(m):
+        if m.group(1) not in ids:
+            ids.append(m.group(1))
+        return f'<a href="#" class="dg" data-dg="{m.group(1)}" title="{MODAL[lang][0]}">'
+    body = DG_RE.sub(repl, body)
+    if not ids:
+        return body, ""
+    _, close, zoom, legend = MODAL[lang]
+    modal = (f'<div class="modal" role="dialog" aria-modal="true"><div class="box">'
+             f'<div class="hd"><h3></h3><button class="zoom" type="button">{zoom}</button>'
+             f'<button class="close" type="button">{close} ✕</button></div>'
+             f'<div class="bd"><div class="mm"></div><p class="legend">{legend}</p></div></div></div>\n'
+             + "\n".join(diagram_src(i, lang) for i in ids))
+    return body, modal
+
+
 def build_page(stem: str, label: str, with_toc: bool, lang: str) -> None:
     src = CONTENT / (f"{stem}.en.md" if lang == "en" else f"{stem}.md")
     if not src.exists():
@@ -222,6 +304,7 @@ def build_page(stem: str, label: str, with_toc: bool, lang: str) -> None:
         output_format="html5",
     )
     body = md.convert(src.read_text(encoding="utf-8"))
+    body, modal = inject_diagrams(body, lang)
     toc = ""
     if with_toc:
         title = "Contents" if lang == "en" else "목차"
@@ -237,6 +320,7 @@ def build_page(stem: str, label: str, with_toc: bool, lang: str) -> None:
         home="index.en.html" if lang == "en" else "index.html",
         nav=nav_html(stem, lang), links=links_html(), lang_toggle=lang_toggle(stem, lang),
         hero=hero, body=body, toc=toc, footer_links=links_html(), footer_note=NOTE[lang],
+        modal=modal, cdn=json.dumps(CONFIG["mermaid_cdn"]),
         updated=datetime.date.today().isoformat(),
     )
     out = OUT_DIR / (f"{stem}.en.html" if lang == "en" else f"{stem}.html")

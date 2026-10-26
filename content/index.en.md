@@ -44,10 +44,10 @@ MapleStory Universe (MSU) is a Web3 platform built on the MapleStory IP. I start
 #### <span class="phase">1</span> On-chain / off-chain synchronization (Data Engine)
 <p class="period">Nov 2023 – Apr 2024</p>
 <p class="chips"><span class="chip">Go</span><span class="chip">Saga</span><span class="chip">Redis distributed lock</span><span class="chip">Helm</span></p>
-<div class="impact"><span class="impact-k">Impact</span> Fixed nickname duplication at character mint with <strong>Redis-lock preemption</strong> · turned per-item nft_item validation lookups into <strong>one list query</strong> · 186 commits across 4 repos</div>
+<div class="impact"><span class="impact-k">Impact</span> Fixed nickname duplication at character mint with <strong>Redis-lock preemption</strong> · turned per-item NFT 아이템 validation lookups into <strong>one list query</strong> · 186 commits across 4 repos</div>
 
 - Added input validation, a proto ↔ domain converter with unit tests, and gRPC error wrapping while wiring a new core service into the facade
-- Added currency/character validators for the Saga v2 migration and reworked nft_item validation from per-item state lookups to a single list query
+- Added currency/character validators for the [Saga v2](#dg:saga) migration and reworked NFT 아이템 validation from per-item state lookups to a single list query
 - Fixed nickname duplication at character mint: dropped the existence check, **preempted with a Redis lock**, released only on successful mint — a small fix, but a pattern I kept reusing
 - Ran Helm rollouts for new services, reproduced a DocumentDB incident with throwaway deploys, and established dev-first deployment before test/qa promotion
 
@@ -56,12 +56,12 @@ MapleStory Universe (MSU) is a Web3 platform built on the MapleStory IP. I start
 <p class="chips"><span class="chip">gRPC</span><span class="chip">Kafka</span><span class="chip">PostgreSQL advisory lock</span><span class="chip">Redis NX</span><span class="chip">CDC</span><span class="chip">Snowflake</span></p>
 <div class="impact"><span class="impact-k">Impact</span> Restructured and extended transaction history (<strong>907 commits</strong>) and carried bookmarks from its early stage to production (<strong>550 commits</strong>, majority of the repo) · blocked duplicate writes under concurrent ingestion with Redis NX + advisory locks · narrowed intermittent BFF pod restarts to a cause and fixed them</div>
 
-- **High-volume transaction ledger (api-activity)** — inherited the early codebase, restructured layers and split the query server from the Kafka consumer, then extended it to trades, mints, transfers, Swap & Warp, bridge-in and USDT. Promoted the transaction hash to a unique key, routed malformed events to a DLQ, and protected concurrent ingestion with Redis NX + PostgreSQL advisory locks
+- **High-volume transaction ledger ([api-activity](#dg:activity))** — inherited the early codebase, restructured layers and split the query server from the Kafka consumer, then extended it to trades, mints, transfers, Swap & Warp, bridge-in and USDT. Promoted the transaction hash to a unique key, routed malformed events to a DLQ, and protected [concurrent ingestion](#dg:activity-lock) with Redis NX + PostgreSQL advisory locks
 - **Query performance** — OR → UNION ALL rewrite with the DBA, cursor-based infinite scroll, conditional caching contributed to the shared library
 - Emitted notification events on transaction finalization; moved Snowflake ingestion from Kafka publishes to **CDC**, removing the publish-failure loss path
-- **Bookmark / view-count service (api-bookmark)** — joined right after the initial scaffold and owned the core features (majority of commits): idempotent writes, Redis counters moved to Kafka-driven aggregation, daily/total limits, account-deletion hook
+- **Bookmark / view-count service ([api-bookmark](#dg:bookmark))** — joined right after the initial scaffold and owned the core features (majority of commits): idempotent writes, Redis counters moved to Kafka-driven aggregation, daily/total limits, account-deletion hook
 - **Marketplace web BFF** — migrated bookmark/activity calls, built the inventory service, parallelized rendering. Traced intermittent pod restarts to gRPC calls inside async loops holding resources and fixed them with timeouts and chunked calls
-- Swap & Warp (cross-chain) domain, domain-split proto repository, shared-library migration across platform and marketplace services
+- [Swap & Warp](#dg:swapwarp) (cross-chain) domain, domain-split proto repository, shared-library migration across platform and marketplace services
 - Probability-disclosure service: requirements, versioning, data ingestion
 - Back-office item/token sanctions (single, batch, bulk) and sanction history
 
@@ -70,9 +70,9 @@ MapleStory Universe (MSU) is a Web3 platform built on the MapleStory IP. I start
 <p class="chips"><span class="chip">Worldpay</span><span class="chip">Redis Lua</span><span class="chip">SSE</span><span class="chip">gRPC streaming</span><span class="chip">MongoDB</span><span class="chip">Outbox</span></p>
 <div class="impact"><span class="impact-k">Impact</span> Shipped credit-card verification and re-verification through <strong>two review rounds</strong> · enforced the daily limit atomically with <strong>Lua</strong> · bulk recipients moved to <strong>500-row streaming chunks</strong> · full-user KYC migration completed in production</div>
 
-- **Worldpay (FraudSight 3DS) card verification & re-verification** — mapped vendor 4xx to 200 + outcome codes and 5xx to errors, enforced the daily limit atomically with a Redis Lua script, encrypted payment-instrument data and added a circuit breaker, designed re-verification for OTP reset
-- **Stablecoin (USDT) launch** — redesigned the off-chain pre-deduction/rollback service and collapsed the rollback topic into a single result-confirmation topic
-- **Unified notifications (SSE)** — absorbed JWT verification to drop the account-service dependency, capped concurrent subscriptions, generated URLs server-side, and split bulk recipients into a **gRPC streaming RPC** (500-row chunks, 50,000 cap)
+- **Worldpay (FraudSight 3DS) [card verification & re-verification](#dg:creditcard)** — mapped vendor 4xx to 200 + outcome codes and 5xx to errors, enforced the daily limit atomically with a Redis Lua script, encrypted payment-instrument data and added a circuit breaker, designed re-verification for OTP reset
+- **[Stablecoin (USDT) launch](#dg:usdt)** — redesigned the off-chain pre-deduction/rollback service and collapsed the rollback topic into a single result-confirmation topic
+- **[Unified notifications (SSE)](#dg:notification)** — absorbed JWT verification to drop the account-service dependency, capped concurrent subscriptions, generated URLs server-side, and split bulk recipients into a **gRPC streaming RPC** (500-row chunks, 50,000 cap)
 - Replaced the gateway's gRPC dependency with HTTP to reduce coupling
 - **KYC vendor migration (Argos → Sumsub)** — parallel calls, resumable cursor, rate limiter
 - Discord auto-badge bot, role-sync batch and community-notice crawler — external side effects retried through an **outbox**
@@ -83,9 +83,9 @@ MapleStory Universe (MSU) is a Web3 platform built on the MapleStory IP. I start
 <p class="chips"><span class="chip">Debezium</span><span class="chip">Snowflake Stream/Task</span><span class="chip">Vertex AI</span><span class="chip">OpenSearch</span><span class="chip">Slack API</span></p>
 <div class="impact"><span class="impact-k">Impact</span> Consolidated scattered control logic into <strong>one policy service</strong> used by four callers · replaced batch sync jobs with a <strong>CDC pipeline</strong> · automated first-pass error triage and shipped the first fix for a vendor model-deprecation outage <strong>within 3 days</strong> (re-swapped on recurrence)</div>
 
-- **Policy service (api-sentinel)** — ACL (wallet/IP allow & deny lists), rate limiting (sliding + fixed window with jitter), lockout with flexible failure-count policies, runtime feature flags
-- **PostgreSQL CDC → Snowflake** — Debezium connectors, Stream/Task, a replication-slot keepalive job, conditional tasks to cut cost
-- **Error-triage bot** — LLM first-pass analysis of Slack alerts with GitLab commit diffing, OpenSearch history and escalation; handled a vendor model deprecation with model swap, retry/backoff and a semaphore
+- **Policy service ([api-sentinel](#dg:sentinel))** — ACL (wallet/IP allow & deny lists), rate limiting (sliding + fixed window with jitter), lockout with flexible failure-count policies, runtime feature flags
+- **[PostgreSQL CDC → Snowflake](#dg:cdc)** — Debezium connectors, Stream/Task, a replication-slot keepalive job, conditional tasks to cut cost
+- **[Error-triage bot](#dg:errorbot)** — LLM first-pass analysis of Slack alerts with GitLab commit diffing, OpenSearch history and escalation; handled a vendor model deprecation with model swap, retry/backoff and a semaphore
 - Operations console — Discord message re-send, permission-domain split, wallet ↔ SNS lookups
 
 ### Tech Stack

@@ -1,0 +1,25 @@
+%% title: 통합 알림 — SSE와 대량 수신자 스트리밍
+%% title_en: Unified notifications — SSE and bulk-recipient streaming
+flowchart LR
+    subgraph SRC[발행자]
+        AC[api-account<br/>KYC · 제재 · 카드 · MFA]
+        AT[api-activity ★<br/>거래 · Swap · Warp 결과]
+        EX[거래소 · 리액터]
+        BO[백오피스<br/>운영자 알림]
+    end
+    K[[알림 이벤트 토픽 5종]]
+    subgraph NT[api-notification ★]
+        C[컨슈머 5종]
+        S[알림 생성<br/>URL · 제목 백엔드 생성]
+        DB[(MongoDB 30일 보관)]
+        SSE[SSE 서버<br/>동시 커넥션 상한 · JWT 자체 검증]
+        G[gRPC 조회 · 읽음 처리]
+        ST[백오피스 gRPC streaming<br/>수신자 500건 청크 · 5만 상한]
+    end
+    U[사용자 브라우저]
+    AC & AT & EX --> K --> C --> S --> DB
+    BO --> ST --> DB
+    DB --> SSE --> U
+    U --> G --> DB
+    classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    class C,S,DB,SSE,G,ST mine

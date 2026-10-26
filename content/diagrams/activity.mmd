@@ -1,0 +1,26 @@
+%% title: api-activity — 트랜잭션 이력 적재·조회·알림
+%% title_en: api-activity — transaction ledger ingest · query · notify
+flowchart LR
+    subgraph IN[이벤트 소스]
+        MK[거래소 거래 이벤트]
+        DE1[DE 자산 이벤트<br/>아이템 · 캐릭터 · 닉네임]
+        DE2[DE 크로스체인<br/>Swap · Warp 이벤트]
+    end
+    subgraph ACT[api-activity ★]
+        C[Kafka 컨슈머<br/>토픽별 핸들러 6종]
+        DD[Redis SET NX<br/>중복 수신 차단]
+        LK[PostgreSQL advisory lock<br/>요청↔결과 동시 적재 잠금]
+        DB[(트랜잭션 이력<br/>해시 유니크 키)]
+        Q[gRPC 조회 서버<br/>지갑 · 토큰 · Swap · Warp]
+        DLQ[[DLQ · 24분 재시도]]
+    end
+    N[api-notification<br/>결과 확정 알림]
+    B[bff-swapnwarp · bff-marketplace]
+    SF[(Snowflake · CDC)]
+    MK & DE1 & DE2 --> C --> DD --> LK --> DB
+    C -. 실패 .-> DLQ
+    DB -- 커밋 이후 발행 --> N
+    DB -. Debezium .-> SF
+    B --> Q --> DB
+    classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    class C,DD,LK,DB,Q,DLQ mine
