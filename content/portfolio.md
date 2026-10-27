@@ -160,12 +160,32 @@
 
 ---
 
-## 10. 그 외 {#etc}
+## 10. 인프라 · CI/CD — 배포 파이프라인과 운영 저장소 {#infra}
+<p class="chips"><span class="chip">전 기간</span><span class="chip">GitLab CI · Docker · Helm · ArgoCD · Rundeck · EKS · Envoy · Kafka Connect</span></p>
+
+**맥락.** 전담 DevOps 없이 담당 서비스의 CI/CD·Kubernetes 매니페스트·게이트웨이 route·DB DDL 을 백엔드 개발자가 직접 관리하는 구조였습니다. 저는 [배포 파이프라인](#dg:cicd) 전 구간을 다뤘지만, 파이프라인을 설계한 것은 아니고 **기존 구조 위에서 깨진 것을 고치고 신설 서비스를 태우는** 쪽의 기여입니다.
+
+**제가 한 일.**
+
+- **CI 파이프라인 유지·확장** — 담당 서비스 3개의 `.gitlab-ci.yml`·Dockerfile(약 58 커밋): 누락된 go test 단계 추가, Go 1.23 → 1.26 · Docker · Node 런타임 업그레이드, semantic-release 빌드 깨짐 수정(버전 고정), 신설 서비스의 Rundeck 배포 job 연결.
+- **신설 서비스의 배포 세트** — api-sentinel 신설 때 Helm 템플릿(dev) + 4개 환경 매니페스트(Deployment · HPA · Service) + Envoy route + CI 배포 job 을 코드와 같은 주에 한 세트로 추가. 레지스트리 deploy token 만료 시 dockerconfigjson 교체.
+- **Kubernetes 매니페스트 운영** (gotohelm 86 · deploy-scripts 12 커밋) — liveness/readiness probe 보정, 서비스 포트 추가, 서비스명 변경, test/qa/stage pod 리소스 감축(비용 절감 요청 건), live 로그 레벨 정리, DE 서비스 초기 배포.
+- **Envoy 게이트웨이** (marina 82 커밋) — gRPC → REST transcoding route 추가·정리, 인증 적용·skip 설정, 미사용 cluster 제거, live 에서 특정 인증 호출 차단.
+- **운영 저장소** (portal-ops 103 커밋) — PostgreSQL DDL 을 DBA 검토 흐름으로 관리, Debezium/Kafka Connect · Snowflake Stream/Task 설정([CDC](#dg:cdc)), MongoDB TTL 정책.
+- **공용 Go 라이브러리** (platform-lib 24 커밋) — PostgreSQL 드라이버 `target_session_attrs`(읽기 복제본 라우팅), 조건부 캐싱 데코레이터, gRPC gateway 응답 헤더 전달.
+
+**결과.** 서비스 신설·확장 시 애플리케이션 코드와 배포 설정을 같은 사람이 같은 MR 흐름에서 끝낼 수 있었습니다.
+
+<p class="more">관련 설계 결정: <a href="decisions.html#d-deployset">서비스 신설은 배포 세트까지</a> · <a href="decisions.html#d-devfirst">test/qa 승격 전 dev 선행 배포</a> · <a href="decisions.html#d-cdc">publish 대신 CDC</a></p>
+
+---
+
+## 11. 그 외 {#etc}
 
 - **KYC 벤더 마이그레이션** — 글로벌 규제 대응으로 전 사용자 KYC 데이터를 신규 벤더로 이관. 벤더 호출 한도 상향, 재진입 가능한 커서, 병렬 실행, `rate.Limiter` 로 안정화. 항목 실패는 집계 후 계속 진행하고 종료 시 요약하는 **continue-and-count** 를 배치 원칙으로.
 - **디스코드 자동 뱃지** — 게임 내 달성도에 따라 역할을 자동 부여. 비동기 → 동기 전환으로 누락 방지, 연결 해제 시 식별 정보는 보존, 외부 side effect 는 **Outbox 재시도**로.
 - **이메일 변경 후 보안 설정 잠금** — Redis TTL 에서 DB 컬럼 영속화로 전환, 선검사 API 대신 응답 필드 하나로 UX 통합, Primary 조회로 복제 지연 창 제거.
 - **운영 콘솔** — 디스코드 메시지 재전송(rate limit·변경 감지), 권한 도메인 분리, 지갑↔SNS 조회.
-- **그 밖의 운영 기여** — 담당 서비스 전부의 DB DDL·CDC·Kafka Connect SQL 을 DBA 검토를 거쳐 관리(103 커밋), Envoy 게이트웨이 route·transcoder 설정(82 커밋), 커뮤니티 공지 → 디스코드 크롤러와 역할 동기화 배치, 거래소 런칭 전 네비게이터·게임데이터 버그 픽스, 트레이싱을 Datadog 에서 Jaeger 로 전환.
+- **그 밖의 기여** — 커뮤니티 공지 → 디스코드 크롤러와 역할 동기화 배치, 거래소 런칭 전 네비게이터·게임데이터 버그 픽스, 트레이싱을 Datadog 에서 Jaeger 로 전환. 인프라·CI/CD 는 [§10](#infra).
 
 <p class="more">관련 설계 결정: <a href="decisions.html#d-outbox">외부 side effect 는 Outbox</a> · <a href="decisions.html#d-batch">배치는 continue-and-count</a> · <a href="decisions.html#d-lock-email">잠금은 Redis 가 아니라 컬럼</a></p>

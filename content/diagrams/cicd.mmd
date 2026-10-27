@@ -1,0 +1,33 @@
+%% title: CI/CD — 브랜치 push 부터 EKS 롤아웃까지 (★ = 직접 작성·유지한 설정)
+%% title_en: CI/CD — from branch push to EKS rollout (★ = config I wrote or maintained)
+flowchart LR
+    BR[GitLab 브랜치 push<br/>develop · test · qa · stage · master]
+    subgraph CI[GitLab CI — 서비스별 파이프라인 ★]
+        T[test<br/>go test]
+        B[build<br/>multi-stage Dockerfile<br/>golang-alpine → scratch]
+        D[deploy]
+        R[release · master 만<br/>semantic-release<br/>conventional commits]
+    end
+    REG[(이미지 레지스트리<br/>dev: GitLab Registry :latest<br/>그 외: AWS ECR :pipeline-id)]
+    subgraph DEV[dev 클러스터]
+        H[Helm 차트 ★<br/>gotohelm · ArgoCD]
+        K1[EKS Deployment<br/>K8s API PATCH → rollout restart]
+    end
+    subgraph OPS[test · qa · stage · live]
+        RD[Rundeck job 호출<br/>-Version pipeline-id]
+        M[환경별 매니페스트 ★<br/>deploy-scripts<br/>Deployment · HPA · Service]
+        K2[EKS 롤아웃]
+    end
+    GW[Envoy 게이트웨이 ★<br/>marina · gRPC → REST route]
+    OPSREPO[(운영 저장소 ★<br/>portal-ops<br/>DDL · Kafka Connect · Snowflake)]
+    BR --> T --> B --> REG
+    B --> D --> R
+    D -- develop --> K1
+    H -.-> K1
+    D -- 그 외 --> RD --> M --> K2
+    REG -.-> K1
+    REG -.-> K2
+    K2 -.-> GW
+    OPSREPO -.-> K2
+    classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    class T,B,D,R,H,M,GW,OPSREPO mine

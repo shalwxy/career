@@ -80,13 +80,14 @@ MapleStory Universe (MSU) is a Web3 platform built on the MapleStory IP. I start
 
 #### <span class="phase">4</span> Policy service · data pipeline · ops automation
 <p class="period">Jan 2026 – Nov 2026</p>
-<p class="chips"><span class="chip">Debezium</span><span class="chip">Snowflake Stream/Task</span><span class="chip">Vertex AI</span><span class="chip">OpenSearch</span><span class="chip">Slack API</span></p>
+<p class="chips"><span class="chip">Debezium</span><span class="chip">Snowflake Stream/Task</span><span class="chip">Vertex AI</span><span class="chip">OpenSearch</span><span class="chip">GitLab CI</span><span class="chip">Helm · EKS</span></p>
 <div class="impact"><span class="impact-k">Impact</span> Consolidated scattered control logic into <strong>one policy service</strong> used by four callers · replaced batch sync jobs with a <strong>CDC pipeline</strong> · automated first-pass error triage and shipped the first fix for a vendor model-deprecation outage <strong>within 3 days</strong> (re-swapped on recurrence)</div>
 
 - **Policy service ([api-sentinel](#dg:sentinel))** — ACL (wallet/IP allow & deny lists), rate limiting (sliding + fixed window with jitter), lockout with flexible failure-count policies, runtime feature flags
 - **[PostgreSQL CDC → Snowflake](#dg:cdc)** — Debezium connectors, Stream/Task, a replication-slot keepalive job, conditional tasks to cut cost
 - **[Error-triage bot](#dg:errorbot)** — LLM first-pass analysis of Slack alerts with GitLab commit diffing, OpenSearch history and escalation; handled a vendor model deprecation with model swap, retry/backoff and a semaphore
 - Operations console — Discord message re-send, permission-domain split, wallet ↔ SNS lookups
+- **[CI/CD & infrastructure](#dg:cicd)** (throughout) — maintained GitLab CI, Dockerfiles, Helm/K8s manifests, Envoy routes and DDL for the services I owned; new services shipped with their full deployment set
 
 ### Tech Stack
 
@@ -100,7 +101,7 @@ MapleStory Universe (MSU) is a Web3 platform built on the MapleStory IP. I start
 
 **Messaging** &nbsp;·&nbsp; Kafka (Watermill · Debezium Connect · Spring Kafka)
 
-**Infra / DevOps** &nbsp;·&nbsp; AWS EKS · Helm · ArgoCD · Rundeck · Jenkins · GitLab CI
+**Infra / DevOps** &nbsp;·&nbsp; AWS EKS · Kubernetes · Docker · Helm · ArgoCD · Rundeck · Jenkins · GitLab CI · Envoy
 
 **Observability** &nbsp;·&nbsp; Datadog · Jaeger · OpenSearch
 
@@ -180,7 +181,12 @@ Calculus, linear algebra, geometry, probability and statistics, analysis, topolo
 
 - **New services and domains to production** — the policy service from its first commit, bookmarks and Swap & Warp joined early and carried to production with the majority of commits, and an error-triage bot added to an existing service. Splitting layers and server/consumer early is what lets features land without structural change later.
 - **Pipelines outside the service** — batch → publish removal → CDC with Debezium and Snowflake Stream/Task, including slot keepalive and conditional tasks.
-- **Infra & deployment** — Helm, ArgoCD, Rundeck, Jenkins, GitLab CI; dev-first promotion and reproducible incident deploys.
+
+## Infrastructure & CI/CD
+
+- **Keeping pipelines working** — GitLab CI (test → build → deploy → release), multi-stage Dockerfiles and Rundeck deploy jobs for the services I owned. Mostly fixing broken builds (semantic-release, runtime upgrades) and wiring new services into the [pipeline](#dg:cicd), with dev-first promotion before test/qa.
+- **Kubernetes manifests** — wrote and operated Helm templates and per-environment Deployment · HPA · Service; tune probes, resources and ports for cost and stability.
+- **Gateway & data infrastructure** — Envoy gRPC → REST routes, Debezium/Kafka Connect and Snowflake configuration, DDL managed through DBA review — I look past the application boundary.
 
 ## Logging / Debugging
 

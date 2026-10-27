@@ -82,7 +82,7 @@
 
 #### <span class="phase">4</span> 정책 서비스 · 데이터 파이프라인 · 운영 자동화
 <p class="period">2026.01 ~ 2026.11 · <a href="portfolio.html#sentinel">자세히 보기 →</a></p>
-<p class="chips"><span class="chip">Debezium</span><span class="chip">Snowflake Stream/Task</span><span class="chip">Vertex AI</span><span class="chip">OpenSearch</span><span class="chip">Slack API</span></p>
+<p class="chips"><span class="chip">Debezium</span><span class="chip">Snowflake Stream/Task</span><span class="chip">Vertex AI</span><span class="chip">OpenSearch</span><span class="chip">GitLab CI</span><span class="chip">Helm · EKS</span></p>
 <div class="impact"><span class="impact-k">Impact</span> 흩어진 제어 로직을 <strong>정책 서비스 1개로 통합</strong>(4개 서비스가 단일 진입점 사용) · 배치 동기화 잡을 <strong>CDC 파이프라인</strong>으로 대체 · 운영 에러 1차 분석 자동화, 벤더 모델 폐기 장애 <strong>3일 내 1차 대응</strong>(재발 시 재교체)</div>
 
 - **비즈니스 정책 서비스([api-sentinel](#dg:sentinel)) 신설** — 여러 서비스에 흩어져 있던 제어 로직을 단일 서비스로 통합
@@ -90,6 +90,7 @@
 - **[PostgreSQL CDC → Snowflake 파이프라인](#dg:cdc)** — Debezium 커넥터, Stream/Task, replication slot keepalive 배치, 조건부 task 로 비용 최적화
 - **[에러시로봇(운영 AI)](#dg:errorbot)** — Slack 에러 알림을 LLM 으로 1차 분석(GitLab 커밋 대조·OpenSearch 히스토리·escalation), 벤더 모델 폐기 장애를 모델 교체·재시도/백오프·세마포어로 3일 내 대응
 - 운영 콘솔 — 디스코드 메시지 재전송, SNS 권한 도메인 분리, 지갑↔SNS ID 조회
+- **[CI/CD · 인프라 운영](#dg:cicd)** (전 기간) — 담당 서비스의 GitLab CI · Dockerfile · Helm/K8s 매니페스트 · Envoy route · DDL 을 직접 관리, 신설 서비스는 배포 세트까지 한 번에 · <a href="portfolio.html#infra">자세히 →</a>
 
 ### Tech Stack
 
@@ -103,7 +104,7 @@
 
 **Messaging** &nbsp;·&nbsp; Kafka (Watermill · Debezium Connect · Spring Kafka)
 
-**Infra / DevOps** &nbsp;·&nbsp; AWS EKS · Helm · ArgoCD · Rundeck · Jenkins · GitLab CI
+**Infra / DevOps** &nbsp;·&nbsp; AWS EKS · Kubernetes · Docker · Helm · ArgoCD · Rundeck · Jenkins · GitLab CI · Envoy
 
 **Observability** &nbsp;·&nbsp; Datadog · Jaeger · OpenSearch
 
@@ -332,7 +333,12 @@ Oracle Cloud Infrastructure를 이용하는 고객사·관리자를 대상으로
 
 - **신규 서비스·도메인을 라이브까지:** api-sentinel 은 초기 커밋부터 신설, api-bookmark 와 Swap&Warp 는 초기 단계에 합류해 과반 커밋으로 라이브 승격, portal-ai 에는 에러시로봇 기능을 신설했습니다. 레이어와 서버/컨슈머를 처음부터 분리해 두면, 이후 기능 추가가 구조 변경 없이 들어온다는 걸 반복해서 경험했습니다.
 - **데이터 파이프라인 분리:** "서비스가 직접 외부에 쓰지 않는다"는 원칙으로, 배치 → publish 제거 → CDC(Debezium + Snowflake Stream/Task)로 이동시켰습니다. 상태성/이력성 테이블 구분, replication slot keepalive, 조건부 task 처럼 운영 비용과 유실 경로를 함께 고려합니다.
-- **인프라·배포:** Helm · ArgoCD · Rundeck · Jenkins · GitLab CI 로 다수 서비스의 롤아웃을 수행했습니다. 운영 대역 승격 전 dev 선행 배포 패턴을 정립하고, 장애 재현도 커밋으로 남겨 이력을 보존합니다.
+
+## Infrastructure & CI/CD
+
+- **파이프라인 유지·확장:** GitLab CI(test → build → deploy → release), multi-stage Dockerfile, Rundeck 배포 job 을 담당 서비스에서 직접 관리했습니다. 깨진 빌드(semantic-release · 런타임 버전)를 고치고 신설 서비스를 [파이프라인](#dg:cicd)에 태우는 일이 주였고, 운영 대역 승격 전 dev 선행 배포 패턴을 지켰습니다.
+- **Kubernetes 매니페스트:** Helm 템플릿과 환경별 Deployment · HPA · Service 를 작성·운영했습니다. probe · 리소스 · 포트 같은 운영 설정을 비용과 안정성 기준으로 조정합니다.
+- **게이트웨이 · 데이터 인프라:** Envoy gRPC → REST route, Debezium/Kafka Connect · Snowflake 설정, DBA 검토 흐름의 DDL 관리까지 애플리케이션 경계 밖도 함께 봅니다.
 
 ## Logging / Debugging
 

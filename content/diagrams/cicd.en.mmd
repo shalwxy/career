@@ -1,0 +1,32 @@
+%% title: CI/CD — from branch push to EKS rollout (★ = config I wrote or maintained)
+flowchart LR
+    BR[GitLab branch push<br/>develop · test · qa · stage · master]
+    subgraph CI[GitLab CI — one pipeline per service ★]
+        T[test<br/>go test]
+        B[build<br/>multi-stage Dockerfile<br/>golang-alpine → scratch]
+        D[deploy]
+        R[release · master only<br/>semantic-release<br/>conventional commits]
+    end
+    REG[(Image registry<br/>dev: GitLab Registry :latest<br/>others: AWS ECR :pipeline-id)]
+    subgraph DEV[dev cluster]
+        H[Helm charts ★<br/>gotohelm · ArgoCD]
+        K1[EKS Deployment<br/>K8s API PATCH → rollout restart]
+    end
+    subgraph OPS[test · qa · stage · live]
+        RD[Rundeck job call<br/>-Version pipeline-id]
+        M[Per-environment manifests ★<br/>deploy-scripts<br/>Deployment · HPA · Service]
+        K2[EKS rollout]
+    end
+    GW[Envoy gateway ★<br/>marina · gRPC → REST routes]
+    OPSREPO[(Ops repository ★<br/>portal-ops<br/>DDL · Kafka Connect · Snowflake)]
+    BR --> T --> B --> REG
+    B --> D --> R
+    D -- develop --> K1
+    H -.-> K1
+    D -- others --> RD --> M --> K2
+    REG -.-> K1
+    REG -.-> K2
+    K2 -.-> GW
+    OPSREPO -.-> K2
+    classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    class T,B,D,R,H,M,GW,OPSREPO mine

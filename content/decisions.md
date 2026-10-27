@@ -15,7 +15,7 @@
 | 2025 Q1~Q2 | [무한 스크롤](#d-cursor) · [동시 적재 정합성](#d-lock) · [서비스 밖으로 적재](#d-cdc) |
 | 2025 Q3 | [벤더 응답 분기](#d-worldpay) · [Lua 원자 처리](#d-lua) · [통합 알림](#d-notify) · [무효화 대신 TTL](#d-ttl) |
 | 2025 Q4 | [네이밍 교훈](#d-naming) · [롤백 토픽 → 결과 확정 토픽](#d-settle) |
-| 2026 Q1 | [정책 전용 서비스](#d-sentinel) · [jitter 와 cadence](#d-jitter) |
+| 2026 Q1 | [정책 전용 서비스](#d-sentinel) · [서비스 신설은 배포 세트까지](#d-deployset) · [jitter 와 cadence](#d-jitter) |
 | 2026 Q2~Q3 | [정책은 enum 으로](#d-enum) · [롤백에서 배운 것](#d-rollback) · [잠금은 컬럼으로](#d-lock-email) |
 | 2026 Q4 | [Outbox](#d-outbox) · [recipients 스트리밍](#d-stream) · [LLM 호출 내성](#d-llm) · [배치 원칙](#d-batch) |
 
@@ -80,6 +80,9 @@
 
 ## [정책 전용 서비스로 분리](#dg:sentinel) ✅ {#d-sentinel}
 **2026 Q1.** 제어 로직이 공통 라이브러리·계정·블록체인 서비스에 흩어져 있었다. 1단계로 기존 서비스가 흡수했으나 콘텐츠 도메인과 섞여 **정책 전용 서비스**를 신설. refresh 를 각 서비스가 전체 정책을 메모리에 올리던 방식에서 정책 서비스가 단일 소유자가 되는 구조로(메모리 이슈). 이후 블록체인 서비스의 화이트리스트까지 이전해 통합 완료.
+
+## [서비스 신설은 배포 세트까지](#dg:cicd) ✅ {#d-deployset}
+**2026 Q1 · api-sentinel.** 코드만 넘기고 배포 설정을 뒤로 미루면 dev 에서만 도는 서비스가 된다. Helm 템플릿 · 4개 환경 매니페스트 · Envoy route · CI 배포 job · 레지스트리 토큰을 코드와 같은 주에 한 세트로 넣었다. [dev 선행 배포](#d-devfirst) 원칙과 짝.
 
 ## jitter 와 cadence — ticker 로 돌아온 이유 ✅ {#d-jitter}
 **2026 Q1.** sliding window 의 refresh 가 같은 경계에 몰려 스파이크. timer 로 바꿔 jitter 를 넣었더니 cadence 가 흔들림. **ticker 기반 + 틱 내부 랜덤 지연** 으로 안정화. fixed window 는 한 번 제거했다가 다시 둘 다 지원.
