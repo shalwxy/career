@@ -1,4 +1,6 @@
-# career
+# resume
+
+🔗 https://shalwxy.github.io/resume/
 
 Career Description · Portfolio · Design Decisions 를 정적 HTML 로 발행하는 저장소.
 

@@ -126,10 +126,10 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 
 <p>NEXON UNIVERSE (founded 2022, a Nexon affiliate) builds MapleStory Universe (MSU), a Web3 platform that brings blockchain to the MapleStory IP. I developed its backend on the platform development team. I started on the on-chain/off-chain synchronization layer and went on to work on transaction history, bookmarks, the marketplace BFF, account/payment, unified notifications, a policy service, a CDC data pipeline and an operations AI bot.</p>
 <div class="stats">
-<div><strong>33</strong><span>repositories</span></div>
-<div><strong>3,700+</strong><span>commits</span></div>
+<div><strong>3 yrs</strong><span>at the company</span></div>
+<div><strong>6</strong><span>main Go services<br/>built and operated</span></div>
 <div><strong>4</strong><span>services · domains · bots<br/>built new · joined early</span></div>
-<div><strong>3 yrs</strong><span>tenure</span></div>
+<div><strong>5</strong><span>deployment environments<br/>dev · test · qa · stage · live</span></div>
 </div>
 
 <p class="badges">
@@ -157,7 +157,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <h4 id="1-on-chain-off-chain-synchronization-data-engine"><span class="phase">1</span> On-chain / off-chain synchronization (Data Engine)</h4>
 <p class="period">Nov 2023 – Apr 2024</p>
 <p class="chips"><span class="chip">Go</span><span class="chip">Saga</span><span class="chip">Redis distributed lock</span><span class="chip">Helm</span></p>
-<div class="impact"><span class="impact-k">Impact</span> Fixed nickname duplication at character mint with <strong>Redis-lock preemption</strong> · turned per-item NFT validation lookups into <strong>one list query</strong> · 186 commits across 4 repos</div>
+<div class="impact"><span class="impact-k">Impact</span> Fixed nickname duplication at character mint with <strong>Redis-lock preemption</strong> · turned per-item NFT validation lookups into <strong>one list query</strong></div>
 
 <ul>
 <li>Added input validation, request/response conversion with unit tests, and gRPC error handling while wiring a new core service into the game-facing gRPC service (business-provider)</li>
@@ -166,9 +166,9 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <li>Ran Helm rollouts for new services, reproduced an incident with throwaway deploys and rollbacks, and deployed to dev first before test/qa promotion</li>
 </ul>
 <h4 id="2-transaction-history-bookmarks-marketplace-bff"><span class="phase">2</span> Transaction history · bookmarks · marketplace BFF</h4>
-<p class="period">Jun 2024 – Sep 2025</p>
+<p class="period">Jun 2024 – Sep 2025 (maintained through 2026)</p>
 <p class="chips"><span class="chip">gRPC</span><span class="chip">Kafka</span><span class="chip">PostgreSQL advisory lock</span><span class="chip">Redis NX</span><span class="chip">CDC</span><span class="chip">Snowflake</span></p>
-<div class="impact"><span class="impact-k">Impact</span> Restructured and extended transaction history (<strong>907 commits</strong>) and carried bookmarks to production (<strong>550 commits</strong>, majority of the repo) · blocked duplicate writes under concurrent ingestion with Redis NX + advisory locks · narrowed intermittent BFF pod restarts to a cause and fixed them</div>
+<div class="impact"><span class="impact-k">Impact</span> Restructured and extended transaction history and built bookmarks, both <strong>through to production</strong> · <strong>per-event-type defence</strong> against concurrent duplicate writes (Redis NX · advisory locks) · narrowed intermittent BFF pod restarts to a cause and fixed them</div>
 
 <ul>
 <li><strong>High-volume transaction ledger (<a href="#" class="dg" data-dg="activity" title="Diagram">api-activity</a>)</strong> — reorganized layers, generalized the consumer and moved to message format v2, then extended it to trades, mints, transfers, Swap &amp; Warp, bridge-in and USDT. Promoted the transaction hash to a unique key, routed malformed events to a DLQ, and protected <a href="#" class="dg" data-dg="activity-lock" title="Diagram">concurrent ingestion</a> with Redis NX + PostgreSQL advisory locks</li>
@@ -219,7 +219,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 </div>
 <hr>
 <h2 id="uclick-ai-engineering-rd">UCLICK — AI Engineering R&amp;D</h2>
-<p class="meta">AI Engineering R&D · AI Service Team 1 · Jan 2021 – Oct 2023 (1 yr 10 mo)</p>
+<p class="meta">AI Engineering R&D · AI Service Team 1 · Jan 2022 – Oct 2023 (1 yr 10 mo)</p>
 
 <ul>
 <li><strong>NVIDIA Omniverse R&amp;D (Jun 2022 – Oct 2023)</strong> — robot assembly and simulation in IsaacSim with ROS messaging (Python); VR device integration in CreateXR with an UnrealEngine4 single-player sample (C++)</li>
@@ -255,7 +255,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <h2 id="korea-national-open-university-computer-science">Korea National Open University — Computer Science</h2>
 <p class="meta">Mar 2021 – Feb 2024</p>
 
-<p>Enrolled to ground my engineering in computer science fundamentals: digital logic, computer architecture, operating systems, compilers, data structures, algorithms, databases, plus C/C++/Java, security, cloud computing and simulation — A+ in each of these courses.</p>
+<p>Enrolled to ground my engineering in computer science fundamentals and took major courses only — operating systems, compilers, data structures, algorithms, databases, C/C++/Java, security and cloud computing — with A+ in each of these courses.</p>
 <h2 id="korea-polytechnic-data-convergence-software">Korea Polytechnic — Data Convergence Software</h2>
 <p class="meta">Mar 2019 – Nov 2019</p>
 
@@ -263,7 +263,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <h2 id="ewha-womans-university-mathematics-education">Ewha Womans University — Mathematics Education</h2>
 <p class="meta">Mar 2011 – Feb 2016</p>
 
-<p>Calculus, linear algebra, geometry, probability and statistics, analysis, topology, number theory and abstract algebra.</p>
+<p>Mathematics major (calculus, linear algebra, geometry, probability and statistics, analysis, topology, number theory, abstract algebra) — trained to solve problems through definitions and proofs.</p>
 <hr>
 <h1 id="skills">Skills</h1>
 <h2 id="backend-go">Backend (Go)</h2>
@@ -277,6 +277,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <ul>
 <li><strong>Kafka</strong> — consumer handlers, retry queues and DLQs; recovering failed external calls through an outbox (in review).</li>
 <li><strong>CDC and pipelines</strong> — Debezium → Kafka → Snowflake Stream/Task. Took part in moving batch jobs and direct publishing to CDC under a &ldquo;services don&rsquo;t write outward themselves&rdquo; rule, and manage cost with a slot-keepalive batch, conditional tasks and a stateful/history table split.</li>
+<li><strong>Datastores</strong> — PostgreSQL, Redis, MongoDB and AWS DocumentDB (developed locally against MongoDB for compatibility), chosen per service.</li>
 <li><strong>DB design and query tuning</strong> — DDL managed through DBA review (103 commits in portal-ops); improved reads with OR → UNION ALL and cursor pagination.</li>
 </ul>
 <h2 id="infrastructure-devops">Infrastructure &amp; DevOps</h2>
@@ -295,7 +296,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <h2 id="collaboration">Collaboration</h2>
 <ul>
 <li><strong>Clarifying requirements</strong> — turn vague specs into developer terms and separate &ldquo;current assumptions&rdquo; from &ldquo;needs verification&rdquo; with DBA, data engineering, security, product, front-end and blockchain teams.</li>
-<li><strong>Visual communication and documentation</strong> — diagrams and written proposals, open to a better direction; documentation and handover notes are how I close work.</li>
+<li><strong>Visual communication and documentation</strong> — diagrams and written proposals, open to a better direction. When a piece of work ends I write down the design intent and why decisions went the way they did, so whoever picks it up keeps the context.</li>
 <li><strong>Reviews as principles</strong> — payment/security features go through two review rounds; feedback (&ldquo;no log-and-swallow on external calls&rdquo;, &ldquo;inject config at boot&rdquo;) is written down as team principles.</li>
 </ul>
 </article>

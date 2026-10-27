@@ -17,10 +17,10 @@
 넥슨유니버스(2022년 설립, 넥슨 계열사)는 메이플스토리 IP에 블록체인을 접목한 **메이플스토리 유니버스(MSU)** 를 만듭니다. 저는 플랫폼개발팀에서 이 Web3 플랫폼의 백엔드를 개발했습니다. 온체인 트랜잭션 동기화에서 시작해 트랜잭션 이력·북마크·거래소 BFF·계정/결제·통합 알림·정책 서비스·데이터 파이프라인·운영 AI까지 담당했습니다.
 
 <div class="stats">
-<div><strong>33</strong><span>저장소</span></div>
-<div><strong>3,700+</strong><span>커밋</span></div>
-<div><strong>4</strong><span>신규 서비스·도메인·봇<br/>신설 · 초기 참여</span></div>
 <div><strong>3년</strong><span>재직</span></div>
+<div><strong>6</strong><span>주요 Go 서비스<br/>개발·운영</span></div>
+<div><strong>4</strong><span>신규 서비스·도메인·봇<br/>신설 · 초기 참여</span></div>
+<div><strong>5</strong><span>배포 대역<br/>dev · test · qa · stage · live</span></div>
 </div>
 
 <p class="badges">
@@ -48,7 +48,7 @@
 #### <span class="phase">1</span> 온체인-오프체인 동기화 (DE)
 <p class="period">2023.11 ~ 2024.04 · <a href="portfolio.html#de">자세히 보기 →</a></p>
 <p class="chips"><span class="chip">Go</span><span class="chip">Saga</span><span class="chip">Redis 분산 락</span><span class="chip">Helm</span></p>
-<div class="impact"><span class="impact-k">Impact</span> 캐릭터 민트 시 <strong>닉네임 중복 생성 이슈를 Redis 락 선점으로 수정</strong> · NFT 아이템 유효성 검사의 건별 반복 조회를 <strong>목록 조회 1회</strong>로 개선 · DE 리포 4개에 186 커밋</div>
+<div class="impact"><span class="impact-k">Impact</span> 캐릭터 민트 시 <strong>닉네임 중복 생성 이슈를 Redis 락 선점으로 수정</strong> · NFT 아이템 유효성 검사의 건별 반복 조회를 <strong>목록 조회 1회</strong>로 개선</div>
 
 - 게임 서버가 호출하는 gRPC 서비스(business-provider)에 새 코어 서비스를 연동하면서 **입력 유효성 검사 · 요청/응답 변환 · gRPC 에러 처리** 추가
 - [Saga v2](#dg:saga) 전환에 맞춰 **재화(neso/currency)·캐릭터 유효성 검사기 추가**, NFT 아이템 검사는 단건 반복 조회 → 목록 조회로 보완
@@ -56,16 +56,16 @@
 - Helm 배포 운영 — 신규 서비스 배포, 장애 재현용 임시 배포/롤백, test/qa 승격 전 dev 선행 배포
 
 #### <span class="phase">2</span> 트랜잭션 이력 · 북마크 · 거래소 BFF
-<p class="period">2024.06 ~ 2025.09 · <a href="portfolio.html#activity">자세히 보기 →</a></p>
+<p class="period">2024.06 ~ 2025.09 (이후 2026년까지 유지보수) · <a href="portfolio.html#activity">자세히 보기 →</a></p>
 <p class="chips"><span class="chip">gRPC</span><span class="chip">Kafka</span><span class="chip">PostgreSQL advisory lock</span><span class="chip">Redis NX</span><span class="chip">CDC</span><span class="chip">Snowflake</span></p>
-<div class="impact"><span class="impact-k">Impact</span> api-activity 구조 개선 후 확장(<strong>907 커밋</strong>) · api-bookmark 과반 커밋(<strong>550 커밋</strong>) 모두 라이브 승격 · Redis NX + advisory lock 으로 동시 적재 중복 차단 · 간헐적 pod 재시작 원인 규명·해결</div>
+<div class="impact"><span class="impact-k">Impact</span> api-activity 구조 개선·확장과 api-bookmark 개발을 <strong>라이브까지</strong> · 이벤트 종류별 <strong>동시 적재 방어</strong>(Redis NX · advisory lock) · 간헐적 pod 재시작 원인 규명·해결</div>
 
 - **대용량 트랜잭션 이력 서비스([api-activity](#dg:activity))** — 레이어 재정비·컨슈머 일반화·메시지 포맷 v2 후 거래/민팅/전송/Swap&Warp/USDT 를 차례로 확장. 트랜잭션 해시 유니크 승격, Redis NX + PostgreSQL advisory lock 으로 [동시 적재 정합성](#dg:activity-lock), 비정상 이벤트는 DLQ
 - **쿼리 튜닝·성능 개선** — DBA 와 협업한 OR → UNION ALL 전환, 커서 기반 무한 스크롤, 조건부 캐싱(공통 라이브러리의 캐시 데코레이터에 옵션 추가)
 - 거래 결과 확정 시 **알림 이벤트 발행**, Snowflake 적재를 Kafka 발행 → **CDC 로 전환**해 발행 실패 시 유실되던 경로 제거
 - **북마크/조회수 서비스([api-bookmark](#dg:bookmark))** 개발 — 멱등 처리, Redis 카운트 캐시 → Kafka 이벤트 집계, 하루/총량 제한, 회원 탈퇴 연동
 - **거래소 웹 BFF(bff-marketplace)** — 북마크·액티비티 호출을 신규 서비스로 이전, 인벤토리 서비스의 북마크·판매중 목록 조회 구현. 간헐적 pod 재시작을 로그 추적으로 비동기 루프 내 gRPC 호출 자원 점유로 좁혀 timeout·chunk 호출로 해결
-- 크로스체인 전송 이력·조회 도메인 [Swap & Warp](#dg:swapwarp) 추가(bff-swapnwarp 포함) · 전사 proto 저장소 도메인별 모듈화 주도(저장소 165 커밋) · Envoy 게이트웨이 route 운영 · Java/Spring Kafka 컨슈머에 북마크 이벤트 적재 추가 · 런칭 전 거래소 BFF·게임데이터 버그 픽스
+- 크로스체인 전송 이력·조회 도메인 [Swap & Warp](#dg:swapwarp) 추가(bff-swapnwarp 포함) · 전사 proto 저장소 도메인별 모듈화 주도 · Envoy 게이트웨이 route 운영 · Java/Spring Kafka 컨슈머에 북마크 이벤트 적재 추가 · 런칭 전 거래소 BFF·게임데이터 버그 픽스
 - 확률 정보 고지 서비스의 데이터 저장·버전 관리 구현
 - 백오피스 아이템/토큰 제재(단건·일괄·대량) 기능과 제재 이력 조회 화면
 
@@ -90,7 +90,7 @@
 - **비즈니스 정책 서비스([api-sentinel](#dg:sentinel)) 신설** — 여러 서비스에 흩어져 있던 제어 로직을 단일 서비스로 통합
     - **ACL** (지갑/IP 화이트·블랙리스트), **Rate Limit** (Sliding/Fixed Window + jitter), **Lockout** (OTP 반복 실패 시 차단, 실패 횟수 유지/초기화 정책을 설정으로), **Feature Flag** (런타임 변경)
 - **[PostgreSQL CDC → Snowflake 파이프라인](#dg:cdc)** — Debezium 커넥터, Stream/Task, replication slot keepalive 배치, 조건부 task 로 비용 최적화
-- **[에러시로봇(운영 AI)](#dg:errorbot)** — 운영 중 Slack 에러 알림을 LLM 으로 1차 분석해 스레드에 답하는 봇.(GitLab 커밋 대조·OpenSearch 히스토리·escalation), 벤더 모델 폐기 장애를 모델 교체·재시도/백오프·세마포어로 3일 내 대응
+- **[에러시로봇(운영 AI)](#dg:errorbot)** — 운영 중 Slack 에러 알림을 LLM 으로 1차 분석해 스레드에 답하는 봇 (GitLab 커밋 대조·OpenSearch 히스토리·escalation). 벤더 모델 폐기 장애를 모델 교체·재시도/백오프·세마포어로 3일 내 대응
 - 운영 콘솔 — 디스코드 메시지 재전송, SNS 권한 도메인 분리, 지갑↔SNS ID 조회
 - 외부 노출 API(스왑워프·통합알림·BFF) 영향성 전수 조사와 인증 추가(팀 3인), 지갑주소 유효성 검사 추가
 - **[CI/CD · 인프라 운영](#dg:cicd)** (전 기간) — 팀의 기존 파이프라인·매니페스트 패턴을 가져다 쓰며 담당 서비스의 GitLab CI · Dockerfile · Helm/K8s 매니페스트 · Envoy route · DDL 을 보수, 신설 서비스는 배포 세트까지 복제 · <a href="portfolio.html#infra">자세히 →</a>
@@ -119,14 +119,7 @@
 
 ## UCLICK — AI Engineering R&D
 
-<p class="meta">AI Engineering R&D · 유클릭 AI사업본부 AI서비스1팀 · 2021.01 ~ 2023.10 (1년 10개월)</p>
-
-<div class="stats">
-<div><strong>4</strong><span>프로젝트</span></div>
-<div><strong>Metaverse</strong><span>Digital Twin</span></div>
-<div><strong>GPU</strong><span>MIG · deepops</span></div>
-<div><strong>1년 10개월</strong><span>재직</span></div>
-</div>
+<p class="meta">AI Engineering R&D · 유클릭 AI사업본부 AI서비스1팀 · 2022.01 ~ 2023.10 (1년 10개월)</p>
 
 <p class="badges">
 <span class="b">Python</span>
@@ -199,13 +192,6 @@ NVIDIA GPU를 사용하는 Kubernetes 및 Slurm 클러스터 용도 인프라 �
 ## UCLICK — Backend Developer
 
 <p class="meta">Backend Developer · 유클릭 기술연구소 연구2실 · 2019.11 ~ 2021.12 (2년)</p>
-
-<div class="stats">
-<div><strong>4</strong><span>프로젝트</span></div>
-<div><strong>UNO Platform</strong><span>Gateway · MSP</span></div>
-<div><strong>OPEN API</strong><span>동적 API · 라우팅</span></div>
-<div><strong>2년</strong><span>재직</span></div>
-</div>
 
 <p class="badges">
 <span class="b">Java</span>
@@ -303,7 +289,7 @@ Oracle Cloud Infrastructure를 이용하는 고객사·관리자를 대상으로
 
 <p class="meta">2021.03 ~ 2024.02</p>
 
-좋은 개발자가 되기 위해서는 지식 및 소통 측면에서 컴퓨터 과학에 대한 이해가 필요하다고 생각해 입학했습니다. 컴퓨터과학과 전공 과목만 수강하였으며, 전산 기초인 디지털논리회로, 컴퓨터구조, 운영체제, 컴파일러구성, 자료구조, 알고리즘, 데이터베이스 과목과 프로그래밍 언어인 C프로그래밍, C++프로그래밍, Java 프로그래밍, 모바일앱프로그래밍, JSP프로그래밍 과목과 그 외에도 개발에 필요한 과목인 컴퓨터보안, 클라우드컴퓨팅, 시뮬레이션 등을 수강했고, 언급한 과목들 모두 A+을 취득했습니다.
+좋은 개발자가 되려면 컴퓨터 과학 기초가 필요하다고 생각해 입학했고, 전공 과목만 수강했습니다. 운영체제·컴파일러·자료구조·알고리즘·데이터베이스 등 전산 기초와 C/C++/Java 프로그래밍, 컴퓨터보안·클라우드컴퓨팅 과목을 수강했고, 언급한 과목들 모두 A+을 취득했습니다.
 
 ---
 
@@ -319,7 +305,7 @@ Oracle Cloud Infrastructure를 이용하는 고객사·관리자를 대상으로
 
 <p class="meta">2011.03 ~ 2016.02</p>
 
-전공수학으로 미분적분학, 선형대수학, 기하학, 확률과 통계, 해석학, 위상수학, 정수론, 현대대수학 등을 학습했습니다. 구체적으로는, 미분을 이용해서 n 차원의 주어진 범위 내에서 함수의 최솟값과 최댓값을 구했고, 선형대수학을 활용해서 빠른 연산이 가능하도록 기저를 변환하여 효과적인 행렬 연산을 수행했습니다. 기하학을 사용해서는 도형과 그 성질들 간 상호 관계를 체계적으로 정리했고, 해석학을 통해서 실함수를 분석했습니다. 위상수학으로 형태는 달라도 구조가 같은 기하학적 성질을 다루었고, 정수론을 이용해서 정수 조건의 문제를 빠르게 해결했습니다. 현대대수학에서는 구조를 최대한 추상화해서 수학의 영역을 확장했습니다.
+수학 전공(미분적분학, 선형대수학, 기하학, 확률과 통계, 해석학, 위상수학, 정수론, 현대대수학)으로, 정의와 증명으로 문제를 풀어가는 방식을 훈련했습니다.
 
 ---
 
@@ -335,6 +321,7 @@ Oracle Cloud Infrastructure를 이용하는 고객사·관리자를 대상으로
 ## Data & Messaging
 
 - **Kafka:** 컨슈머 핸들러·재시도 큐·DLQ 설계와 운영, 외부 API 호출 실패를 Outbox 재시도로 복구하는 방식(리뷰 중)을 다뤘습니다.
+- **저장소:** PostgreSQL · Redis · MongoDB · AWS DocumentDB(로컬 개발은 MongoDB 호환으로 진행)를 서비스 성격에 맞춰 사용했습니다.
 - **CDC·데이터 파이프라인:** Debezium → Kafka → Snowflake Stream/Task. 서비스가 직접 외부에 쓰지 않는 원칙으로 배치·publish 를 CDC 로 옮기는 데 참여했고, slot keepalive 배치·조건부 task·상태성/이력성 테이블 구분으로 운영 비용을 관리합니다.
 - **DB 설계·쿼리 튜닝:** DDL 을 DBA 검토 흐름으로 관리하고(portal-ops 103 커밋), OR → UNION ALL · 커서 페이지네이션 등으로 조회를 개선했습니다.
 
@@ -354,5 +341,5 @@ Oracle Cloud Infrastructure를 이용하는 고객사·관리자를 대상으로
 ## Collaboration
 
 - **요구사항 명료화:** 모호한 기획을 개발자 관점에서 정리하고, DBA·DE·보안·기획·프론트·블록체인 팀과 "현재 가정"과 "검증이 필요한 지점"을 분리해 공유합니다.
-- **시각화와 문서화:** 생각을 글과 다이어그램으로 정리해 공유하고, 더 좋은 방향이 있으면 수용합니다. 작업 문서화와 인수인계 문서 정리를 마무리 습관으로 합니다.
+- **시각화와 문서화:** 생각을 글과 다이어그램으로 정리해 공유하고, 더 좋은 방향이 있으면 수용합니다. 작업이 끝나면 설계 의도와 결정의 이유를 문서로 남겨, 다른 사람이 이어받아도 맥락을 잃지 않게 합니다.
 - **리뷰를 원칙으로:** 결제·보안 기능은 리뷰 2회차까지 돌리고, 지적받은 내용("외부 호출은 log-and-swallow 금지", "설정은 부팅 시 주입")은 팀 원칙으로 문서화해 다음 작업에 반영합니다.

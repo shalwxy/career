@@ -15,10 +15,10 @@ Hi, I'm Seungha Lee — a backend engineer who enjoys nothing more than the time
 NEXON UNIVERSE (founded 2022, a Nexon affiliate) builds MapleStory Universe (MSU), a Web3 platform that brings blockchain to the MapleStory IP. I developed its backend on the platform development team. I started on the on-chain/off-chain synchronization layer and went on to work on transaction history, bookmarks, the marketplace BFF, account/payment, unified notifications, a policy service, a CDC data pipeline and an operations AI bot.
 
 <div class="stats">
-<div><strong>33</strong><span>repositories</span></div>
-<div><strong>3,700+</strong><span>commits</span></div>
+<div><strong>3 yrs</strong><span>at the company</span></div>
+<div><strong>6</strong><span>main Go services<br/>built and operated</span></div>
 <div><strong>4</strong><span>services · domains · bots<br/>built new · joined early</span></div>
-<div><strong>3 yrs</strong><span>tenure</span></div>
+<div><strong>5</strong><span>deployment environments<br/>dev · test · qa · stage · live</span></div>
 </div>
 
 <p class="badges">
@@ -46,7 +46,7 @@ NEXON UNIVERSE (founded 2022, a Nexon affiliate) builds MapleStory Universe (MSU
 #### <span class="phase">1</span> On-chain / off-chain synchronization (Data Engine)
 <p class="period">Nov 2023 – Apr 2024</p>
 <p class="chips"><span class="chip">Go</span><span class="chip">Saga</span><span class="chip">Redis distributed lock</span><span class="chip">Helm</span></p>
-<div class="impact"><span class="impact-k">Impact</span> Fixed nickname duplication at character mint with <strong>Redis-lock preemption</strong> · turned per-item NFT validation lookups into <strong>one list query</strong> · 186 commits across 4 repos</div>
+<div class="impact"><span class="impact-k">Impact</span> Fixed nickname duplication at character mint with <strong>Redis-lock preemption</strong> · turned per-item NFT validation lookups into <strong>one list query</strong></div>
 
 - Added input validation, request/response conversion with unit tests, and gRPC error handling while wiring a new core service into the game-facing gRPC service (business-provider)
 - Added currency/character validators for the [Saga v2](#dg:saga) migration and reworked NFT item validation from per-item state lookups to a single list query
@@ -54,9 +54,9 @@ NEXON UNIVERSE (founded 2022, a Nexon affiliate) builds MapleStory Universe (MSU
 - Ran Helm rollouts for new services, reproduced an incident with throwaway deploys and rollbacks, and deployed to dev first before test/qa promotion
 
 #### <span class="phase">2</span> Transaction history · bookmarks · marketplace BFF
-<p class="period">Jun 2024 – Sep 2025</p>
+<p class="period">Jun 2024 – Sep 2025 (maintained through 2026)</p>
 <p class="chips"><span class="chip">gRPC</span><span class="chip">Kafka</span><span class="chip">PostgreSQL advisory lock</span><span class="chip">Redis NX</span><span class="chip">CDC</span><span class="chip">Snowflake</span></p>
-<div class="impact"><span class="impact-k">Impact</span> Restructured and extended transaction history (<strong>907 commits</strong>) and carried bookmarks to production (<strong>550 commits</strong>, majority of the repo) · blocked duplicate writes under concurrent ingestion with Redis NX + advisory locks · narrowed intermittent BFF pod restarts to a cause and fixed them</div>
+<div class="impact"><span class="impact-k">Impact</span> Restructured and extended transaction history and built bookmarks, both <strong>through to production</strong> · <strong>per-event-type defence</strong> against concurrent duplicate writes (Redis NX · advisory locks) · narrowed intermittent BFF pod restarts to a cause and fixed them</div>
 
 - **High-volume transaction ledger ([api-activity](#dg:activity))** — reorganized layers, generalized the consumer and moved to message format v2, then extended it to trades, mints, transfers, Swap & Warp, bridge-in and USDT. Promoted the transaction hash to a unique key, routed malformed events to a DLQ, and protected [concurrent ingestion](#dg:activity-lock) with Redis NX + PostgreSQL advisory locks
 - **Query performance** — OR → UNION ALL rewrite with the DBA, cursor-based infinite scroll, a conditional-caching option added to the shared cache decorator
@@ -116,7 +116,7 @@ NEXON UNIVERSE (founded 2022, a Nexon affiliate) builds MapleStory Universe (MSU
 
 ## UCLICK — AI Engineering R&D
 
-<p class="meta">AI Engineering R&D · AI Service Team 1 · Jan 2021 – Oct 2023 (1 yr 10 mo)</p>
+<p class="meta">AI Engineering R&D · AI Service Team 1 · Jan 2022 – Oct 2023 (1 yr 10 mo)</p>
 
 - **NVIDIA Omniverse R&D (Jun 2022 – Oct 2023)** — robot assembly and simulation in IsaacSim with ROS messaging (Python); VR device integration in CreateXR with an UnrealEngine4 single-player sample (C++)
 - **GC-GPU solution incident diagnosis (Apr – May 2022)** — kernel-panic log analysis and root-cause fixes at the environment and source level
@@ -155,7 +155,7 @@ NEXON UNIVERSE (founded 2022, a Nexon affiliate) builds MapleStory Universe (MSU
 
 <p class="meta">Mar 2021 – Feb 2024</p>
 
-Enrolled to ground my engineering in computer science fundamentals: digital logic, computer architecture, operating systems, compilers, data structures, algorithms, databases, plus C/C++/Java, security, cloud computing and simulation — A+ in each of these courses.
+Enrolled to ground my engineering in computer science fundamentals and took major courses only — operating systems, compilers, data structures, algorithms, databases, C/C++/Java, security and cloud computing — with A+ in each of these courses.
 
 ## Korea Polytechnic — Data Convergence Software
 
@@ -167,7 +167,7 @@ Hands-on Java/Spring, Python, R, Linux and database training, including TensorFl
 
 <p class="meta">Mar 2011 – Feb 2016</p>
 
-Calculus, linear algebra, geometry, probability and statistics, analysis, topology, number theory and abstract algebra.
+Mathematics major (calculus, linear algebra, geometry, probability and statistics, analysis, topology, number theory, abstract algebra) — trained to solve problems through definitions and proofs.
 
 ---
 
@@ -184,6 +184,7 @@ Calculus, linear algebra, geometry, probability and statistics, analysis, topolo
 
 - **Kafka** — consumer handlers, retry queues and DLQs; recovering failed external calls through an outbox (in review).
 - **CDC and pipelines** — Debezium → Kafka → Snowflake Stream/Task. Took part in moving batch jobs and direct publishing to CDC under a "services don't write outward themselves" rule, and manage cost with a slot-keepalive batch, conditional tasks and a stateful/history table split.
+- **Datastores** — PostgreSQL, Redis, MongoDB and AWS DocumentDB (developed locally against MongoDB for compatibility), chosen per service.
 - **DB design and query tuning** — DDL managed through DBA review (103 commits in portal-ops); improved reads with OR → UNION ALL and cursor pagination.
 
 ## Infrastructure & DevOps
@@ -202,5 +203,5 @@ Calculus, linear algebra, geometry, probability and statistics, analysis, topolo
 ## Collaboration
 
 - **Clarifying requirements** — turn vague specs into developer terms and separate "current assumptions" from "needs verification" with DBA, data engineering, security, product, front-end and blockchain teams.
-- **Visual communication and documentation** — diagrams and written proposals, open to a better direction; documentation and handover notes are how I close work.
+- **Visual communication and documentation** — diagrams and written proposals, open to a better direction. When a piece of work ends I write down the design intent and why decisions went the way they did, so whoever picks it up keeps the context.
 - **Reviews as principles** — payment/security features go through two review rounds; feedback ("no log-and-swallow on external calls", "inject config at boot") is written down as team principles.
