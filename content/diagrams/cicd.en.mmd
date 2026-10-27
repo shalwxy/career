@@ -1,7 +1,7 @@
-%% title: CI/CD — from branch push to EKS rollout (★ = config I wrote or maintained)
+%% title: CI/CD — from branch push to EKS rollout (team pipeline · ★ = config I added or maintained by copying existing patterns)
 flowchart LR
     BR[GitLab branch push<br/>develop · test · qa · stage · master]
-    subgraph CI[GitLab CI — one pipeline per service ★]
+    subgraph CI[GitLab CI — shared team pipeline template]
         T[test<br/>go test]
         B[build<br/>multi-stage Dockerfile<br/>golang-alpine → scratch]
         D[deploy]
@@ -9,7 +9,7 @@ flowchart LR
     end
     REG[(Image registry<br/>dev: GitLab Registry :latest<br/>others: AWS ECR :pipeline-id)]
     subgraph DEV[dev cluster]
-        H[Helm charts ★<br/>gotohelm · ArgoCD]
+        H[Helm charts ★<br/>gotohelm · ArgoCD<br/>new services by copying templates]
         K1[EKS Deployment<br/>K8s API PATCH → rollout restart]
     end
     subgraph OPS[test · qa · stage · live]
@@ -29,4 +29,4 @@ flowchart LR
     K2 -.-> GW
     OPSREPO -.-> K2
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
-    class T,B,D,R,H,M,GW,OPSREPO mine
+    class H,M,GW,OPSREPO mine

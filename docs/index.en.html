@@ -203,7 +203,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <li><strong><a href="#" class="dg" data-dg="cdc" title="Diagram">PostgreSQL CDC → Snowflake</a></strong> — Debezium connectors, Stream/Task, a replication-slot keepalive job, conditional tasks to cut cost</li>
 <li><strong><a href="#" class="dg" data-dg="errorbot" title="Diagram">Error-triage bot</a></strong> — LLM first-pass analysis of Slack alerts with GitLab commit diffing, OpenSearch history and escalation; handled a vendor model deprecation with model swap, retry/backoff and a semaphore</li>
 <li>Operations console — Discord message re-send, permission-domain split, wallet ↔ SNS lookups</li>
-<li><strong><a href="#" class="dg" data-dg="cicd" title="Diagram">CI/CD &amp; infrastructure</a></strong> (throughout) — maintained GitLab CI, Dockerfiles, Helm/K8s manifests, Envoy routes and DDL for the services I owned; new services shipped with their full deployment set</li>
+<li><strong><a href="#" class="dg" data-dg="cicd" title="Diagram">CI/CD &amp; infrastructure</a></strong> (throughout) — used the team&rsquo;s existing pipeline and manifest patterns to maintain GitLab CI, Dockerfiles, Helm/K8s manifests, Envoy routes and DDL for the services I owned; new services shipped with their full deployment set by copying those patterns</li>
 </ul>
 <h3 id="tech-stack">Tech Stack</h3>
 <div class="stack">
@@ -278,7 +278,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 </ul>
 <h2 id="infrastructure-cicd">Infrastructure &amp; CI/CD</h2>
 <ul>
-<li><strong>Keeping pipelines working</strong> — GitLab CI (test → build → deploy → release), multi-stage Dockerfiles and Rundeck deploy jobs for the services I owned. Mostly fixing broken builds (semantic-release, runtime upgrades) and wiring new services into the <a href="#" class="dg" data-dg="cicd" title="Diagram">pipeline</a>, with dev-first promotion before test/qa.</li>
+<li><strong>Using and maintaining pipelines</strong> — the team&rsquo;s GitLab CI (test → build → deploy → release), multi-stage Dockerfiles and Rundeck deploy jobs were already in place; I designed none of it. My part was fixing broken builds (semantic-release, runtime upgrades) and wiring new services into the <a href="#" class="dg" data-dg="cicd" title="Diagram">pipeline</a> by following existing patterns, with dev-first promotion before test/qa.</li>
 <li><strong>Kubernetes manifests</strong> — wrote and operated Helm templates and per-environment Deployment · HPA · Service; tune probes, resources and ports for cost and stability.</li>
 <li><strong>Gateway &amp; data infrastructure</strong> — Envoy gRPC → REST routes, Debezium/Kafka Connect and Snowflake configuration, DDL managed through DBA review — I look past the application boundary.</li>
 </ul>
@@ -586,10 +586,10 @@ sequenceDiagram
     end
     S->>B: 👍/👎 feedback · 🔍 re-analyse · follow-up via mention
 </script>
-<script type="text/plain" id="dg-src-cicd" data-title="CI/CD — from branch push to EKS rollout (★ = config I wrote or maintained)">
+<script type="text/plain" id="dg-src-cicd" data-title="CI/CD — from branch push to EKS rollout (team pipeline · ★ = config I added or maintained by copying existing patterns)">
 flowchart LR
     BR[GitLab branch push<br/>develop · test · qa · stage · master]
-    subgraph CI[GitLab CI — one pipeline per service ★]
+    subgraph CI[GitLab CI — shared team pipeline template]
         T[test<br/>go test]
         B[build<br/>multi-stage Dockerfile<br/>golang-alpine → scratch]
         D[deploy]
@@ -597,7 +597,7 @@ flowchart LR
     end
     REG[(Image registry<br/>dev: GitLab Registry :latest<br/>others: AWS ECR :pipeline-id)]
     subgraph DEV[dev cluster]
-        H[Helm charts ★<br/>gotohelm · ArgoCD]
+        H[Helm charts ★<br/>gotohelm · ArgoCD<br/>new services by copying templates]
         K1[EKS Deployment<br/>K8s API PATCH → rollout restart]
     end
     subgraph OPS[test · qa · stage · live]
@@ -617,7 +617,7 @@ flowchart LR
     K2 -.-> GW
     OPSREPO -.-> K2
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
-    class T,B,D,R,H,M,GW,OPSREPO mine
+    class H,M,GW,OPSREPO mine
 </script>
 <script>var MERMAID_CDN="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js";
 (function(){

@@ -90,7 +90,7 @@
 - **[PostgreSQL CDC → Snowflake 파이프라인](#dg:cdc)** — Debezium 커넥터, Stream/Task, replication slot keepalive 배치, 조건부 task 로 비용 최적화
 - **[에러시로봇(운영 AI)](#dg:errorbot)** — Slack 에러 알림을 LLM 으로 1차 분석(GitLab 커밋 대조·OpenSearch 히스토리·escalation), 벤더 모델 폐기 장애를 모델 교체·재시도/백오프·세마포어로 3일 내 대응
 - 운영 콘솔 — 디스코드 메시지 재전송, SNS 권한 도메인 분리, 지갑↔SNS ID 조회
-- **[CI/CD · 인프라 운영](#dg:cicd)** (전 기간) — 담당 서비스의 GitLab CI · Dockerfile · Helm/K8s 매니페스트 · Envoy route · DDL 을 직접 관리, 신설 서비스는 배포 세트까지 한 번에 · <a href="portfolio.html#infra">자세히 →</a>
+- **[CI/CD · 인프라 운영](#dg:cicd)** (전 기간) — 팀의 기존 파이프라인·매니페스트 패턴을 가져다 쓰며 담당 서비스의 GitLab CI · Dockerfile · Helm/K8s 매니페스트 · Envoy route · DDL 을 보수, 신설 서비스는 배포 세트까지 복제 · <a href="portfolio.html#infra">자세히 →</a>
 
 ### Tech Stack
 
@@ -336,7 +336,7 @@ Oracle Cloud Infrastructure를 이용하는 고객사·관리자를 대상으로
 
 ## Infrastructure & CI/CD
 
-- **파이프라인 유지·확장:** GitLab CI(test → build → deploy → release), multi-stage Dockerfile, Rundeck 배포 job 을 담당 서비스에서 직접 관리했습니다. 깨진 빌드(semantic-release · 런타임 버전)를 고치고 신설 서비스를 [파이프라인](#dg:cicd)에 태우는 일이 주였고, 운영 대역 승격 전 dev 선행 배포 패턴을 지켰습니다.
+- **파이프라인 사용·보수:** 팀에 갖춰진 GitLab CI(test → build → deploy → release) · multi-stage Dockerfile · Rundeck 배포 job 을 가져다 썼습니다. 설계한 것은 없고, 깨진 빌드(semantic-release · 런타임 버전)를 고치고 신설 서비스를 기존 패턴대로 [파이프라인](#dg:cicd)에 태웠으며, 운영 대역 승격 전 dev 선행 배포 패턴을 지켰습니다.
 - **Kubernetes 매니페스트:** Helm 템플릿과 환경별 Deployment · HPA · Service 를 작성·운영했습니다. probe · 리소스 · 포트 같은 운영 설정을 비용과 안정성 기준으로 조정합니다.
 - **게이트웨이 · 데이터 인프라:** Envoy gRPC → REST route, Debezium/Kafka Connect · Snowflake 설정, DBA 검토 흐름의 DDL 관리까지 애플리케이션 경계 밖도 함께 봅니다.
 

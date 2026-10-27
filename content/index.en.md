@@ -87,7 +87,7 @@ MapleStory Universe (MSU) is a Web3 platform built on the MapleStory IP. I start
 - **[PostgreSQL CDC → Snowflake](#dg:cdc)** — Debezium connectors, Stream/Task, a replication-slot keepalive job, conditional tasks to cut cost
 - **[Error-triage bot](#dg:errorbot)** — LLM first-pass analysis of Slack alerts with GitLab commit diffing, OpenSearch history and escalation; handled a vendor model deprecation with model swap, retry/backoff and a semaphore
 - Operations console — Discord message re-send, permission-domain split, wallet ↔ SNS lookups
-- **[CI/CD & infrastructure](#dg:cicd)** (throughout) — maintained GitLab CI, Dockerfiles, Helm/K8s manifests, Envoy routes and DDL for the services I owned; new services shipped with their full deployment set
+- **[CI/CD & infrastructure](#dg:cicd)** (throughout) — used the team's existing pipeline and manifest patterns to maintain GitLab CI, Dockerfiles, Helm/K8s manifests, Envoy routes and DDL for the services I owned; new services shipped with their full deployment set by copying those patterns
 
 ### Tech Stack
 
@@ -184,7 +184,7 @@ Calculus, linear algebra, geometry, probability and statistics, analysis, topolo
 
 ## Infrastructure & CI/CD
 
-- **Keeping pipelines working** — GitLab CI (test → build → deploy → release), multi-stage Dockerfiles and Rundeck deploy jobs for the services I owned. Mostly fixing broken builds (semantic-release, runtime upgrades) and wiring new services into the [pipeline](#dg:cicd), with dev-first promotion before test/qa.
+- **Using and maintaining pipelines** — the team's GitLab CI (test → build → deploy → release), multi-stage Dockerfiles and Rundeck deploy jobs were already in place; I designed none of it. My part was fixing broken builds (semantic-release, runtime upgrades) and wiring new services into the [pipeline](#dg:cicd) by following existing patterns, with dev-first promotion before test/qa.
 - **Kubernetes manifests** — wrote and operated Helm templates and per-environment Deployment · HPA · Service; tune probes, resources and ports for cost and stability.
 - **Gateway & data infrastructure** — Envoy gRPC → REST routes, Debezium/Kafka Connect and Snowflake configuration, DDL managed through DBA review — I look past the application boundary.
 

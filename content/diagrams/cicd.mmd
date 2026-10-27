@@ -1,8 +1,8 @@
-%% title: CI/CD — 브랜치 push 부터 EKS 롤아웃까지 (★ = 직접 작성·유지한 설정)
-%% title_en: CI/CD — from branch push to EKS rollout (★ = config I wrote or maintained)
+%% title: CI/CD — 브랜치 push 부터 EKS 롤아웃까지 (팀 공용 파이프라인 · ★ = 기존 패턴을 복제해 직접 추가·보수한 설정)
+%% title_en: CI/CD — from branch push to EKS rollout (team pipeline · ★ = config I added or maintained by copying existing patterns)
 flowchart LR
     BR[GitLab 브랜치 push<br/>develop · test · qa · stage · master]
-    subgraph CI[GitLab CI — 서비스별 파이프라인 ★]
+    subgraph CI[GitLab CI — 팀 공용 파이프라인 템플릿 사용]
         T[test<br/>go test]
         B[build<br/>multi-stage Dockerfile<br/>golang-alpine → scratch]
         D[deploy]
@@ -10,7 +10,7 @@ flowchart LR
     end
     REG[(이미지 레지스트리<br/>dev: GitLab Registry :latest<br/>그 외: AWS ECR :pipeline-id)]
     subgraph DEV[dev 클러스터]
-        H[Helm 차트 ★<br/>gotohelm · ArgoCD]
+        H[Helm 차트 ★<br/>gotohelm · ArgoCD<br/>신설 서비스 템플릿 복제]
         K1[EKS Deployment<br/>K8s API PATCH → rollout restart]
     end
     subgraph OPS[test · qa · stage · live]
@@ -30,4 +30,4 @@ flowchart LR
     K2 -.-> GW
     OPSREPO -.-> K2
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
-    class T,B,D,R,H,M,GW,OPSREPO mine
+    class H,M,GW,OPSREPO mine
