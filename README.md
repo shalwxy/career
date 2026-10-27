@@ -1,14 +1,14 @@
 # Seungha Lee (이승하) — Software Engineer (Backend · DevOps)
 
-**🔗 https://shalwxy.github.io/resume/**
+**🔗 https://shalwxy.github.io/career/**
 
 개발·엔지니어링 7년차 (Java 백엔드 → AI·GPU 인프라 R&D → Go 백엔드 3년) — 결제·알림·트랜잭션 이력·데이터 파이프라인, 분산 환경에서의 데이터 정합성. 담당 서비스의 CI/CD·Kubernetes 매니페스트·게이트웨이·DB DDL 운영까지 다뤘습니다.
 
 | 페이지 | 내용 |
 |---|---|
-| [Career](https://shalwxy.github.io/resume/) | 경력기술서 (KR / [EN](https://shalwxy.github.io/resume/index.en.html)) |
-| [Portfolio](https://shalwxy.github.io/resume/portfolio.html) | 프로젝트별 문제 → 접근 → 결과 |
-| [Design Decisions](https://shalwxy.github.io/resume/decisions.html) | 선택의 이유와 되돌린 결정 |
+| [Career](https://shalwxy.github.io/career/) | 경력기술서 (KR / [EN](https://shalwxy.github.io/career/index.en.html)) |
+| [Portfolio](https://shalwxy.github.io/career/portfolio.html) | 프로젝트별 문제 → 접근 → 결과 |
+| [Design Decisions](https://shalwxy.github.io/career/decisions.html) | 선택의 이유와 되돌린 결정 |
 
 본문의 밑줄 친 용어를 누르면 흐름 도식(mermaid)이 창으로 열립니다.
 
