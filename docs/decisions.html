@@ -175,7 +175,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 </tr>
 <tr>
 <td>2026 Q4</td>
-<td><a href="#d-stream">수신자 스트리밍</a> · <a href="#d-llm">LLM 호출 내성</a></td>
+<td><a href="#d-stream">수신자 스트리밍</a></td>
 </tr>
 </tbody>
 </table>
@@ -365,13 +365,6 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <li><strong>선택</strong> — 상세 응답에서 수신자를 빼고, 500건씩 나눠 보내는 스트리밍 RPC 로 분리했습니다. 상한을 명시하고, 받는 쪽 규칙(수신자는 chunk 형태로만 오고 다른 곳에 섞여 와도 무시)도 코드에 적었습니다. 수정할 때 빈 목록이 오면 기존 목록을 덮어쓰지 않아서, 실수로 대상 전체가 사라지는 사고를 막았습니다.</li>
 <li><strong>이유·결과</strong> — 응답 크기가 일정해졌고, 큰 데이터를 쪼개는 것보다 <strong>받는 쪽이 어떻게 조립하는지</strong>를 정해 두는 것이 핵심이었습니다.</li>
 </ul>
-<h2 id="d-llm"><a href="#" class="dg" data-dg="errorbot" title="도식 보기">LLM 호출에 대한 내성</a> ✅</h2>
-<p><strong>2026 Q4</strong></p>
-<ul>
-<li><strong>상황</strong> — LLM 벤더가 사용 중이던 모델을 없애서(404) 에러시로봇이 멈췄습니다.</li>
-<li><strong>선택</strong> — 모델을 교체하고, 429/5xx 오류는 재시도하며(대기 시간은 벤더 지시를 우선하고 점점 늘림, 다시 해도 소용없는 4xx 는 제외), 동시에 실행하는 호출 수를 제한했습니다. 오류 종류는 문자열 비교가 아니라 타입으로 구분하고, 테이블 테스트를 추가했습니다.</li>
-<li><strong>이유·결과</strong> — 나흘 뒤 교체한 모델마저 사라져 다시 교체해야 했습니다. 교체하기 전에 벤더가 제공하는 모델 목록과 폐기 일정을 먼저 확인해야 닫을 수 있는 문제였습니다.</li>
-</ul>
 <hr>
 <h2 id="반복된-패턴">반복된 패턴</h2>
 <ol>
@@ -382,7 +375,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <li><strong>리뷰 2회차가 기본</strong> — 결제·보안은 1회차로 끝내지 않습니다.</li>
 </ol>
 </article>
-<aside class="toc"><p class="t">목차</p><ul><li><a href="#design-decisions">Design Decisions</a><ul><li><a href="#timeline">시기별 목차</a></li><li><a href="#d-facade">파사드 단에서 입력을 검사한다 ✅</a></li><li><a href="#d-preempt">확인 대신 선점한다 ✅</a></li><li><a href="#d-validator">검증은 건마다가 아니라 목록 조회로 ✅</a></li><li><a href="#d-devfirst">test/qa 승격 전에 dev 에 먼저 배포한다 ✅</a></li><li><a href="#d-split">레이어를 나누고 컨슈머를 일반화한다 ✅</a></li><li><a href="#d-idempotent">북마크는 멱등이 기본 ✅</a></li><li><a href="#d-proto">proto 저장소는 도메인별 모듈로 ✅</a></li><li><a href="#d-unique">트랜잭션 해시를 유니크 키로 ✅</a></li><li><a href="#d-dlq">비정상 이벤트는 DB 가 아니라 DLQ ✅</a></li><li><a href="#d-count">카운트는 요청 경로가 아니라 이벤트로 ✅</a></li><li><a href="#d-cursor">페이지네이션은 커서로 🔁</a></li><li><a href="#d-lock">동시 적재 정합성 — 이벤트 종류별 방어 ✅</a></li><li><a href="#d-cdc">서비스는 데이터 파이프라인에 직접 쓰지 않는다 ✅</a></li><li><a href="#d-worldpay">벤더 응답은 200+outcome 과 에러로 분기 ✅</a></li><li><a href="#d-lua">일일 횟수 카운터는 Lua 로 🔁</a></li><li><a href="#d-notify">통합 알림 — 3가지 결정 ✅</a></li><li><a href="#d-ttl">캐시 무효화 대신 짧은 TTL ✅</a></li><li><a href="#d-naming">컬럼 이름에 용도를 넣지 않는다 🔁</a></li><li><a href="#d-settle">롤백 토픽 대신 결과 토픽 ✅</a></li><li><a href="#d-sentinel">정책 전용 서비스로 분리 ✅</a></li><li><a href="#d-deployset">서비스 신설은 배포 설정까지 한 세트 ✅</a></li><li><a href="#d-jitter">jitter 와 timer — 정책 갱신을 흩뿌리는 방법 ✅</a></li><li><a href="#d-enum">정책은 코드 분기가 아니라 enum/설정으로 ✅</a></li><li><a href="#d-rollback">롤백에서 배운 것 ↩️</a></li><li><a href="#d-lock-email">잠금은 Redis 가 아니라 컬럼으로 ✅</a></li><li><a href="#d-stream">대량 수신자는 스트리밍으로 나눠 받는다 ✅</a></li><li><a href="#d-llm">LLM 호출에 대한 내성 ✅</a></li><li><a href="#반복된-패턴">반복된 패턴</a></li></ul></li></ul></aside>
+<aside class="toc"><p class="t">목차</p><ul><li><a href="#design-decisions">Design Decisions</a><ul><li><a href="#timeline">시기별 목차</a></li><li><a href="#d-facade">파사드 단에서 입력을 검사한다 ✅</a></li><li><a href="#d-preempt">확인 대신 선점한다 ✅</a></li><li><a href="#d-validator">검증은 건마다가 아니라 목록 조회로 ✅</a></li><li><a href="#d-devfirst">test/qa 승격 전에 dev 에 먼저 배포한다 ✅</a></li><li><a href="#d-split">레이어를 나누고 컨슈머를 일반화한다 ✅</a></li><li><a href="#d-idempotent">북마크는 멱등이 기본 ✅</a></li><li><a href="#d-proto">proto 저장소는 도메인별 모듈로 ✅</a></li><li><a href="#d-unique">트랜잭션 해시를 유니크 키로 ✅</a></li><li><a href="#d-dlq">비정상 이벤트는 DB 가 아니라 DLQ ✅</a></li><li><a href="#d-count">카운트는 요청 경로가 아니라 이벤트로 ✅</a></li><li><a href="#d-cursor">페이지네이션은 커서로 🔁</a></li><li><a href="#d-lock">동시 적재 정합성 — 이벤트 종류별 방어 ✅</a></li><li><a href="#d-cdc">서비스는 데이터 파이프라인에 직접 쓰지 않는다 ✅</a></li><li><a href="#d-worldpay">벤더 응답은 200+outcome 과 에러로 분기 ✅</a></li><li><a href="#d-lua">일일 횟수 카운터는 Lua 로 🔁</a></li><li><a href="#d-notify">통합 알림 — 3가지 결정 ✅</a></li><li><a href="#d-ttl">캐시 무효화 대신 짧은 TTL ✅</a></li><li><a href="#d-naming">컬럼 이름에 용도를 넣지 않는다 🔁</a></li><li><a href="#d-settle">롤백 토픽 대신 결과 토픽 ✅</a></li><li><a href="#d-sentinel">정책 전용 서비스로 분리 ✅</a></li><li><a href="#d-deployset">서비스 신설은 배포 설정까지 한 세트 ✅</a></li><li><a href="#d-jitter">jitter 와 timer — 정책 갱신을 흩뿌리는 방법 ✅</a></li><li><a href="#d-enum">정책은 코드 분기가 아니라 enum/설정으로 ✅</a></li><li><a href="#d-rollback">롤백에서 배운 것 ↩️</a></li><li><a href="#d-lock-email">잠금은 Redis 가 아니라 컬럼으로 ✅</a></li><li><a href="#d-stream">대량 수신자는 스트리밍으로 나눠 받는다 ✅</a></li><li><a href="#반복된-패턴">반복된 패턴</a></li></ul></li></ul></aside>
 </div>
 <button class="toc-btn" aria-label="목차">☰</button>
 <footer><div class="in"><span>Last updated 2026-10-27</span><span class="links"><a href="mailto:shalwxy@gmail.com" rel="me noopener">Email</a><a href="https://github.com/shalwxy" rel="me noopener">GitHub</a><a href="https://www.linkedin.com/in/seungha-lee-2aa442229" rel="me noopener">LinkedIn</a><a href="https://shalwxy.github.io/" rel="me noopener">Blog</a></span><span>공개용으로 정제된 요약이며 사내 식별자·운영 정보는 포함하지 않습니다.</span></div></footer>
@@ -628,35 +621,6 @@ flowchart TB
     classDef part fill:#eff6ff,stroke:#2563eb,stroke-width:2px,stroke-dasharray:5 3,color:#1e3a8a
     class ST mine
     class G1,CR,SSE,G part
-</script>
-<script type="text/plain" id="dg-src-errorbot" data-title="에러시로봇 — Slack 에러 1차 분석">
-sequenceDiagram
-    autonumber
-    participant S as Slack 에러 채널
-    box rgb(219,234,254) ★ = 내가 구현한 부분
-    participant B as portal-ai 에러시로봇 ★
-    end
-    participant P as 정책 (sentinel)
-    participant O as OpenSearch (분석 이력)
-    participant G as GitLab API
-    participant L as Vertex AI (LLM)
-    S->>B: 에러 알림 이벤트
-    B->>B: 잘린 메시지면 원문 재조회
-    B->>P: 같은 에러인지(중복) 확인
-    opt 같은 에러가 짧은 시간에 반복
-        B-->>S: escalation 경고 (1회)
-    end
-    alt 중복
-        B-->>S: 리액션만 (분석 생략)
-    else 신규
-        B->>O: 과거 분석 · 최초 감지 조회
-        B->>G: 스택 파일의 최근 커밋 조회
-        B->>L: 분석 요청 (동시 실행 제한 · 재시도)
-        L-->>B: 1차 분석
-        B->>O: 분석 저장
-        B-->>S: 스레드 답글 (+ 최초 감지 시각 · 기존 스레드 링크)
-    end
-    S->>B: 피드백 · 재분석 요청
 </script>
 <script>var MERMAID_CDN="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js";
 (function(){
