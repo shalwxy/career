@@ -231,7 +231,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <hr>
 <h2 id="usdt">5. 스테이블 코인 도입과 선차감·롤백</h2>
 <p><span class="tag">2025-10 ~ 2025-12</span> <span class="tag">Go · Kafka · 블록체인</span></p>
-<p>온체인에 기록되기 전 발생할 수 있는 리스크(한도 초과, 중복 출금)를 막기 위해 <strong><a href="#" class="dg" data-dg="usdt" title="도식 보기">오프체인에서 먼저 차감하고 결과에 따라 롤백</a></strong>하는 서비스를 스테이블 코인(USDT) 도입에 맞춰 재설계했습니다. 별도 롤백 토픽을 두는 대신 <strong>트랜잭션 결과 토픽</strong>에서 성공/실패/드랍을 받아 실패일 때만 선차감을 되돌리도록(선차감이 곧 확정) 순서·중복 처리를 단순화했고, 같은 nonce 로 여러 트랜잭션이 들어오는 케이스의 보정을 넣었습니다. 토큰 추가 시 enum 만 늘리면 되도록 테이블을 재설계했습니다.</p>
+<p>온체인에 기록되기 전 발생할 수 있는 리스크(한도 초과, 중복 출금)를 막기 위해 <strong><a href="#" class="dg" data-dg="usdt" title="도식 보기">오프체인에서 먼저 차감하고 결과에 따라 롤백</a></strong>하는 서비스(동료가 구축)를 스테이블 코인(USDT) 도입에 맞춰 확장·수정했습니다. 별도 롤백 토픽을 두는 대신 <strong>트랜잭션 결과 토픽</strong>에서 성공/실패/드랍을 받아 실패일 때만 선차감을 되돌리도록(선차감이 곧 확정) 순서·중복 처리를 단순화했고, 같은 nonce 로 여러 트랜잭션이 들어오는 케이스의 기존 보정(동료 구현)이 3건 이상에서 빠지던 것을 고쳤습니다. 토큰 추가 시 enum 만 늘리면 되도록 테이블을 재설계했습니다.</p>
 <p class="more">관련 설계 결정: <a href="decisions.html#d-settle">롤백 토픽 → 결과 토픽</a></p>
 
 <hr>
@@ -240,7 +240,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <ul>
 <li>계정 서비스를 호출해 하던 JWT 검증을 알림 서비스가 <strong>자체 흡수</strong>해, SSE 연결마다 계정 서비스를 때리던 비용과 의존을 제거했습니다.</li>
 <li>&ldquo;모든 사용자에게 통합 알림&rdquo; 기능은 기획과 합의해 <strong>제거</strong> — 대량 fan-out 은 알림 서비스가 지지 않습니다.</li>
-<li>알림 URL·타이틀·본문을 백엔드에서 생성해 프론트별 조립 중복을 없앴고, 동시 구독 커넥션 상한과 메트릭을 두었습니다.</li>
+<li>알림 URL·타이틀·본문을 백엔드에서 생성해 프론트별 조립 중복을 없앴습니다(백엔드 생성 전환은 동료가 시작, URL 생성과 payload 다수는 제가). 알림 서비스 자체는 동료가 구축했고 저는 기능 추가·2차 스펙을 맡았습니다.</li>
 <li>백오피스 알림의 수신자 목록(수만 건)이 상세 조회 응답에 통째로 실리던 것을 <strong><a href="#" class="dg" data-dg="notification" title="도식 보기">gRPC streaming RPC</a></strong>(500건 청크, 상한 명시)로 분리하고, 수신 규약(&ldquo;대상은 chunk 프레임으로만&rdquo;)을 수신 측 코드에 명시했습니다. 큰 응답을 쪼개는 것보다 <strong>수신측이 어떻게 조립하는지</strong>를 정하는 게 설계의 핵심이었습니다.</li>
 <li>게이트웨이의 gRPC 의존을 HTTP 로 전환해 서비스 간 결합도를 낮췄습니다.</li>
 </ul>
@@ -372,12 +372,12 @@ flowchart LR
     U --> BC[블록체인<br/>스왑 · 브릿지]
     BC --> DEA[DE Swap/Warp analyzer<br/>체인 결과 정규화]
     DEA -- 크로스체인 이력 이벤트 --> ACT[api-activity ★<br/>Warp info/result 순서 비보장 처리<br/>advisory lock]
-    ACT -- 결과 이벤트 1토픽 --> NT[api-notification ★<br/>결과 알림]
-    ACT -- 결과 이벤트 1토픽 --> BCS[api-blockchain-supporter ★<br/>실패 시 선차감 롤백]
+    ACT -- 결과 이벤트 1토픽 --> NT[api-notification<br/>결과 알림]
+    ACT -- 결과 이벤트 1토픽 --> BCS[api-blockchain-supporter<br/>실패 시 선차감 롤백<br/>결과 토픽 의존으로 변경 ★]
     SW --> ACT
     SW --> GD[api-account · api-gamedata<br/>닉네임 · 프로필 이미지 enrich]
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
-    class SW,ACT,NT,BCS mine
+    class SW,ACT,BCS mine
 </script>
 <script type="text/plain" id="dg-src-activity-lock" data-title="동시 적재 정합성 — 이벤트 종류별 방어">
 flowchart TB
@@ -402,13 +402,13 @@ flowchart TB
 </script>
 <script type="text/plain" id="dg-src-bookmark" data-title="api-bookmark — 북마크·조회수와 거래소 BFF">
 flowchart LR
-    subgraph BFF[거래소 BFF ★]
+    subgraph BFF["거래소 BFF — bff-marketplace 북마크 부분 ★"]
         M[bff-marketplace<br/>북마크 · 조회수 · 북마크 인벤토리<br/>인벤토리 3초 TTL 캐시]
         NV[bff-navigator<br/>북마크 · 조회수]
     end
     subgraph BK[api-bookmark ★]
         H[Bookmark / UnBookmark / SetView<br/>멱등: 중복 요청 = 성공<br/>조회수는 IP·지갑·대상 당 24h 1회]
-        L[일일 100 · 총 5000 제한<br/>설정값 · 첫 행동 기준 24h 창]
+        L["일일 100 · 총 5000 제한<br/>설정값 · 첫 행동 기준 24h 창<br/>(초기 구현 ★ · 이후 리팩터링은 동료)"]
         PG[(북마크)]
         RD[(Redis 카운트<br/>사용자별 · 대상별<br/>0 이하면 조회 시 정리)]
     end
@@ -423,14 +423,14 @@ flowchart LR
     H -- 이벤트 발행 --> K --> AN[분석 파이프라인]
     M --> GD & EX
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
-    class M,NV,H,L,PG,RD mine
+    class M,H,L,PG,RD mine
 </script>
 <script type="text/plain" id="dg-src-creditcard" data-title="신용카드 인증 · 재인증 — Worldpay 3DS">
 sequenceDiagram
     autonumber
     participant U as 사용자
     participant GW as API 게이트웨이
-    box rgb(219,234,254) 내가 구현
+    box rgb(219,234,254) 주 구현 ★ (재인증 분기는 동료 구현)
     participant A as api-account ★
     end
     participant R as Redis
@@ -470,7 +470,7 @@ sequenceDiagram
     autonumber
     participant U as 사용자
     participant GW as 블록체인 게이트웨이<br/>(브리지 · RPC 프록시)
-    box rgb(219,234,254) 내가 구현
+    box rgb(219,234,254) 주요 기여 ★ (서비스 골격 · nonce 경합 롤백은 동료 구현)
     participant S as api-blockchain-supporter ★
     end
     participant P as 정책 (sentinel)
@@ -481,15 +481,15 @@ sequenceDiagram
     GW->>S: TryWithdrawal / TryTransfer (request id · nonce)
     S->>P: 화이트리스트(면제) · 국가/IP 제한 조회
     S->>AC: MVP 랭크 · 기능 잠금(OTP) 확인
-    S->>S: KYC 레벨별 일일 한도 검사 + 선차감<br/>(한 트랜잭션 · FOR UPDATE · request id 멱등)
+    S->>S: KYC 레벨별 일일 한도 검사 + 선차감 ★<br/>(한 트랜잭션 · FOR UPDATE · request id 멱등)
     alt 한도 초과 · 제한
         S-->>GW: 거부
     else 허용
         S-->>GW: 허용
         GW->>BC: 트랜잭션 전달
         BC-->>K: 성공 / 실패 / 드랍
-        K->>S: 결과 컨슈머
-        S->>S: 같은 주소·nonce 의 경합 요청 롤백
+        K->>S: 결과 컨슈머 (결과 토픽 의존으로 변경 ★)
+        S->>S: 같은 주소·nonce 의 경합 요청 롤백<br/>(동료 구현 · 3건 이상 케이스 보완 ★)
         alt 실패 · 드랍
             S->>S: 선차감 롤백 (누적 감산 · 이력 cancelled)
         end
@@ -501,16 +501,16 @@ flowchart TB
     AC[api-account<br/>KYC · 본인인증 · 재인증 · 카드 · 닉네임 · 밴 · MFA]
     K[[도메인 이벤트 토픽 3종<br/>거래소 · Swap/Warp 결과 · 리액터]]
     CON[portal-console<br/>운영자 대량 알림]
-    subgraph NT[api-notification ★]
-        G1[gRPC Notify 7종]
+    subgraph NT["api-notification — 기존 서비스 · ★ = 내가 추가한 부분 · 점선 = 일부 기여"]
+        G1["gRPC Notify 7종<br/>재인증 · KYB · MFA 등 추가 ★"]
         C[도메인 컨슈머 3종]
         Q[[내부 큐 · 단건 / 대량]]
-        CR[생성 컨슈머<br/>URL · 제목 · 본문 백엔드 생성]
+        CR["생성 컨슈머<br/>URL · 제목 · 본문 백엔드 생성<br/>(URL 생성 · payload 다수 ★)"]
         DB[(MongoDB · TTL 30일)]
         PS[(Redis pub/sub)]
-        SSE[SSE 서버<br/>Pod 당 커넥션 상한 · JWT 자체 검증]
-        G[gRPC 조회 · 읽음 처리]
-        ST[백오피스 gRPC streaming<br/>수신자 500건 청크 · 5만 상한]
+        SSE["SSE 서버<br/>Pod 당 커넥션 상한 · JWT 자체 검증 ★"]
+        G["gRPC 조회 · 읽음 처리<br/>(개별 읽음 · 카테고리 필터 ★)"]
+        ST["백오피스 gRPC streaming ★<br/>수신자 500건 청크 · 5만 상한"]
         SCH[예약 발송 스케줄러]
         RDB[(발송 설정 · 수신자)]
     end
@@ -522,7 +522,9 @@ flowchart TB
     U --> G --> DB
     CON --> ST --> RDB --> SCH --> Q
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
-    class G1,C,Q,CR,DB,PS,SSE,G,ST,SCH,RDB mine
+    classDef part fill:#eff6ff,stroke:#2563eb,stroke-width:2px,stroke-dasharray:5 3,color:#1e3a8a
+    class ST mine
+    class G1,CR,SSE,G part
 </script>
 <script type="text/plain" id="dg-src-sentinel" data-title="api-sentinel — 정책 서비스 단일 소유자">
 flowchart LR
@@ -613,7 +615,7 @@ flowchart TB
         subgraph DEVL["dev — CI 가 직접"]
             direction TB
             D1["CI deploy job<br/>K8s API PATCH → rollout restart"]
-            H["Helm 차트 ★<br/>gotohelm · ArgoCD · :latest 참조"]
+            H["Helm 템플릿 ★ 신설 서비스분<br/>gotohelm (ArgoCD 동기화) · :latest 참조"]
             K1["EKS dev"]
             D1 --> K1
             H -.-> K1
@@ -622,14 +624,14 @@ flowchart TB
             direction TB
             D2["CI deploy job<br/>Rundeck API 호출 · -Version pipeline-id"]
             RD["Rundeck job<br/>매니페스트 렌더 · 적용"]
-            M["환경별 매니페스트 ★<br/>deploy-scripts · Deployment · HPA · Service"]
+            M["환경별 매니페스트 ★ 신설분 추가 · 보수<br/>deploy-scripts · Deployment · HPA · Service"]
             K2["EKS test / qa / stage"]
             D2 --> RD --> M --> K2
         end
         subgraph LIVE["live — CI 밖"]
             direction TB
             RL["Rundeck job 수동 실행<br/>(CI 에 deploy job 없음)"]
-            ML["live 매니페스트 ★<br/>deploy-scripts"]
+            ML["live 매니페스트 ★ 신설분<br/>deploy-scripts"]
             K3["EKS live"]
             RL --> ML --> K3
         end

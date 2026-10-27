@@ -19,7 +19,7 @@ flowchart TB
         subgraph DEVL["dev — CI 가 직접"]
             direction TB
             D1["CI deploy job<br/>K8s API PATCH → rollout restart"]
-            H["Helm 차트 ★<br/>gotohelm · ArgoCD · :latest 참조"]
+            H["Helm 템플릿 ★ 신설 서비스분<br/>gotohelm (ArgoCD 동기화) · :latest 참조"]
             K1["EKS dev"]
             D1 --> K1
             H -.-> K1
@@ -28,14 +28,14 @@ flowchart TB
             direction TB
             D2["CI deploy job<br/>Rundeck API 호출 · -Version pipeline-id"]
             RD["Rundeck job<br/>매니페스트 렌더 · 적용"]
-            M["환경별 매니페스트 ★<br/>deploy-scripts · Deployment · HPA · Service"]
+            M["환경별 매니페스트 ★ 신설분 추가 · 보수<br/>deploy-scripts · Deployment · HPA · Service"]
             K2["EKS test / qa / stage"]
             D2 --> RD --> M --> K2
         end
         subgraph LIVE["live — CI 밖"]
             direction TB
             RL["Rundeck job 수동 실행<br/>(CI 에 deploy job 없음)"]
-            ML["live 매니페스트 ★<br/>deploy-scripts"]
+            ML["live 매니페스트 ★ 신설분<br/>deploy-scripts"]
             K3["EKS live"]
             RL --> ML --> K3
         end

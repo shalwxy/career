@@ -71,8 +71,8 @@ MapleStory Universe (MSU) is a Web3 platform built on the MapleStory IP. I start
 <div class="impact"><span class="impact-k">Impact</span> Shipped credit-card verification and re-verification through <strong>two review rounds</strong> · enforced the daily limit atomically with <strong>Lua</strong> · bulk recipients moved to <strong>500-row streaming chunks</strong> · full-user KYC migration completed in production</div>
 
 - **Worldpay (FraudSight 3DS) [card verification & re-verification](#dg:creditcard)** — mapped vendor 4xx to 200 + outcome codes and 5xx to errors, enforced the daily limit atomically with a Redis Lua script, encrypted payment-instrument data and added a circuit breaker, designed re-verification for OTP reset
-- **[Stablecoin (USDT) launch](#dg:usdt)** — redesigned the off-chain pre-deduction/rollback service and collapsed the rollback topic into a single result-confirmation topic
-- **[Unified notifications (SSE)](#dg:notification)** — absorbed JWT verification to drop the account-service dependency, capped concurrent subscriptions, generated URLs server-side, and split bulk recipients into a **gRPC streaming RPC** (500-row chunks, 50,000 cap)
+- **[Stablecoin (USDT) launch](#dg:usdt)** — extended a colleague's off-chain pre-deduction/rollback service for USDT (limit tables reworked, pre-deduction transaction) and replaced the rollback topic with a dependency on transaction result topics
+- **[Unified notifications (SSE)](#dg:notification)** — added features to the existing notification service — absorbed JWT verification to drop the account-service dependency, generated URLs server-side, and split bulk recipients into a **gRPC streaming RPC** (500-row chunks, 50,000 cap)
 - Replaced the gateway's gRPC dependency with HTTP to reduce coupling
 - **KYC vendor migration (Argos → Sumsub)** — parallel calls, resumable cursor, rate limiter
 - Discord auto-badge bot, role-sync batch and community-notice crawler — external side effects retried through an **outbox**

@@ -186,8 +186,8 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 
 <ul>
 <li><strong>Worldpay (FraudSight 3DS) <a href="#" class="dg" data-dg="creditcard" title="Diagram">card verification &amp; re-verification</a></strong> — mapped vendor 4xx to 200 + outcome codes and 5xx to errors, enforced the daily limit atomically with a Redis Lua script, encrypted payment-instrument data and added a circuit breaker, designed re-verification for OTP reset</li>
-<li><strong><a href="#" class="dg" data-dg="usdt" title="Diagram">Stablecoin (USDT) launch</a></strong> — redesigned the off-chain pre-deduction/rollback service and collapsed the rollback topic into a single result-confirmation topic</li>
-<li><strong><a href="#" class="dg" data-dg="notification" title="Diagram">Unified notifications (SSE)</a></strong> — absorbed JWT verification to drop the account-service dependency, capped concurrent subscriptions, generated URLs server-side, and split bulk recipients into a <strong>gRPC streaming RPC</strong> (500-row chunks, 50,000 cap)</li>
+<li><strong><a href="#" class="dg" data-dg="usdt" title="Diagram">Stablecoin (USDT) launch</a></strong> — extended a colleague&rsquo;s off-chain pre-deduction/rollback service for USDT (limit tables reworked, pre-deduction transaction) and replaced the rollback topic with a dependency on transaction result topics</li>
+<li><strong><a href="#" class="dg" data-dg="notification" title="Diagram">Unified notifications (SSE)</a></strong> — added features to the existing notification service — absorbed JWT verification to drop the account-service dependency, generated URLs server-side, and split bulk recipients into a <strong>gRPC streaming RPC</strong> (500-row chunks, 50,000 cap)</li>
 <li>Replaced the gateway&rsquo;s gRPC dependency with HTTP to reduce coupling</li>
 <li><strong>KYC vendor migration (Argos → Sumsub)</strong> — parallel calls, resumable cursor, rate limiter</li>
 <li>Discord auto-badge bot, role-sync batch and community-notice crawler — external side effects retried through an <strong>outbox</strong></li>
@@ -382,13 +382,13 @@ flowchart TB
 </script>
 <script type="text/plain" id="dg-src-bookmark" data-title="api-bookmark — bookmarks / view counts and marketplace BFFs">
 flowchart LR
-    subgraph BFF[Marketplace BFFs ★]
+    subgraph BFF["Marketplace BFFs — bookmark parts of bff-marketplace ★"]
         M[bff-marketplace<br/>bookmarks · views · bookmarked inventory<br/>inventory cached 3 s]
         NV[bff-navigator<br/>bookmarks · views]
     end
     subgraph BK[api-bookmark ★]
         H[Bookmark / UnBookmark / SetView<br/>idempotent: duplicate = success<br/>views counted once per IP · wallet · target per 24 h]
-        L[Limits: 100 / day · 5,000 total<br/>configurable · 24 h window from first action]
+        L["Limits: 100 / day · 5,000 total<br/>configurable · 24 h window from first action<br/>(initial implementation ★ · later refactored by a colleague)"]
         PG[(Bookmarks)]
         RD[(Redis counters<br/>per user · per target<br/>cleaned up on read when ≤ 0)]
     end
@@ -403,7 +403,7 @@ flowchart LR
     H -- publish --> K --> AN[Analytics pipeline]
     M --> GD & EX
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
-    class M,NV,H,L,PG,RD mine
+    class M,H,L,PG,RD mine
 </script>
 <script type="text/plain" id="dg-src-swapwarp" data-title="Swap &amp; Warp — cross-chain transfer history">
 flowchart LR
@@ -411,19 +411,19 @@ flowchart LR
     U --> BC[Blockchain<br/>swap · bridge]
     BC --> DEA[DE Swap/Warp analyzer<br/>normalises chain results]
     DEA -- cross-chain history events --> ACT[api-activity ★<br/>out-of-order Warp info/result handling<br/>advisory lock]
-    ACT -- one result topic --> NT[api-notification ★<br/>result notifications]
-    ACT -- one result topic --> BCS[api-blockchain-supporter ★<br/>rolls back pre-deduction on failure]
+    ACT -- one result topic --> NT[api-notification<br/>result notifications]
+    ACT -- one result topic --> BCS[api-blockchain-supporter<br/>rolls back pre-deduction on failure<br/>switched to depend on result topics ★]
     SW --> ACT
     SW --> GD[api-account · api-gamedata<br/>nickname · profile image enrichment]
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
-    class SW,ACT,NT,BCS mine
+    class SW,ACT,BCS mine
 </script>
 <script type="text/plain" id="dg-src-creditcard" data-title="Card verification · re-verification — Worldpay 3DS">
 sequenceDiagram
     autonumber
     participant U as User
     participant GW as API gateway
-    box rgb(219,234,254) Built by me
+    box rgb(219,234,254) Mainly built by me ★ (re-verification branch by a colleague)
     participant A as api-account ★
     end
     participant R as Redis
@@ -463,7 +463,7 @@ sequenceDiagram
     autonumber
     participant U as User
     participant GW as Blockchain gateway<br/>(bridge · RPC proxy)
-    box rgb(219,234,254) Built by me
+    box rgb(219,234,254) Main contributions ★ (service skeleton · nonce-contention rollback by a colleague)
     participant S as api-blockchain-supporter ★
     end
     participant P as Policy (sentinel)
@@ -474,15 +474,15 @@ sequenceDiagram
     GW->>S: TryWithdrawal / TryTransfer (request id · nonce)
     S->>P: Whitelist (exemption) · country/IP restrictions
     S->>AC: MVP rank · feature lock (OTP)
-    S->>S: Daily limit per KYC level + pre-deduct<br/>(one transaction · FOR UPDATE · idempotent by request id)
+    S->>S: Daily limit per KYC level + pre-deduct ★<br/>(one transaction · FOR UPDATE · idempotent by request id)
     alt over limit · restricted
         S-->>GW: Reject
     else allowed
         S-->>GW: Allow
         GW->>BC: Forward transaction
         BC-->>K: Success / failure / dropped
-        K->>S: Result consumer
-        S->>S: Roll back competing requests with the same address · nonce
+        K->>S: Result consumer (switched to depend on result topics ★)
+        S->>S: Roll back competing requests with the same address · nonce<br/>(colleague's · I covered the 3+ case ★)
         alt failure · dropped
             S->>S: Roll back pre-deduction (decrement · mark cancelled)
         end
@@ -494,16 +494,16 @@ flowchart TB
     AC[api-account<br/>KYC · identity · re-verification · card · nickname · ban · MFA]
     K[[3 domain event topics<br/>marketplace · Swap/Warp results · reactor]]
     CON[portal-console<br/>operator bulk notifications]
-    subgraph NT[api-notification ★]
-        G1[7 gRPC Notify RPCs]
+    subgraph NT["api-notification — existing service · ★ = parts I added · dashed = partial"]
+        G1["7 gRPC Notify RPCs<br/>re-verification · KYB · MFA added ★"]
         C[3 domain consumers]
         Q[[Internal queues · single / bulk]]
-        CR[Create consumer<br/>URL · title · body built server-side]
+        CR["Create consumer<br/>URL · title · body built server-side<br/>(URL generation · many payloads ★)"]
         DB[(MongoDB · 30-day TTL)]
         PS[(Redis pub/sub)]
-        SSE[SSE server<br/>per-pod connection cap · verifies JWT itself]
-        G[gRPC read · mark-as-read]
-        ST[Back-office gRPC streaming<br/>recipients in 500-row chunks · 50k cap]
+        SSE["SSE server<br/>per-pod connection cap · verifies JWT itself ★"]
+        G["gRPC read · mark-as-read<br/>(per-item read · category filter ★)"]
+        ST["Back-office gRPC streaming ★<br/>recipients in 500-row chunks · 50k cap"]
         SCH[Scheduled sender]
         RDB[(Send settings · recipients)]
     end
@@ -515,7 +515,9 @@ flowchart TB
     U --> G --> DB
     CON --> ST --> RDB --> SCH --> Q
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
-    class G1,C,Q,CR,DB,PS,SSE,G,ST,SCH,RDB mine
+    classDef part fill:#eff6ff,stroke:#2563eb,stroke-width:2px,stroke-dasharray:5 3,color:#1e3a8a
+    class ST mine
+    class G1,CR,SSE,G part
 </script>
 <script type="text/plain" id="dg-src-sentinel" data-title="api-sentinel — single owner of business policies">
 flowchart LR
@@ -606,7 +608,7 @@ flowchart TB
         subgraph DEVL["dev — CI deploys directly"]
             direction TB
             D1["CI deploy job<br/>K8s API PATCH → rollout restart"]
-            H["Helm charts ★<br/>gotohelm · ArgoCD · reference :latest"]
+            H["Helm templates ★ for the new service<br/>gotohelm (synced by ArgoCD) · reference :latest"]
             K1["EKS dev"]
             D1 --> K1
             H -.-> K1
@@ -615,14 +617,14 @@ flowchart TB
             direction TB
             D2["CI deploy job<br/>calls Rundeck API · -Version pipeline-id"]
             RD["Rundeck job<br/>renders · applies manifests"]
-            M["Per-environment manifests ★<br/>deploy-scripts · Deployment · HPA · Service"]
+            M["Per-environment manifests ★ added for new service · maintained<br/>deploy-scripts · Deployment · HPA · Service"]
             K2["EKS test / qa / stage"]
             D2 --> RD --> M --> K2
         end
         subgraph LIVE["live — outside CI"]
             direction TB
             RL["Rundeck job run manually<br/>(no deploy job in CI)"]
-            ML["live manifests ★<br/>deploy-scripts"]
+            ML["live manifests ★ for the new service<br/>deploy-scripts"]
             K3["EKS live"]
             RL --> ML --> K3
         end

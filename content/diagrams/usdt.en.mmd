@@ -3,7 +3,7 @@ sequenceDiagram
     autonumber
     participant U as User
     participant GW as Blockchain gateway<br/>(bridge · RPC proxy)
-    box rgb(219,234,254) Built by me
+    box rgb(219,234,254) Main contributions ★ (service skeleton · nonce-contention rollback by a colleague)
     participant S as api-blockchain-supporter ★
     end
     participant P as Policy (sentinel)
@@ -14,15 +14,15 @@ sequenceDiagram
     GW->>S: TryWithdrawal / TryTransfer (request id · nonce)
     S->>P: Whitelist (exemption) · country/IP restrictions
     S->>AC: MVP rank · feature lock (OTP)
-    S->>S: Daily limit per KYC level + pre-deduct<br/>(one transaction · FOR UPDATE · idempotent by request id)
+    S->>S: Daily limit per KYC level + pre-deduct ★<br/>(one transaction · FOR UPDATE · idempotent by request id)
     alt over limit · restricted
         S-->>GW: Reject
     else allowed
         S-->>GW: Allow
         GW->>BC: Forward transaction
         BC-->>K: Success / failure / dropped
-        K->>S: Result consumer
-        S->>S: Roll back competing requests with the same address · nonce
+        K->>S: Result consumer (switched to depend on result topics ★)
+        S->>S: Roll back competing requests with the same address · nonce<br/>(colleague's · I covered the 3+ case ★)
         alt failure · dropped
             S->>S: Roll back pre-deduction (decrement · mark cancelled)
         end

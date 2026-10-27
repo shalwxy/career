@@ -73,8 +73,8 @@
 <div class="impact"><span class="impact-k">Impact</span> 신용카드 인증·재인증을 <strong>리뷰 2회차</strong>로 라이브 승격 · 일일 한도를 <strong>Lua 원자 처리</strong>로 동시 요청에도 보장 · 대량 수신자 응답을 <strong>500건 청크 스트리밍</strong>으로 분리 · KYC 전 사용자 마이그레이션 live 완료</div>
 
 - **월드페이(FraudSight 3DS) [신용카드 인증 · 재인증](#dg:creditcard)** — 벤더 응답 분기(400대는 outcome, 500대는 에러), Redis Lua 로 일일 3회 카운트 **증가+만료 원자 처리**, 카드 정보 일부 암호화·발급사별 서킷 브레이커(차단), OTP 리셋용 재인증
-- **[스테이블 코인(USDT) 도입](#dg:usdt)** — 오프체인 선차감·롤백 서비스 재설계, 별도 롤백 토픽 대신 트랜잭션 결과 토픽을 구독해 실패 시만 되돌리도록 단순화
-- **[MSU 통합 알림(SSE)](#dg:notification)** — JWT 검증 자체 흡수로 의존 제거, 동시 구독 커넥션 상한, 백엔드 URL 생성, 대량 수신자를 **gRPC streaming RPC**(500건 청크·5만 건 상한)로 분리
+- **[스테이블 코인(USDT) 도입](#dg:usdt)** — 동료가 구축한 오프체인 선차감·롤백 서비스를 USDT 에 맞춰 확장(한도 테이블 재설계·선차감 트랜잭션), 별도 롤백 토픽 대신 트랜잭션 결과 토픽을 구독해 실패 시만 되돌리도록 단순화
+- **[MSU 통합 알림(SSE)](#dg:notification)** — 기존 알림 서비스에 기능 추가 — JWT 검증 자체 흡수로 의존 제거, 백엔드 URL 생성, 대량 수신자를 **gRPC streaming RPC**(500건 청크·5만 건 상한)로 분리
 - Envoy 게이트웨이의 gRPC 의존성을 **HTTP 로 전환**해 결합도 축소
 - **KYC 업체 변경(Argos → Sumsub) 마이그레이션** — 병렬 호출·재진입 가능한 커서·rate limiter
 - 디스코드 자동 뱃지 봇·역할 동기화 배치·커뮤니티 공지 크롤링 봇 — 외부 side effect 는 **Outbox 재시도**로

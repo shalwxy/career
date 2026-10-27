@@ -3,16 +3,16 @@ flowchart TB
     AC[api-account<br/>KYC · identity · re-verification · card · nickname · ban · MFA]
     K[[3 domain event topics<br/>marketplace · Swap/Warp results · reactor]]
     CON[portal-console<br/>operator bulk notifications]
-    subgraph NT[api-notification ★]
-        G1[7 gRPC Notify RPCs]
+    subgraph NT["api-notification — existing service · ★ = parts I added · dashed = partial"]
+        G1["7 gRPC Notify RPCs<br/>re-verification · KYB · MFA added ★"]
         C[3 domain consumers]
         Q[[Internal queues · single / bulk]]
-        CR[Create consumer<br/>URL · title · body built server-side]
+        CR["Create consumer<br/>URL · title · body built server-side<br/>(URL generation · many payloads ★)"]
         DB[(MongoDB · 30-day TTL)]
         PS[(Redis pub/sub)]
-        SSE[SSE server<br/>per-pod connection cap · verifies JWT itself]
-        G[gRPC read · mark-as-read]
-        ST[Back-office gRPC streaming<br/>recipients in 500-row chunks · 50k cap]
+        SSE["SSE server<br/>per-pod connection cap · verifies JWT itself ★"]
+        G["gRPC read · mark-as-read<br/>(per-item read · category filter ★)"]
+        ST["Back-office gRPC streaming ★<br/>recipients in 500-row chunks · 50k cap"]
         SCH[Scheduled sender]
         RDB[(Send settings · recipients)]
     end
@@ -24,4 +24,6 @@ flowchart TB
     U --> G --> DB
     CON --> ST --> RDB --> SCH --> Q
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
-    class G1,C,Q,CR,DB,PS,SSE,G,ST,SCH,RDB mine
+    classDef part fill:#eff6ff,stroke:#2563eb,stroke-width:2px,stroke-dasharray:5 3,color:#1e3a8a
+    class ST mine
+    class G1,CR,SSE,G part

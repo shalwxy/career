@@ -18,7 +18,7 @@ flowchart TB
         subgraph DEVL["dev — CI deploys directly"]
             direction TB
             D1["CI deploy job<br/>K8s API PATCH → rollout restart"]
-            H["Helm charts ★<br/>gotohelm · ArgoCD · reference :latest"]
+            H["Helm templates ★ for the new service<br/>gotohelm (synced by ArgoCD) · reference :latest"]
             K1["EKS dev"]
             D1 --> K1
             H -.-> K1
@@ -27,14 +27,14 @@ flowchart TB
             direction TB
             D2["CI deploy job<br/>calls Rundeck API · -Version pipeline-id"]
             RD["Rundeck job<br/>renders · applies manifests"]
-            M["Per-environment manifests ★<br/>deploy-scripts · Deployment · HPA · Service"]
+            M["Per-environment manifests ★ added for new service · maintained<br/>deploy-scripts · Deployment · HPA · Service"]
             K2["EKS test / qa / stage"]
             D2 --> RD --> M --> K2
         end
         subgraph LIVE["live — outside CI"]
             direction TB
             RL["Rundeck job run manually<br/>(no deploy job in CI)"]
-            ML["live manifests ★<br/>deploy-scripts"]
+            ML["live manifests ★ for the new service<br/>deploy-scripts"]
             K3["EKS live"]
             RL --> ML --> K3
         end
