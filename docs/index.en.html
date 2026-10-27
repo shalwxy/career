@@ -153,7 +153,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 </p>
 
 <blockquote>
-<p>My core role: keeping data consistent in distributed systems — <strong>preemption · idempotency · outbox · CDC</strong>.</p>
+<p>My core role: keeping data consistent in distributed systems — <strong>preemption · idempotency · CDC</strong>.</p>
 </blockquote>
 <p class="cta">
 <a class="btn" href="portfolio.html">Portfolio (KR) — problem · approach · result →</a>
@@ -189,7 +189,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 </ul>
 <h4 id="3-account-payment-unified-notifications"><span class="phase">3</span> Account · payment · unified notifications</h4>
 <p class="period">Jul 2025 – Aug 2026</p>
-<p class="chips"><span class="chip">Worldpay</span><span class="chip">Redis Lua</span><span class="chip">SSE</span><span class="chip">gRPC streaming</span><span class="chip">MongoDB</span><span class="chip">Outbox</span></p>
+<p class="chips"><span class="chip">Worldpay</span><span class="chip">Redis Lua</span><span class="chip">SSE</span><span class="chip">gRPC streaming</span><span class="chip">MongoDB</span></p>
 <div class="impact"><span class="impact-k">Impact</span> Completed credit-card verification and added the <strong>card path to account re-verification</strong> · daily attempt counter's <strong>increment + expiry made atomic with Lua</strong> · bulk recipients moved to <strong>500-row streaming chunks</strong> · full-user KYC migration completed in production</div>
 
 <ul>
@@ -198,7 +198,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <li><strong><a href="#" class="dg" data-dg="notification" title="Diagram">Unified notifications (SSE)</a></strong> — absorbed JWT verification to drop the account-service dependency, generated URLs server-side, and split bulk recipients into a <strong>gRPC streaming RPC</strong> (500-row chunks, 50,000 cap)</li>
 <li>Moved routing/port settings of my services (notifications, blockchain supporter) as part of the team-wide gateway gRPC → HTTP switch</li>
 <li><strong>Full-user data migration batch for the KYC vendor change (Argos → Sumsub)</strong> — range-partitioned parallel runs, resumable cursor, call-quota management; completed in production</li>
-<li>Discord auto-badge and role-sync batch; extended the community-notice crawler with new boards and resumable failures — role-grant failures retried through an <strong>outbox</strong> (in review)</li>
+<li>Discord auto-badge and role-sync batch; extended the community-notice crawler with new boards and resumable failures</li>
 <li>24-hour lock on security-option changes after an e-mail change — moved from Redis TTL to a persisted column, with primary reads to close the replication-lag window</li>
 </ul>
 <h4 id="4-policy-service-data-pipeline-ops-automation"><span class="phase">4</span> Policy service · data pipeline · ops automation</h4>
@@ -282,7 +282,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 </ul>
 <h2 id="data-messaging">Data &amp; Messaging</h2>
 <ul>
-<li><strong>Kafka</strong> — consumer handlers, retry queues and DLQs; recovering failed external calls through an outbox (in review).</li>
+<li><strong>Kafka</strong> — consumer handlers, retry queues and DLQs.</li>
 <li><strong>CDC and pipelines</strong> — Debezium → Kafka → Snowflake Stream/Task. Took part in moving batch jobs and direct publishing to CDC under a &ldquo;services don&rsquo;t write outward themselves&rdquo; rule, and manage cost with a slot-keepalive batch, conditional tasks and a stateful/history table split.</li>
 <li><strong>Datastores</strong> — PostgreSQL, Redis, MongoDB and AWS DocumentDB (developed locally against MongoDB for compatibility), chosen per service.</li>
 <li><strong>DB design and query tuning</strong> — DDL managed through DBA review (103 commits in portal-ops); improved reads with OR → UNION ALL and cursor pagination.</li>

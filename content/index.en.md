@@ -34,7 +34,7 @@ NEXON UNIVERSE (founded 2022, a Nexon affiliate) builds MapleStory Universe (MSU
 <span class="b">Vertex AI</span>
 </p>
 
-> My core role: keeping data consistent in distributed systems — **preemption · idempotency · outbox · CDC**.
+> My core role: keeping data consistent in distributed systems — **preemption · idempotency · CDC**.
 
 <p class="cta">
 <a class="btn" href="portfolio.html">Portfolio (KR) — problem · approach · result →</a>
@@ -69,7 +69,7 @@ NEXON UNIVERSE (founded 2022, a Nexon affiliate) builds MapleStory Universe (MSU
 
 #### <span class="phase">3</span> Account · payment · unified notifications
 <p class="period">Jul 2025 – Aug 2026</p>
-<p class="chips"><span class="chip">Worldpay</span><span class="chip">Redis Lua</span><span class="chip">SSE</span><span class="chip">gRPC streaming</span><span class="chip">MongoDB</span><span class="chip">Outbox</span></p>
+<p class="chips"><span class="chip">Worldpay</span><span class="chip">Redis Lua</span><span class="chip">SSE</span><span class="chip">gRPC streaming</span><span class="chip">MongoDB</span></p>
 <div class="impact"><span class="impact-k">Impact</span> Completed credit-card verification and added the <strong>card path to account re-verification</strong> · daily attempt counter's <strong>increment + expiry made atomic with Lua</strong> · bulk recipients moved to <strong>500-row streaming chunks</strong> · full-user KYC migration completed in production</div>
 
 - **Worldpay (FraudSight 3DS) [card verification & re-verification](#dg:creditcard)** — mapped vendor 4xx to 200 + outcome codes and 5xx to errors, made the daily attempt counter atomic with a Redis Lua script, encrypted part of the card data, added blocking of abnormal attempts per payment-method combination, and a re-verification path that confirms identity by card when OTP is reset
@@ -77,7 +77,7 @@ NEXON UNIVERSE (founded 2022, a Nexon affiliate) builds MapleStory Universe (MSU
 - **[Unified notifications (SSE)](#dg:notification)** — absorbed JWT verification to drop the account-service dependency, generated URLs server-side, and split bulk recipients into a **gRPC streaming RPC** (500-row chunks, 50,000 cap)
 - Moved routing/port settings of my services (notifications, blockchain supporter) as part of the team-wide gateway gRPC → HTTP switch
 - **Full-user data migration batch for the KYC vendor change (Argos → Sumsub)** — range-partitioned parallel runs, resumable cursor, call-quota management; completed in production
-- Discord auto-badge and role-sync batch; extended the community-notice crawler with new boards and resumable failures — role-grant failures retried through an **outbox** (in review)
+- Discord auto-badge and role-sync batch; extended the community-notice crawler with new boards and resumable failures
 - 24-hour lock on security-option changes after an e-mail change — moved from Redis TTL to a persisted column, with primary reads to close the replication-lag window
 
 #### <span class="phase">4</span> Policy service · data pipeline · ops automation
@@ -182,7 +182,7 @@ Mathematics major (calculus, linear algebra, geometry, probability and statistic
 
 ## Data & Messaging
 
-- **Kafka** — consumer handlers, retry queues and DLQs; recovering failed external calls through an outbox (in review).
+- **Kafka** — consumer handlers, retry queues and DLQs.
 - **CDC and pipelines** — Debezium → Kafka → Snowflake Stream/Task. Took part in moving batch jobs and direct publishing to CDC under a "services don't write outward themselves" rule, and manage cost with a slot-keepalive batch, conditional tasks and a stateful/history table split.
 - **Datastores** — PostgreSQL, Redis, MongoDB and AWS DocumentDB (developed locally against MongoDB for compatibility), chosen per service.
 - **DB design and query tuning** — DDL managed through DBA review (103 commits in portal-ops); improved reads with OR → UNION ALL and cursor pagination.

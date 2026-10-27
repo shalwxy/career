@@ -36,7 +36,7 @@
 <span class="b">Vertex AI</span>
 </p>
 
-> 분산 환경에서 데이터 정합성을 지키는 설계가 주 역할입니다 — **선점 · 멱등 · Outbox · CDC**.
+> 분산 환경에서 데이터 정합성을 지키는 설계가 주 역할입니다 — **선점 · 멱등 · CDC**.
 
 <p class="cta">
 <a class="btn" href="portfolio.html"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M2 2.5A1.5 1.5 0 0 1 3.5 1h5.8c.4 0 .8.16 1.06.44l2.7 2.7c.28.28.44.66.44 1.06v8.3A1.5 1.5 0 0 1 12 15H3.5A1.5 1.5 0 0 1 2 13.5v-11Zm1.5-.5a.5.5 0 0 0-.5.5v11c0 .28.22.5.5.5H12a.5.5 0 0 0 .5-.5V5.5H10a1 1 0 0 1-1-1V2H3.5Zm1 5.5h7v1h-7v-1Zm0 2.5h7v1h-7v-1Zm0 2.5h4.5v1h-4.5v-1Z"/></svg>Portfolio — 문제·접근·결과<svg class="arr" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M8.3 3.3a1 1 0 0 1 1.4 0l4 4a1 1 0 0 1 0 1.4l-4 4a1 1 0 0 1-1.4-1.4L10.6 9H3a1 1 0 1 1 0-2h7.6L8.3 4.7a1 1 0 0 1 0-1.4Z"/></svg></a>
@@ -71,7 +71,7 @@
 
 #### <span class="phase">3</span> 계정 · 결제 · 통합 알림
 <p class="period">2025.07 ~ 2026.08 · <a href="portfolio.html#creditcard">자세히 보기 →</a></p>
-<p class="chips"><span class="chip">Worldpay</span><span class="chip">Redis Lua</span><span class="chip">SSE</span><span class="chip">gRPC streaming</span><span class="chip">MongoDB</span><span class="chip">Outbox</span></p>
+<p class="chips"><span class="chip">Worldpay</span><span class="chip">Redis Lua</span><span class="chip">SSE</span><span class="chip">gRPC streaming</span><span class="chip">MongoDB</span></p>
 <div class="impact"><span class="impact-k">Impact</span> 신용카드 인증을 완성하고 계정 재인증에 <strong>신용카드 수단</strong>을 붙여 라이브 승격 · 일일 시도 카운트의 <strong>증가+만료를 Lua 로 원자 처리</strong> · 대량 수신자 응답을 <strong>500건 청크 스트리밍</strong>으로 분리 · KYC 전 사용자 마이그레이션 live 완료</div>
 
 - **월드페이(FraudSight 3DS) [신용카드 인증 · 재인증](#dg:creditcard)** — 벤더 응답 분기(400대는 outcome, 500대는 에러), Redis Lua 로 일일 3회 카운트 **증가+만료 원자 처리**, 카드 정보 일부 암호화, 결제수단 조합별 이상 시도 차단, OTP 초기화 시 카드로 본인 확인하는 재인증
@@ -79,7 +79,7 @@
 - **[MSU 통합 알림(SSE)](#dg:notification)** — JWT 검증 자체 흡수로 의존 제거, 백엔드 URL 생성, 대량 수신자를 **gRPC streaming RPC**(500건 청크·5만 건 상한)로 분리
 - 팀 단위 게이트웨이 gRPC → HTTP 전환에 맞춰 담당 서비스(통합 알림·블록체인 서포터)의 라우팅·포트 설정 이전
 - **KYC 업체 변경(Argos → Sumsub)에 따른 전 사용자 데이터 이관 배치** — 구간 분할 병렬 실행·재진입 가능한 커서·호출 한도 관리, live 이관 완료
-- 디스코드 자동 뱃지·역할 동기화 배치 개발, 공지 크롤링 봇에 게시판 추가·실패 지점 재개 확장 — 역할 부여 실패는 **Outbox 재시도**로(리뷰 중)
+- 디스코드 자동 뱃지·역할 동기화 배치 개발, 공지 크롤링 봇에 게시판 추가·실패 지점 재개 확장
 - 이메일 변경 후 24시간 보안 옵션 변경 불가 — Redis TTL → DB 컬럼 영속화, 복제 지연으로 잠금이 늦게 보이는 구간은 Primary 조회로 제거
 
 #### <span class="phase">4</span> 정책 서비스 · 데이터 파이프라인 · 운영 자동화
@@ -320,7 +320,7 @@ Oracle Cloud Infrastructure를 이용하는 고객사·관리자를 대상으로
 
 ## Data & Messaging
 
-- **Kafka:** 컨슈머 핸들러·재시도 큐·DLQ 설계와 운영, 외부 API 호출 실패를 Outbox 재시도로 복구하는 방식(리뷰 중)을 다뤘습니다.
+- **Kafka:** 컨슈머 핸들러·재시도 큐·DLQ 를 설계하고 운영했습니다.
 - **저장소:** PostgreSQL · Redis · MongoDB · AWS DocumentDB(로컬 개발은 MongoDB 호환으로 진행)를 서비스 성격에 맞춰 사용했습니다.
 - **CDC·데이터 파이프라인:** Debezium → Kafka → Snowflake Stream/Task. 서비스가 직접 외부에 쓰지 않는 원칙으로 배치·publish 를 CDC 로 옮기는 데 참여했고, slot keepalive 배치·조건부 task·상태성/이력성 테이블 구분으로 운영 비용을 관리합니다.
 - **DB 설계·쿼리 튜닝:** DDL 을 DBA 검토 흐름으로 관리하고(portal-ops 103 커밋), OR → UNION ALL · 커서 페이지네이션 등으로 조회를 개선했습니다.

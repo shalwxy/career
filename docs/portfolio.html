@@ -159,7 +159,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 </tr>
 </tbody>
 </table>
-<p>작업 철학은 네 가지입니다. <strong>실패 경로부터 설계한다</strong>(롤백·재시도·멱등이 본체), <strong>확인 대신 선점한다</strong>(존재 확인 후 생성은 경합 창이 있다), <strong>서비스는 데이터 파이프라인에 직접 쓰지 않는다</strong>(Outbox 또는 CDC), <strong>정책은 코드 분기가 아니라 설정/enum 으로 받는다</strong>.</p>
+<p>작업 철학은 네 가지입니다. <strong>실패 경로부터 설계한다</strong>(롤백·재시도·멱등이 본체), <strong>확인 대신 선점한다</strong>(존재 확인 후 생성은 경합 창이 있다), <strong>서비스는 데이터 파이프라인에 직접 쓰지 않는다</strong>(CDC), <strong>정책은 코드 분기가 아니라 설정/enum 으로 받는다</strong>.</p>
 <hr>
 <h2 id="de">1. 온체인-오프체인 동기화 — 유효성 검사와 닉네임 선점</h2>
 <p><span class="tag">2023-11 ~ 2024-04</span> <span class="tag">Go · gRPC · Redis · Saga</span></p>
@@ -302,12 +302,12 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <h2 id="etc">11. 그 외</h2>
 <ul>
 <li><strong>KYC 벤더 변경 데이터 이관 배치</strong> — 글로벌 규제 대응으로 전 사용자 KYC 데이터를 신규 벤더로 이관하는 배치를 전담. 일련번호 구간을 나눠 여러 인스턴스로 병렬 실행, 재진입 가능한 커서, 벤더 호출 한도 관리로 live 이관 완료.</li>
-<li><strong>디스코드 자동 뱃지·역할 동기화</strong> — 게임 내 달성도에 따라 역할을 자동 부여. 비동기 → 동기 전환으로 누락 방지, 연결 해제 시 식별 정보는 보존. 역할 부여 실패를 <strong>Outbox 재시도</strong>로 복구하고 배치를 continue-and-count 로 바꾸는 변경은 리뷰 중.</li>
+<li><strong>디스코드 자동 뱃지·역할 동기화</strong> — 게임 내 달성도에 따라 역할을 자동 부여. 비동기 → 동기 전환으로 누락 방지, 연결 해제 시 식별 정보는 보존.</li>
 <li><strong>이메일 변경 후 보안 설정 잠금</strong> — Redis TTL 에서 DB 컬럼 영속화로 전환, 선검사 API 대신 응답 필드 하나로 UX 통합, Primary 조회로 복제 지연 창 제거.</li>
 <li><strong>운영 콘솔</strong> — 디스코드 메시지 재전송(rate limit·변경 감지), 권한 도메인 분리, 지갑↔SNS 조회.</li>
 <li><strong>그 밖의 기여</strong> — 외부 노출 API(스왑워프·통합알림·BFF) 영향성 전수 조사와 인증 추가(팀 3인), 블록체인 서포터·BFF 지갑주소 유효성 검사 추가, 액티비티 로그 제거, PostgreSQL 메이저 버전 업그레이드에 따른 QA 대역 CDC 작업, 커뮤니티 공지 → 디스코드 크롤러에 게시판 추가·실패 지점 재개, 거래소 런칭 전 네비게이터·게임데이터 버그 픽스. 인프라·CI/CD 는 <a href="#infra">§10</a>.</li>
 </ul>
-<p class="more">관련 설계 결정: <a href="decisions.html#d-outbox">외부 side effect 는 Outbox</a> · <a href="decisions.html#d-batch">배치는 continue-and-count</a> · <a href="decisions.html#d-lock-email">잠금은 Redis 가 아니라 컬럼</a></p>
+<p class="more">관련 설계 결정: <a href="decisions.html#d-lock-email">잠금은 Redis 가 아니라 컬럼</a></p>
 </article>
 <aside class="toc"><p class="t">목차</p><ul><li><a href="#portfolio">Portfolio</a><ul><li><a href="#overview">한눈에 보기</a></li><li><a href="#de">1. 온체인-오프체인 동기화 — 유효성 검사와 닉네임 선점</a></li><li><a href="#activity">2. 트랜잭션 이력 플랫폼 — 구조 개선부터 CDC 전환까지</a></li><li><a href="#bookmark">3. 북마크 · 조회수 서비스 신설과 거래소 BFF</a></li><li><a href="#creditcard">4. 신용카드 인증 · 재인증 — Worldpay 3DS</a></li><li><a href="#usdt">5. 스테이블 코인 도입과 선차감·롤백</a></li><li><a href="#notification">6. 통합 알림 서비스 — SSE 와 streaming RPC</a></li><li><a href="#sentinel">7. 정책 서비스 신설 — rate limit · ACL · feature flag · lockout</a></li><li><a href="#cdc">8. PostgreSQL CDC → Snowflake 파이프라인</a></li><li><a href="#ai">9. LLM 에러 분석 봇과 모델 폐기 장애 대응</a></li><li><a href="#infra">10. 인프라 · CI/CD — 배포 파이프라인과 운영 저장소</a></li><li><a href="#etc">11. 그 외</a></li></ul></li></ul></aside>
 </div>
