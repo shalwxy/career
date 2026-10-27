@@ -171,7 +171,7 @@ NVIDIA GPU를 분할해서 사용 가능한 MIG 기능을 지원합니다.
 
 #### What did I do
 
-- 신한 DS 개발·운영 서버에 NVIDIA GPU MIG 기능 **현장 지원**
+- 국내 금융 고객사의 개발·운영 서버에 NVIDIA GPU MIG 기능 **현장 지원**
 - 시스템 재부팅 후 MIG 프로필을 생성하는 **Shell Script 제작·제공**
 
 ### <span class="phase">4</span> NVIDIA deepops 기반 GPU 모니터링 솔루션 재구성
@@ -224,13 +224,13 @@ NVIDIA GPU를 사용하는 Kubernetes 및 Slurm 클러스터 용도 인프라 �
 - **로드밸런싱 테스트** — Ribbon with/without Eureka
 - 통합 테스트 및 패키지 배포
 
-### <span class="phase">2</span> UNO-GATEWAY 신한금융투자 MDB 프로젝트
+### <span class="phase">2</span> UNO-GATEWAY 국내 금융 고객사 MDB 프로젝트
 <p class="period">2021.09 ~ 2021.10 · 프로젝트 전체 담당</p>
 <p class="chips"><span class="chip">Java</span><span class="chip">Spring Boot</span><span class="chip">TCP</span><span class="chip">전문 변환</span></p>
 
 #### Description
 
-개발자가 UNO-GATEWAY에 API 요청 시 요청을 전문 데이터로 변환해 신한금융투자 서버에 TCP 요청하고, TCP 응답으로 받은 전문 데이터를 다시 JSON 템플릿으로 변환해서 API 호출에 응답하는 프로젝트입니다.
+개발자가 UNO-GATEWAY에 API 요청 시 요청을 전문 데이터로 변환해 고객사 서버에 TCP 요청하고, TCP 응답으로 받은 전문 데이터를 다시 JSON 템플릿으로 변환해서 API 호출에 응답하는 프로젝트입니다.
 
 #### What did I do
 

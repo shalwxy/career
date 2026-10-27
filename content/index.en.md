@@ -120,7 +120,7 @@ NEXON UNIVERSE (founded 2022, a Nexon affiliate) builds MapleStory Universe (MSU
 
 - **NVIDIA Omniverse R&D (Jun 2022 – Oct 2023)** — robot assembly and simulation in IsaacSim with ROS messaging (Python); VR device integration in CreateXR with an UnrealEngine4 single-player sample (C++)
 - **GC-GPU solution incident diagnosis (Apr – May 2022)** — kernel-panic log analysis and root-cause fixes at the environment and source level
-- **NVIDIA GPU MIG support (Mar – Apr 2022)** — on-site MIG enablement for a financial client's dev/prod servers; shell script that recreates MIG profiles after reboot
+- **NVIDIA GPU MIG support (Mar – Apr 2022)** — on-site MIG enablement for a Korean financial client's dev/prod servers; shell script that recreates MIG profiles after reboot
 - **GPU monitoring with NVIDIA deepops (Jan – Feb 2022, sole owner)** — Prometheus/Grafana via Ansible; repackaged as scripts and images for air-gapped networks
 
 ## UCLICK — Backend Developer
@@ -128,7 +128,7 @@ NEXON UNIVERSE (founded 2022, a Nexon affiliate) builds MapleStory Universe (MSU
 <p class="meta">Backend Developer · R&D Lab 2 · Nov 2019 – Dec 2021 (2 years)</p>
 
 - **UNO-GATEWAY (Sep 2020 – Dec 2021)** — dynamic OPEN API platform (validation, transformation, auth, rate limiting, routing); WebSocket + performance view, connectors for 7 databases and Elasticsearch/Hazelcast/Redis, Ribbon load-balancing tests, packaging
-- **UNO-GATEWAY MDB project for a securities firm (Sep – Oct 2021, sole owner)** — JSON ↔ fixed-format message conversion over TCP
+- **UNO-GATEWAY MDB project for a Korean financial client (Sep – Oct 2021, sole owner)** — JSON ↔ fixed-format message conversion over TCP
 - **UNO-MSP (Feb 2020 – Dec 2021, lead developer)** — Oracle Cloud MSP platform across four releases: real-time resource collection, dashboards, billing integrity, OCI alarm/rule sync, Slack/mail alerts, monthly reports, HA agents, Zendesk integration, JDBC DB monitoring
 - **LISTEN2ME-SURVEY (Sep – Oct 2020)** — spreadsheet-to-survey web app; API contract and statistics dashboard data
 
