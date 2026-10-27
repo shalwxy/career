@@ -137,6 +137,13 @@ aside.toc.open{display:block}.toc-btn{display:block}}
 body{font-size:11pt;line-height:1.45}.topbar,aside.toc,.toc-btn,footer,.more,.cta,.modal{display:none}
 .hero{background:none;border:0}.hero .in,.wrap{padding:0}.wrap{display:block}
 a.dg{border-bottom:0;padding-right:0}a.dg::after{display:none}
+@page{size:A4;margin:14mm 13mm}
+article .period a,article p.more,article .cta,article .period .sep{display:none}
+article h2,article h3,article h4{break-after:avoid;break-inside:avoid}
+article .period,article .chips{break-after:avoid}
+article h4+p.period,article h4+p.period+p.chips,article p.chips+.impact{break-before:avoid}
+article .impact,article .stats>div,article .stack,article table tr{break-inside:avoid}
+article>h1{break-before:auto}
 article .impact{border:1px solid #bbb;background:#fff}
 article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-break-after:avoid}article li,article p{page-break-inside:avoid}a{text-decoration:none}}
 """
@@ -306,6 +313,7 @@ def build_page(stem: str, label: str, with_toc: bool, lang: str) -> None:
         output_format="html5",
     )
     body = md.convert(src.read_text(encoding="utf-8"))
+    body = re.sub(r'( · )(<a href="portfolio\.html#)', r'<span class="sep">\1</span>\2', body)
     body, modal = inject_diagrams(body, lang)
     toc = ""
     if with_toc:
