@@ -1,48 +1,44 @@
-# resume
+# Seungha Lee (이승하) — Backend / DevOps Engineer
 
-🔗 https://shalwxy.github.io/resume/
+**🔗 https://shalwxy.github.io/resume/**
 
-Career Description · Portfolio · Design Decisions 를 정적 HTML 로 발행하는 저장소.
+Go 백엔드 3년 — 결제·알림·트랜잭션 이력·데이터 파이프라인, 분산 환경에서의 데이터 정합성. 담당 서비스의 CI/CD·Kubernetes 매니페스트·게이트웨이·DB DDL 운영까지 다뤘습니다.
+
+| 페이지 | 내용 |
+|---|---|
+| [Career](https://shalwxy.github.io/resume/) | 경력기술서 (KR / [EN](https://shalwxy.github.io/resume/index.en.html)) |
+| [Portfolio](https://shalwxy.github.io/resume/portfolio.html) | 프로젝트별 문제 → 접근 → 결과 |
+| [Design Decisions](https://shalwxy.github.io/resume/decisions.html) | 선택의 이유와 되돌린 결정 |
+
+본문의 밑줄 친 용어를 누르면 흐름 도식(mermaid)이 창으로 열립니다.
+
+연락: [Email](mailto:shalwxy@gmail.com) · [LinkedIn](https://www.linkedin.com/in/seungha-lee-2aa442229) · [Blog](https://shalwxy.github.io/)
+
+공개용으로 정제한 요약이며 사내 식별자와 운영 정보는 포함하지 않습니다.
+
+---
+
+<details>
+<summary>이 사이트의 구성과 발행 방법</summary>
 
 ```
-content/index.md      Career Description (원고)
-content/portfolio.md  프로젝트별 상세 (공개용 정제본)
-content/decisions.md  설계 결정 기록 (공개용 정제본)
-content/diagrams/*.mmd 본문 용어 클릭 시 모달로 뜨는 mermaid 도식 (내가 만든 부분만)
-build.py              content/*.md → docs/*.html
-docs/                 발행 결과물 (GitHub Pages 가 서빙)
+content/index.md, index.en.md   Career Description (KR / EN)
+content/portfolio.md            프로젝트별 상세
+content/decisions.md            설계 결정 기록
+content/diagrams/*.mmd          본문 용어 클릭 시 모달로 뜨는 mermaid 도식 (*.en.mmd 는 영문)
+build.py                        content/*.md → docs/*.html
+docs/                           발행 결과물 (GitHub Pages 가 서빙)
 ```
-
-## 수정 → 발행
 
 ```bash
-# 최초 1회
-python3 -m pip install --user markdown
-
-# 1. 원고 수정 (content/*.md)
-# 2. 빌드
-python3 build.py
-# 3. 로컬 확인
-open docs/index.html
-# 4. 커밋 · 푸시
-git add content docs
-git commit -m "update resume"
-git push
+python3 -m pip install --user markdown   # 최초 1회
+python3 build.py                         # 빌드
+open docs/index.html                     # 로컬 확인
+git add content docs && git commit -m "update" && git push
 ```
 
-이름 · 직함 · 상단 링크(Email/GitHub/LinkedIn) 는 `build.py` 의 `CONFIG` 에서 바꾼다. 빈 값은 표시하지 않는다.
-페이지 추가는 `content/<name>.md` 를 만들고 `CONFIG["pages"]` 에 등록한다. 제목에 `{#id}` 를 붙이면 다른 페이지에서 `page.html#id` 로 링크할 수 있다.
-도식은 `content/diagrams/<id>.mmd` 를 만들고 본문에서 `[용어](#dg:<id>)` 로 걸면 클릭 시 모달에 그려진다(mermaid 는 첫 클릭 때 CDN 에서 지연 로드). `page.html#dg:<id>` 로 열면 바로 뜬다.
+- 이름·직함·상단 링크는 `build.py` 의 `CONFIG` 에서 바꿉니다.
+- 도식은 `content/diagrams/<id>.mmd` 를 만들고 본문에서 `[용어](#dg:<id>)` 로 겁니다. mermaid 는 첫 클릭 때 CDN 에서 불러옵니다.
+- Pages: Settings → Pages → Deploy from a branch → `main` / `/docs`.
 
-## GitHub Pages (최초 1회)
-
-1. GitHub 에 **public** 저장소 `career` 생성 (README 없이 빈 저장소)
-2. 로컬에서 `git remote add origin git@github.com:<id>/career.git && git push -u origin main`
-3. 저장소 Settings → Pages → Source **Deploy from a branch** → Branch **main**, 폴더 **/docs** → Save
-4. 1~2분 뒤 `https://<id>.github.io/career/`
-
-## 공개 전 체크
-
-- 커밋 author 는 개인 이메일: `git config user.email "<개인 이메일>"` (이 저장소에만 적용)
-- `content/` 에 사내 호스트명·IP·테이블명·티켓 번호·시크릿 위치 같은 내부 식별자가 없는지 확인
-- 워크플로우 총람·인수인계서 류 내부 문서는 이 저장소에 넣지 않는다
+</details>
