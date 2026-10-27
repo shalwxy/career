@@ -297,7 +297,13 @@ Oracle Cloud Infrastructure를 이용하는 고객사·관리자를 대상으로
 
 <p class="meta">2019.03 ~ 2019.11</p>
 
-개발자로 전향하기 위해 Java·Spring, Python·R, Linux, Database, 웹 프로그래밍을 실무 중심으로 배운 9개월 과정입니다. 과정 중 만든 것은 네 가지입니다 — Oracle SQL로 대용량 고객 데이터에서 신규 회원 유입 통계를 뽑아 R·Excel로 시각화, JSP와 Open API(날씨 XML·환율 JSON)를 파싱해 chart.js로 보여주는 웹 페이지, MVC(DAO·Service·UI) 기반으로 DB CRUD와 소비 패턴 통계까지 구현한 가계부, 그리고 Ubuntu 서버의 CPU·메모리·디스크를 실시간으로 갱신해 보여주는 모니터링 페이지. TensorFlow로 공부 시간 → 시험 성적 회귀 예측도 해 봤습니다.
+개발자로 전향하기 위해 Java·Spring, Python·R, Linux, Database, 웹 프로그래밍을 실무 중심으로 배운 9개월 과정입니다. 과정 중 만든 것은 다음과 같습니다.
+
+- Oracle SQL로 대용량 고객 데이터에서 신규 회원 유입 통계를 뽑아 R·Excel로 시각화
+- JSP와 Open API(날씨 XML·환율 JSON)를 파싱해 chart.js로 보여주는 웹 페이지
+- MVC(DAO·Service·UI) 기반으로 DB CRUD와 소비 패턴 통계까지 구현한 가계부
+- Ubuntu 서버의 CPU·메모리·디스크를 실시간으로 갱신해 보여주는 모니터링 페이지
+- TensorFlow로 공부 시간 → 시험 성적 회귀 예측
 
 ---
 

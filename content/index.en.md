@@ -2,7 +2,9 @@
 
 Hi, I'm Seungha Lee — a backend engineer who enjoys nothing more than the time spent solving problems.
 
-**Seven years in software and engineering** — Java backend (2 years) → AI/GPU infrastructure R&D (about 2 years) → **Go backend (3 years)**. In my current role I work on payments, notifications, transaction history and data pipelines, mainly designing for **data consistency in distributed systems** (pre-emption, idempotency, recovery), and I also handle **CI/CD, Kubernetes manifests, the gateway and DB DDL** for my services. I'm applying for both backend and DevOps roles.
+**Seven years in software and engineering** — Java backend (2 years) → AI/GPU infrastructure R&D (about 2 years) → **Go backend (3 years)**.
+
+In my current role I work on payments, notifications, transaction history and data pipelines, mainly designing for **data consistency in distributed systems** (pre-emption, idempotency, recovery), and I also handle **CI/CD, Kubernetes manifests, the gateway and DB DDL** for my services. I'm applying for both backend and DevOps roles.
 
 ---
 
@@ -12,7 +14,9 @@ Hi, I'm Seungha Lee — a backend engineer who enjoys nothing more than the time
 
 <p class="meta">Backend Developer · Platform Development Team · Nov 2023 – Nov 2026 (3 years)</p>
 
-NEXON UNIVERSE (founded 2022, a Nexon affiliate) builds MapleStory Universe (MSU), a Web3 platform that brings blockchain to the MapleStory IP. I developed its backend on the platform development team. I started on the on-chain/off-chain synchronization layer and went on to work on transaction history, bookmarks, the marketplace BFF, account/payment, unified notifications, a policy service, a CDC data pipeline and an operations AI bot.
+NEXON UNIVERSE (founded 2022, a Nexon affiliate) builds MapleStory Universe (MSU), a Web3 platform that brings blockchain to the MapleStory IP. I developed its backend on the platform development team.
+
+I started on the on-chain/off-chain synchronization layer and went on to work on transaction history, bookmarks, the marketplace BFF, account/payment, unified notifications, a policy service, a CDC data pipeline and an operations AI bot.
 
 <div class="stats">
 <div><strong>3 yrs</strong><span>at the company<br/>Nov 2023 – Nov 2026</span></div>
@@ -58,7 +62,10 @@ NEXON UNIVERSE (founded 2022, a Nexon affiliate) builds MapleStory Universe (MSU
 <p class="chips"><span class="chip">gRPC</span><span class="chip">Kafka</span><span class="chip">PostgreSQL advisory lock</span><span class="chip">Redis NX</span><span class="chip">CDC</span><span class="chip">Snowflake</span></p>
 <div class="impact"><span class="impact-k">Impact</span> Restructured and extended transaction history and built bookmarks, both <strong>through to production</strong> · <strong>per-event-type defence</strong> against concurrent duplicate writes (Redis NX · advisory locks) · narrowed intermittent BFF pod restarts to a cause and fixed them</div>
 
-- **High-volume transaction ledger ([api-activity](#dg:activity))** — reorganized layers, generalized the consumer and moved to message format v2, then extended it to trades, mints, transfers, Swap & Warp, bridge-in and USDT. Promoted the transaction hash to a unique key, routed malformed events to a DLQ, and protected [concurrent ingestion](#dg:activity-lock) with Redis NX + PostgreSQL advisory locks
+- **High-volume transaction ledger ([api-activity](#dg:activity))**
+    - Reorganized layers, generalized the consumer and moved to message format v2, then extended it to trades, mints, transfers, Swap & Warp, bridge-in and USDT
+    - Promoted the transaction hash to a unique key and routed malformed events to a DLQ
+    - Protected [concurrent ingestion](#dg:activity-lock) with Redis NX + PostgreSQL advisory locks
 - **Query performance** — OR → UNION ALL rewrite with the DBA, cursor-based infinite scroll, a conditional-caching option added to the shared cache decorator
 - Emitted notification events when a transaction result is finalized; moved Snowflake ingestion from Kafka publishes to **CDC**, removing the publish-failure loss path
 - **Bookmark / view-count service ([api-bookmark](#dg:bookmark))** — core features: idempotent writes, Redis counters moved to Kafka-driven aggregation, daily/total limits, account-deletion hook
@@ -72,7 +79,11 @@ NEXON UNIVERSE (founded 2022, a Nexon affiliate) builds MapleStory Universe (MSU
 <p class="chips"><span class="chip">Worldpay</span><span class="chip">Redis Lua</span><span class="chip">SSE</span><span class="chip">gRPC streaming</span><span class="chip">MongoDB</span></p>
 <div class="impact"><span class="impact-k">Impact</span> Completed credit-card verification and added the <strong>card path to account re-verification</strong> · daily attempt counter's <strong>increment + expiry made atomic with Lua</strong> · bulk recipients moved to <strong>500-row streaming chunks</strong> · full-user KYC migration completed in production</div>
 
-- **Worldpay (FraudSight 3DS) [card verification & re-verification](#dg:creditcard)** — mapped vendor 4xx to 200 + outcome codes and 5xx to errors, made the daily attempt counter atomic with a Redis Lua script, encrypted part of the card data, added blocking of abnormal attempts per payment-method combination, and a re-verification path that confirms identity by card when OTP is reset
+- **Worldpay (FraudSight 3DS) [card verification & re-verification](#dg:creditcard)**
+    - Mapped vendor 4xx to 200 + outcome codes and 5xx to errors
+    - Made the daily attempt counter atomic with a Redis Lua script
+    - Encrypted part of the card data and added blocking of abnormal attempts per payment-method combination
+    - Added a re-verification path that confirms identity by card when OTP is reset
 - **[Stablecoin (USDT) launch](#dg:usdt)** — extended the off-chain pre-deduction/rollback service for USDT (per-token limit tables, pre-deduction and row locking generalized per token) and replaced the rollback topic with a dependency on transaction result topics
 - **[Unified notifications (SSE)](#dg:notification)** — absorbed JWT verification to drop the account-service dependency, generated URLs server-side, and split bulk recipients into a **gRPC streaming RPC** (500-row chunks, 50,000 cap)
 - Moved routing/port settings of my services (notifications, blockchain supporter) as part of the team-wide gateway gRPC → HTTP switch
@@ -175,7 +186,10 @@ Mathematics major (calculus, linear algebra, geometry, probability and statistic
 
 ## Backend (Go)
 
-- **Go services and restructuring** — gRPC (unary/streaming), Kafka consumers and PostgreSQL/Redis/MongoDB, built in clear layers. Over three years I developed and restructured several Go services (api-activity, api-bookmark, api-sentinel, api-account, api-notification, api-blockchain-supporter) and split complex code behind interfaces to keep coupling low.
+- **Go services and restructuring**
+    - gRPC (unary/streaming), Kafka consumers and PostgreSQL/Redis/MongoDB, built in clear layers
+    - Over three years I developed and restructured several Go services: api-activity, api-bookmark, api-sentinel, api-account, api-notification, api-blockchain-supporter
+    - Complex code is split behind interfaces to keep coupling low
 - **Concurrency and consistency** — PostgreSQL advisory locks, Redis NX/distributed locks/Lua, idempotency keys and unique keys, chosen per event type: look-up-then-create/update for messages that may arrive out of order, Redis NX for single-message events.
 - **Failure paths first** — pre-deduction/rollback, DLQ and retries, CDC: decide how to recover before implementing. From a rolled-back feature (withdrawal delay) I learned to merge defect fixes separately from the feature so they survive a rollback.
 - **API and policy design** — policies come in as enums/config rather than code branches, so policy changes don't become commits.
@@ -189,7 +203,10 @@ Mathematics major (calculus, linear algebra, geometry, probability and statistic
 
 ## Infrastructure & DevOps
 
-- **Operating CI/CD** — GitLab CI (test → build → deploy → release), multi-stage Dockerfiles and Rundeck deploy jobs for the services I owned. I fixed broken builds (semantic-release, runtime upgrades) and wired new services into the [pipeline](#dg:cicd), with dev-first promotion before test/qa. Deployment differs per environment (dev: K8s API / test·qa·stage: Rundeck / live: Rundeck outside CI) and I operate with that distinction.
+- **Operating CI/CD**
+    - GitLab CI (test → build → deploy → release), multi-stage Dockerfiles and Rundeck deploy jobs for the services I owned
+    - Fixed broken builds (semantic-release, runtime upgrades) and wired new services into the [pipeline](#dg:cicd), with dev-first promotion before test/qa
+    - Deployment differs per environment — dev: K8s API / test·qa·stage: Rundeck / live: Rundeck outside CI — and I operate with that distinction
 - **Kubernetes manifests** — wrote and operated Helm templates and per-environment Deployment · HPA · Service; tuned probes, resources and ports for cost and stability (e.g. reducing test/qa/stage resources).
 - **Deploy and ops routine** — dev-first deployment before promotion, post-deploy monitoring on live, and scheduled-maintenance support as part of regular work.
 - **Gateway** — added and tidied the Envoy gRPC → REST routing rules and auth settings whenever services were added; took part in the team's review of externally exposed APIs and adding authentication.
