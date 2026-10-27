@@ -138,7 +138,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <tr>
 <td>2024-06 ~ 2025-09</td>
 <td>트랜잭션 이력 · 북마크 · 거래소 BFF</td>
-<td>기존 서비스 구조 개선 1 · 초기 합류 후 과반 기여 1, 서버와 BFF 양쪽 담당, Swap &amp; Warp 도메인</td>
+<td>구조 개선 1 · 과반 기여 1, 서버와 BFF 양쪽 담당, Swap &amp; Warp 도메인</td>
 </tr>
 <tr>
 <td>2025-07 ~ 2026-08</td>
@@ -165,7 +165,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <hr>
 <h2 id="activity">2. 트랜잭션 이력 플랫폼 — 구조 개선부터 CDC 전환까지</h2>
 <p><span class="tag">2024-06 ~ 2026-11</span> <span class="tag">Go · Kafka · PostgreSQL · Redis · Snowflake</span></p>
-<p><strong>맥락.</strong> 플랫폼의 블록체인 트랜잭션(거래·민팅·전송·크로스체인 전송·스테이블 코인)을 <a href="#" class="dg" data-dg="activity" title="도식 보기">수집·조회·알림 발행하는 서비스</a>. 초기 코드를 넘겨받은 2024년 6월부터 2년 반, 가장 오래 담당했습니다.</p>
+<p><strong>맥락.</strong> 플랫폼의 블록체인 트랜잭션(거래·민팅·전송·크로스체인 전송·스테이블 코인)을 <a href="#" class="dg" data-dg="activity" title="도식 보기">수집·조회·알림 발행하는 서비스</a>. 2024년 6월부터 2년 반, 가장 오래 담당했습니다.</p>
 <p><strong>단계별 진화.</strong></p>
 <table>
 <thead>
@@ -209,7 +209,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <hr>
 <h2 id="bookmark">3. 북마크 · 조회수 서비스 신설과 거래소 BFF</h2>
 <p><span class="tag">2024-06 ~ 2025-09</span> <span class="tag">Go · gRPC · Kafka · Redis</span></p>
-<p><strong><a href="#" class="dg" data-dg="bookmark" title="도식 보기">북마크 서비스</a>(서버).</strong> 초기 뼈대 직후 합류해 proto 설계부터 라이브까지 메인 담당(리포 커밋 과반). 북마크는 더블클릭·재시도가 흔해 <strong>멱등</strong>이 기본이어야 했습니다 — 중복 요청은 성공 반환, 카운트는 DB 저장 성공 시에만 증가, 0 이하면 캐시 키 제거. 카운트 갱신은 요청 경로의 동기 처리에서 <strong>Kafka 이벤트 기반</strong>으로 옮겨 레이턴시와 정합성을 함께 잡았고, 하루/총량 제한과 회원 탈퇴 연동을 더했습니다.</p>
+<p><strong><a href="#" class="dg" data-dg="bookmark" title="도식 보기">북마크 서비스</a>(서버).</strong> 초기부터 참여해 proto 설계부터 라이브까지 메인 담당(리포 커밋 과반). 북마크는 더블클릭·재시도가 흔해 <strong>멱등</strong>이 기본이어야 했습니다 — 중복 요청은 성공 반환, 카운트는 DB 저장 성공 시에만 증가, 0 이하면 캐시 키 제거. 카운트 갱신은 요청 경로의 동기 처리에서 <strong>Kafka 이벤트 기반</strong>으로 옮겨 레이턴시와 정합성을 함께 잡았고, 하루/총량 제한과 회원 탈퇴 연동을 더했습니다.</p>
 <p><strong>거래소 BFF(소비자).</strong> 같은 서비스를 소비하는 거래소 웹 BFF 도 직접 마이그레이션해, 서버 proto 변경이 BFF 에 어떻게 닿는지 양쪽에서 확인했습니다. 인벤토리 서비스 신설, 조회수 증가 비동기화, 캐릭터 이미지 렌더 병렬화·bulk 호출, 외부 조회 chunk 분할.</p>
 <p><strong>장애 — 간헐적 pod 재시작.</strong> 원인 불명으로 BFF pod 가 재시작되던 문제를 로그 추적으로 <strong>비동기 반복문 안의 gRPC 호출이 자원을 점유</strong>하는 것으로 좁히고, timeout 과 chunk 호출로 해결했습니다.</p>
 <p><strong>캐시의 교훈.</strong> BFF 북마크 캐시를 &ldquo;변경 시 무효화&rdquo; 로 설계했다가 비동기 무효화 실패·context 취소 문제로 timeout 을 늘려가던 끝에 <strong>3초 TTL, 무효화 없음</strong> 으로 단순화했습니다. 무효화보다 짧은 TTL 이 낫다는 걸 체감한 사례입니다.</p>
@@ -231,7 +231,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <hr>
 <h2 id="usdt">5. 스테이블 코인 도입과 선차감·롤백</h2>
 <p><span class="tag">2025-10 ~ 2025-12</span> <span class="tag">Go · Kafka · 블록체인</span></p>
-<p>온체인에 기록되기 전 발생할 수 있는 리스크(한도 초과, 중복 출금)를 막기 위해 <strong><a href="#" class="dg" data-dg="usdt" title="도식 보기">오프체인에서 먼저 차감하고 결과에 따라 롤백</a></strong>하는 서비스(동료가 구축)를 스테이블 코인(USDT) 도입에 맞춰 확장·수정했습니다. 별도 롤백 토픽을 두는 대신 <strong>트랜잭션 결과 토픽</strong>에서 성공/실패/드랍을 받아 실패일 때만 선차감을 되돌리도록(선차감이 곧 확정) 순서·중복 처리를 단순화했고, 같은 nonce 로 여러 트랜잭션이 들어오는 케이스의 기존 보정(동료 구현)이 3건 이상에서 빠지던 것을 고쳤습니다. 토큰 추가 시 enum 만 늘리면 되도록 테이블을 재설계했습니다.</p>
+<p>온체인에 기록되기 전 발생할 수 있는 리스크(한도 초과, 중복 출금)를 막기 위해 <strong><a href="#" class="dg" data-dg="usdt" title="도식 보기">오프체인에서 먼저 차감하고 결과에 따라 롤백</a></strong>하는 서비스를 스테이블 코인(USDT) 도입에 맞춰 확장·수정했습니다. 별도 롤백 토픽을 두는 대신 <strong>트랜잭션 결과 토픽</strong>에서 성공/실패/드랍을 받아 실패일 때만 선차감을 되돌리도록(선차감이 곧 확정) 순서·중복 처리를 단순화했고, 같은 nonce 로 여러 트랜잭션이 들어오는 케이스의 보정이 3건 이상에서 빠지던 것을 고쳤습니다. 토큰 추가 시 enum 만 늘리면 되도록 테이블을 재설계했습니다.</p>
 <p class="more">관련 설계 결정: <a href="decisions.html#d-settle">롤백 토픽 → 결과 토픽</a></p>
 
 <hr>
@@ -240,7 +240,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <ul>
 <li>계정 서비스를 호출해 하던 JWT 검증을 알림 서비스가 <strong>자체 흡수</strong>해, SSE 연결마다 계정 서비스를 때리던 비용과 의존을 제거했습니다.</li>
 <li>&ldquo;모든 사용자에게 통합 알림&rdquo; 기능은 기획과 합의해 <strong>제거</strong> — 대량 fan-out 은 알림 서비스가 지지 않습니다.</li>
-<li>알림 URL·타이틀·본문을 백엔드에서 생성해 프론트별 조립 중복을 없앴습니다(백엔드 생성 전환은 동료가 시작, URL 생성과 payload 다수는 제가). 알림 서비스 자체는 동료가 구축했고 저는 기능 추가·2차 스펙을 맡았습니다.</li>
+<li>알림 URL·타이틀·본문을 백엔드에서 생성해 프론트별 조립 중복을 없앴습니다(URL 생성과 payload 다수 담당).</li>
 <li>백오피스 알림의 수신자 목록(수만 건)이 상세 조회 응답에 통째로 실리던 것을 <strong><a href="#" class="dg" data-dg="notification" title="도식 보기">gRPC streaming RPC</a></strong>(500건 청크, 상한 명시)로 분리하고, 수신 규약(&ldquo;대상은 chunk 프레임으로만&rdquo;)을 수신 측 코드에 명시했습니다. 큰 응답을 쪼개는 것보다 <strong>수신측이 어떻게 조립하는지</strong>를 정하는 게 설계의 핵심이었습니다.</li>
 <li>게이트웨이의 gRPC 의존을 HTTP 로 전환해 서비스 간 결합도를 낮췄습니다.</li>
 </ul>
@@ -278,11 +278,11 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <h2 id="infra">10. 인프라 · CI/CD — 배포 파이프라인과 운영 저장소</h2>
 <p class="chips"><span class="chip">전 기간</span><span class="chip">GitLab CI · Docker · Helm · ArgoCD · Rundeck · EKS · Envoy · Kafka Connect</span></p>
 
-<p><strong>맥락.</strong> CI/CD 파이프라인과 배포 체계(GitLab CI → Rundeck → EKS, Helm, Envoy)는 팀에 이미 갖춰져 있었고, 담당 서비스의 설정은 백엔드 개발자가 직접 관리하는 구조였습니다. <strong>제가 설계한 것은 없습니다.</strong> <a href="#" class="dg" data-dg="cicd" title="도식 보기">기존 파이프라인</a>을 가져다 쓰면서 깨진 것을 고치고, 신설 서비스를 기존 패턴대로 태운 것이 기여의 전부입니다. 대역별로 흐름이 달랐습니다 — dev 는 CI 가 K8s API 로 재시작, test·qa·stage 는 CI 가 Rundeck 을 호출, live 는 CI 가 이미지 빌드까지만 하고 배포는 CI 밖에서 Rundeck 으로.</p>
+<p><strong>맥락.</strong> 담당 서비스의 CI/CD 설정(GitLab CI → Rundeck → EKS, Helm, Envoy)은 백엔드 개발자가 직접 관리하는 구조였습니다. <strong>파이프라인을 설계한 것은 아니고</strong>, <a href="#" class="dg" data-dg="cicd" title="도식 보기">파이프라인</a>을 가져다 쓰면서 깨진 것을 고치고 신설 서비스를 같은 패턴으로 태운 것이 기여입니다. 대역별로 흐름이 달랐습니다 — dev 는 CI 가 K8s API 로 재시작, test·qa·stage 는 CI 가 Rundeck 을 호출, live 는 CI 가 이미지 빌드까지만 하고 배포는 CI 밖에서 Rundeck 으로.</p>
 <p><strong>제가 한 일.</strong></p>
 <ul>
 <li><strong>CI 파이프라인 사용·보수</strong> — 팀 공용 템플릿을 그대로 쓰는 담당 서비스 3개의 <code>.gitlab-ci.yml</code>·Dockerfile(약 58 커밋): 누락된 go test 단계 보완, Go 1.23 → 1.26 · Docker · Node 런타임 업그레이드, semantic-release 빌드 깨짐 수정(버전 고정), 신설 서비스의 배포 job 을 기존 job 복제로 연결.</li>
-<li><strong>신설 서비스의 배포 세트</strong> — api-sentinel 신설 때 기존 서비스의 Helm 템플릿(dev) · 4개 환경 매니페스트(Deployment · HPA · Service) · Envoy route · CI 배포 job 을 복제해 코드와 같은 주에 한 세트로 추가. 레지스트리 deploy token 만료 시 dockerconfigjson 교체.</li>
+<li><strong>신설 서비스의 배포 세트</strong> — api-sentinel 신설 때 Helm 템플릿(dev) · 4개 환경 매니페스트(Deployment · HPA · Service) · Envoy route · CI 배포 job 을 복제해 코드와 같은 주에 한 세트로 추가. 레지스트리 deploy token 만료 시 dockerconfigjson 교체.</li>
 <li><strong>Kubernetes 매니페스트 운영</strong> (gotohelm 86 · deploy-scripts 12 커밋) — liveness/readiness probe 보정, 서비스 포트 추가, 서비스명 변경, test/qa/stage pod 리소스 감축(비용 절감 요청 건), live 로그 레벨 정리, DE 서비스 초기 배포.</li>
 <li><strong>Envoy 게이트웨이</strong> (marina 82 커밋) — gRPC → REST transcoding route 추가·정리, 인증 적용·skip 설정, 미사용 cluster 제거, live 에서 특정 인증 호출 차단.</li>
 <li><strong>운영 저장소</strong> (portal-ops 103 커밋) — PostgreSQL DDL 을 DBA 검토 흐름으로 관리, Debezium/Kafka Connect · Snowflake Stream/Task 설정(<a href="#" class="dg" data-dg="cdc" title="도식 보기">CDC</a>), MongoDB TTL 정책.</li>
@@ -408,7 +408,7 @@ flowchart LR
     end
     subgraph BK[api-bookmark ★]
         H[Bookmark / UnBookmark / SetView<br/>멱등: 중복 요청 = 성공<br/>조회수는 IP·지갑·대상 당 24h 1회]
-        L["일일 100 · 총 5000 제한<br/>설정값 · 첫 행동 기준 24h 창<br/>(초기 구현 ★ · 이후 리팩터링은 동료)"]
+        L["일일 100 · 총 5000 제한<br/>설정값 · 첫 행동 기준 24h 창"]
         PG[(북마크)]
         RD[(Redis 카운트<br/>사용자별 · 대상별<br/>0 이하면 조회 시 정리)]
     end
@@ -430,7 +430,7 @@ sequenceDiagram
     autonumber
     participant U as 사용자
     participant GW as API 게이트웨이
-    box rgb(219,234,254) 주 구현 ★ (재인증 분기는 동료 구현)
+    box rgb(219,234,254) ★ = 내가 구현한 부분
     participant A as api-account ★
     end
     participant R as Redis
@@ -470,7 +470,7 @@ sequenceDiagram
     autonumber
     participant U as 사용자
     participant GW as 블록체인 게이트웨이<br/>(브리지 · RPC 프록시)
-    box rgb(219,234,254) 주요 기여 ★ (서비스 골격 · nonce 경합 롤백은 동료 구현)
+    box rgb(219,234,254) ★ = 내가 구현한 부분
     participant S as api-blockchain-supporter ★
     end
     participant P as 정책 (sentinel)
@@ -489,7 +489,7 @@ sequenceDiagram
         GW->>BC: 트랜잭션 전달
         BC-->>K: 성공 / 실패 / 드랍
         K->>S: 결과 컨슈머 (결과 토픽 의존으로 변경 ★)
-        S->>S: 같은 주소·nonce 의 경합 요청 롤백<br/>(동료 구현 · 3건 이상 케이스 보완 ★)
+        S->>S: 같은 주소·nonce 의 경합 요청 롤백<br/>(3건 이상 케이스 보완 ★)
         alt 실패 · 드랍
             S->>S: 선차감 롤백 (누적 감산 · 이력 cancelled)
         end
@@ -501,7 +501,7 @@ flowchart TB
     AC[api-account<br/>KYC · 본인인증 · 재인증 · 카드 · 닉네임 · 밴 · MFA]
     K[[도메인 이벤트 토픽 3종<br/>거래소 · Swap/Warp 결과 · 리액터]]
     CON[portal-console<br/>운영자 대량 알림]
-    subgraph NT["api-notification — 기존 서비스 · ★ = 내가 추가한 부분 · 점선 = 일부 기여"]
+    subgraph NT["api-notification · ★ = 내가 구현한 부분 · 점선 = 일부 기여"]
         G1["gRPC Notify 7종<br/>재인증 · KYB · MFA 등 추가 ★"]
         C[도메인 컨슈머 3종]
         Q[[내부 큐 · 단건 / 대량]]

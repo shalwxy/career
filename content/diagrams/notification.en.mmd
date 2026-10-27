@@ -3,7 +3,7 @@ flowchart TB
     AC[api-account<br/>KYC · identity · re-verification · card · nickname · ban · MFA]
     K[[3 domain event topics<br/>marketplace · Swap/Warp results · reactor]]
     CON[portal-console<br/>operator bulk notifications]
-    subgraph NT["api-notification — existing service · ★ = parts I added · dashed = partial"]
+    subgraph NT["api-notification · ★ = built by me · dashed = partial"]
         G1["7 gRPC Notify RPCs<br/>re-verification · KYB · MFA added ★"]
         C[3 domain consumers]
         Q[[Internal queues · single / bulk]]

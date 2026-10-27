@@ -56,9 +56,9 @@
 #### <span class="phase">2</span> 트랜잭션 이력 · 북마크 · 거래소 BFF
 <p class="period">2024.06 ~ 2025.09 · <a href="portfolio.html#activity">자세히 보기 →</a></p>
 <p class="chips"><span class="chip">gRPC</span><span class="chip">Kafka</span><span class="chip">PostgreSQL advisory lock</span><span class="chip">Redis NX</span><span class="chip">CDC</span><span class="chip">Snowflake</span></p>
-<div class="impact"><span class="impact-k">Impact</span> api-activity 구조 개선 후 확장(<strong>907 커밋</strong>) · api-bookmark 초기 합류 후 과반 커밋(<strong>550 커밋</strong>) 모두 라이브 승격 · Redis NX + advisory lock 으로 동시 적재 중복 차단 · 간헐적 pod 재시작 원인 규명·해결</div>
+<div class="impact"><span class="impact-k">Impact</span> api-activity 구조 개선 후 확장(<strong>907 커밋</strong>) · api-bookmark 과반 커밋(<strong>550 커밋</strong>) 모두 라이브 승격 · Redis NX + advisory lock 으로 동시 적재 중복 차단 · 간헐적 pod 재시작 원인 규명·해결</div>
 
-- **대용량 트랜잭션 이력 서비스([api-activity](#dg:activity))** — 초기 코드를 넘겨받아 레이어·서버/컨슈머 분리 후 거래/민팅/전송/Swap&Warp/USDT 를 차례로 확장. 트랜잭션 해시 유니크 승격, Redis NX + PostgreSQL advisory lock 으로 [동시 적재 정합성](#dg:activity-lock), 비정상 이벤트는 DLQ
+- **대용량 트랜잭션 이력 서비스([api-activity](#dg:activity))** — 레이어·서버/컨슈머 분리 후 거래/민팅/전송/Swap&Warp/USDT 를 차례로 확장. 트랜잭션 해시 유니크 승격, Redis NX + PostgreSQL advisory lock 으로 [동시 적재 정합성](#dg:activity-lock), 비정상 이벤트는 DLQ
 - **쿼리 튜닝·성능 개선** — DBA 와 협업한 OR → UNION ALL 전환, 커서 기반 무한 스크롤, 조건부 캐싱(공통 라이브러리 직접 개발)
 - **알림 이벤트 발행 구조**, Snowflake 적재를 Kafka 발행 → **CDC 로 전환**해 유실 경로 제거
 - **북마크/조회수 서비스([api-bookmark](#dg:bookmark))** 신규 설계 — 멱등 처리, Redis 카운트 캐시 → Kafka 이벤트 집계, 하루/총량 제한, 회원 탈퇴 연동
@@ -73,8 +73,8 @@
 <div class="impact"><span class="impact-k">Impact</span> 신용카드 인증·재인증을 <strong>리뷰 2회차</strong>로 라이브 승격 · 일일 한도를 <strong>Lua 원자 처리</strong>로 동시 요청에도 보장 · 대량 수신자 응답을 <strong>500건 청크 스트리밍</strong>으로 분리 · KYC 전 사용자 마이그레이션 live 완료</div>
 
 - **월드페이(FraudSight 3DS) [신용카드 인증 · 재인증](#dg:creditcard)** — 벤더 응답 분기(400대는 outcome, 500대는 에러), Redis Lua 로 일일 3회 카운트 **증가+만료 원자 처리**, 카드 정보 일부 암호화·발급사별 서킷 브레이커(차단), OTP 리셋용 재인증
-- **[스테이블 코인(USDT) 도입](#dg:usdt)** — 동료가 구축한 오프체인 선차감·롤백 서비스를 USDT 에 맞춰 확장(한도 테이블 재설계·선차감 트랜잭션), 별도 롤백 토픽 대신 트랜잭션 결과 토픽을 구독해 실패 시만 되돌리도록 단순화
-- **[MSU 통합 알림(SSE)](#dg:notification)** — 기존 알림 서비스에 기능 추가 — JWT 검증 자체 흡수로 의존 제거, 백엔드 URL 생성, 대량 수신자를 **gRPC streaming RPC**(500건 청크·5만 건 상한)로 분리
+- **[스테이블 코인(USDT) 도입](#dg:usdt)** — 오프체인 선차감·롤백 서비스를 USDT 에 맞춰 확장(한도 테이블 재설계·선차감 트랜잭션), 별도 롤백 토픽 대신 트랜잭션 결과 토픽을 구독해 실패 시만 되돌리도록 단순화
+- **[MSU 통합 알림(SSE)](#dg:notification)** — JWT 검증 자체 흡수로 의존 제거, 백엔드 URL 생성, 대량 수신자를 **gRPC streaming RPC**(500건 청크·5만 건 상한)로 분리
 - Envoy 게이트웨이의 gRPC 의존성을 **HTTP 로 전환**해 결합도 축소
 - **KYC 업체 변경(Argos → Sumsub) 마이그레이션** — 병렬 호출·재진입 가능한 커서·rate limiter
 - 디스코드 자동 뱃지 봇·역할 동기화 배치·커뮤니티 공지 크롤링 봇 — 외부 side effect 는 **Outbox 재시도**로
@@ -331,7 +331,7 @@ Oracle Cloud Infrastructure를 이용하는 고객사·관리자를 대상으로
 
 ## Architecture & Operations
 
-- **신규 서비스·도메인을 라이브까지:** api-sentinel 은 초기 커밋부터 신설, api-bookmark 와 Swap&Warp 는 초기 단계에 합류해 과반 커밋으로 라이브 승격, portal-ai 에는 에러시로봇 기능을 신설했습니다. 레이어와 서버/컨슈머를 처음부터 분리해 두면, 이후 기능 추가가 구조 변경 없이 들어온다는 걸 반복해서 경험했습니다.
+- **신규 서비스·도메인을 라이브까지:** api-sentinel 은 초기 커밋부터 신설, api-bookmark 와 Swap&Warp 는 과반 커밋으로 라이브 승격, portal-ai 에는 에러시로봇 기능을 신설했습니다. 레이어와 서버/컨슈머를 처음부터 분리해 두면, 이후 기능 추가가 구조 변경 없이 들어온다는 걸 반복해서 경험했습니다.
 - **데이터 파이프라인 분리:** "서비스가 직접 외부에 쓰지 않는다"는 원칙으로, 배치 → publish 제거 → CDC(Debezium + Snowflake Stream/Task)로 이동시켰습니다. 상태성/이력성 테이블 구분, replication slot keepalive, 조건부 task 처럼 운영 비용과 유실 경로를 함께 고려합니다.
 
 ## Infrastructure & CI/CD

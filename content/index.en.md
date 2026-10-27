@@ -54,12 +54,12 @@ MapleStory Universe (MSU) is a Web3 platform built on the MapleStory IP. I start
 #### <span class="phase">2</span> Transaction history · bookmarks · marketplace BFF
 <p class="period">Jun 2024 – Sep 2025</p>
 <p class="chips"><span class="chip">gRPC</span><span class="chip">Kafka</span><span class="chip">PostgreSQL advisory lock</span><span class="chip">Redis NX</span><span class="chip">CDC</span><span class="chip">Snowflake</span></p>
-<div class="impact"><span class="impact-k">Impact</span> Restructured and extended transaction history (<strong>907 commits</strong>) and carried bookmarks from its early stage to production (<strong>550 commits</strong>, majority of the repo) · blocked duplicate writes under concurrent ingestion with Redis NX + advisory locks · narrowed intermittent BFF pod restarts to a cause and fixed them</div>
+<div class="impact"><span class="impact-k">Impact</span> Restructured and extended transaction history (<strong>907 commits</strong>) and carried bookmarks to production (<strong>550 commits</strong>, majority of the repo) · blocked duplicate writes under concurrent ingestion with Redis NX + advisory locks · narrowed intermittent BFF pod restarts to a cause and fixed them</div>
 
-- **High-volume transaction ledger ([api-activity](#dg:activity))** — inherited the early codebase, restructured layers and split the query server from the Kafka consumer, then extended it to trades, mints, transfers, Swap & Warp, bridge-in and USDT. Promoted the transaction hash to a unique key, routed malformed events to a DLQ, and protected [concurrent ingestion](#dg:activity-lock) with Redis NX + PostgreSQL advisory locks
+- **High-volume transaction ledger ([api-activity](#dg:activity))** — restructured layers and split the query server from the Kafka consumer, then extended it to trades, mints, transfers, Swap & Warp, bridge-in and USDT. Promoted the transaction hash to a unique key, routed malformed events to a DLQ, and protected [concurrent ingestion](#dg:activity-lock) with Redis NX + PostgreSQL advisory locks
 - **Query performance** — OR → UNION ALL rewrite with the DBA, cursor-based infinite scroll, conditional caching contributed to the shared library
 - Emitted notification events on transaction finalization; moved Snowflake ingestion from Kafka publishes to **CDC**, removing the publish-failure loss path
-- **Bookmark / view-count service ([api-bookmark](#dg:bookmark))** — joined right after the initial scaffold and owned the core features (majority of commits): idempotent writes, Redis counters moved to Kafka-driven aggregation, daily/total limits, account-deletion hook
+- **Bookmark / view-count service ([api-bookmark](#dg:bookmark))** — owned the core features (majority of commits): idempotent writes, Redis counters moved to Kafka-driven aggregation, daily/total limits, account-deletion hook
 - **Marketplace web BFF** — migrated bookmark/activity calls, built the inventory service, parallelized rendering. Traced intermittent pod restarts to gRPC calls inside async loops holding resources and fixed them with timeouts and chunked calls
 - [Swap & Warp](#dg:swapwarp) (cross-chain) domain, domain-split proto repository, shared-library migration across platform and marketplace services
 - Probability-disclosure service: requirements, versioning, data ingestion
@@ -71,8 +71,8 @@ MapleStory Universe (MSU) is a Web3 platform built on the MapleStory IP. I start
 <div class="impact"><span class="impact-k">Impact</span> Shipped credit-card verification and re-verification through <strong>two review rounds</strong> · enforced the daily limit atomically with <strong>Lua</strong> · bulk recipients moved to <strong>500-row streaming chunks</strong> · full-user KYC migration completed in production</div>
 
 - **Worldpay (FraudSight 3DS) [card verification & re-verification](#dg:creditcard)** — mapped vendor 4xx to 200 + outcome codes and 5xx to errors, enforced the daily limit atomically with a Redis Lua script, encrypted payment-instrument data and added a circuit breaker, designed re-verification for OTP reset
-- **[Stablecoin (USDT) launch](#dg:usdt)** — extended a colleague's off-chain pre-deduction/rollback service for USDT (limit tables reworked, pre-deduction transaction) and replaced the rollback topic with a dependency on transaction result topics
-- **[Unified notifications (SSE)](#dg:notification)** — added features to the existing notification service — absorbed JWT verification to drop the account-service dependency, generated URLs server-side, and split bulk recipients into a **gRPC streaming RPC** (500-row chunks, 50,000 cap)
+- **[Stablecoin (USDT) launch](#dg:usdt)** — extended the off-chain pre-deduction/rollback service for USDT (limit tables reworked, pre-deduction transaction) and replaced the rollback topic with a dependency on transaction result topics
+- **[Unified notifications (SSE)](#dg:notification)** — absorbed JWT verification to drop the account-service dependency, generated URLs server-side, and split bulk recipients into a **gRPC streaming RPC** (500-row chunks, 50,000 cap)
 - Replaced the gateway's gRPC dependency with HTTP to reduce coupling
 - **KYC vendor migration (Argos → Sumsub)** — parallel calls, resumable cursor, rate limiter
 - Discord auto-badge bot, role-sync batch and community-notice crawler — external side effects retried through an **outbox**
@@ -179,12 +179,12 @@ Calculus, linear algebra, geometry, probability and statistics, analysis, topolo
 
 ## Architecture & Operations
 
-- **New services and domains to production** — the policy service from its first commit, bookmarks and Swap & Warp joined early and carried to production with the majority of commits, and an error-triage bot added to an existing service. Splitting layers and server/consumer early is what lets features land without structural change later.
+- **New services and domains to production** — the policy service from its first commit, bookmarks and Swap & Warp carried to production with the majority of commits, and an error-triage bot added to portal-ai. Splitting layers and server/consumer early is what lets features land without structural change later.
 - **Pipelines outside the service** — batch → publish removal → CDC with Debezium and Snowflake Stream/Task, including slot keepalive and conditional tasks.
 
 ## Infrastructure & CI/CD
 
-- **Using and maintaining pipelines** — the team's GitLab CI (test → build → deploy → release), multi-stage Dockerfiles and Rundeck deploy jobs were already in place; I designed none of it. My part was fixing broken builds (semantic-release, runtime upgrades) and wiring new services into the [pipeline](#dg:cicd) by following existing patterns, with dev-first promotion before test/qa.
+- **Using and maintaining pipelines** — the team's GitLab CI (test → build → deploy → release), multi-stage Dockerfiles and Rundeck deploy jobs — I didn't design the pipeline; my part was fixing broken builds (semantic-release, runtime upgrades) and wiring new services into the [pipeline](#dg:cicd) by following existing patterns, with dev-first promotion before test/qa.
 - **Kubernetes manifests** — wrote and operated Helm templates and per-environment Deployment · HPA · Service; tune probes, resources and ports for cost and stability.
 - **Gateway & data infrastructure** — Envoy gRPC → REST routes, Debezium/Kafka Connect and Snowflake configuration, DDL managed through DBA review — I look past the application boundary.
 

@@ -214,7 +214,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <h2 id="d-sentinel"><a href="#" class="dg" data-dg="sentinel" title="도식 보기">정책 전용 서비스로 분리</a> ✅</h2>
 <p><strong>2026 Q1.</strong> 제어 로직이 공통 라이브러리·계정·블록체인 서비스에 흩어져 있었다. 1단계로 기존 서비스가 흡수했으나 콘텐츠 도메인과 섞여 <strong>정책 전용 서비스</strong>를 신설. refresh 를 각 서비스가 전체 정책을 메모리에 올리던 방식에서 정책 서비스가 단일 소유자가 되는 구조로(메모리 이슈). 이후 블록체인 서비스의 화이트리스트까지 이전해 통합 완료.</p>
 <h2 id="d-deployset"><a href="#" class="dg" data-dg="cicd" title="도식 보기">서비스 신설은 배포 세트까지</a> ✅</h2>
-<p><strong>2026 Q1 · api-sentinel.</strong> 코드만 넘기고 배포 설정을 뒤로 미루면 dev 에서만 도는 서비스가 된다. 기존 서비스의 Helm 템플릿 · 4개 환경 매니페스트 · Envoy route · CI 배포 job 을 복제해 코드와 같은 주에 한 세트로 넣었다. 새로 설계한 것은 없고, 있는 패턴을 빠짐없이 따라간 것. <a href="#d-devfirst">dev 선행 배포</a> 원칙과 짝.</p>
+<p><strong>2026 Q1 · api-sentinel.</strong> 코드만 넘기고 배포 설정을 뒤로 미루면 dev 에서만 도는 서비스가 된다. Helm 템플릿 · 4개 환경 매니페스트 · Envoy route · CI 배포 job 을 복제해 코드와 같은 주에 한 세트로 넣었다. 새로 설계한 것은 없고, 있는 패턴을 빠짐없이 따라간 것. <a href="#d-devfirst">dev 선행 배포</a> 원칙과 짝.</p>
 <h2 id="d-jitter">jitter 와 cadence — ticker 로 돌아온 이유 ✅</h2>
 <p><strong>2026 Q1.</strong> sliding window 의 refresh 가 같은 경계에 몰려 스파이크. timer 로 바꿔 jitter 를 넣었더니 cadence 가 흔들림. <strong>ticker 기반 + 틱 내부 랜덤 지연</strong> 으로 안정화. fixed window 는 한 번 제거했다가 다시 둘 다 지원.</p>
 <h2 id="d-enum">정책은 코드 분기가 아니라 enum/설정으로 ✅</h2>
@@ -315,7 +315,7 @@ sequenceDiagram
     autonumber
     participant U as 사용자
     participant GW as API 게이트웨이
-    box rgb(219,234,254) 주 구현 ★ (재인증 분기는 동료 구현)
+    box rgb(219,234,254) ★ = 내가 구현한 부분
     participant A as api-account ★
     end
     participant R as Redis
@@ -355,7 +355,7 @@ sequenceDiagram
     autonumber
     participant U as 사용자
     participant GW as 블록체인 게이트웨이<br/>(브리지 · RPC 프록시)
-    box rgb(219,234,254) 주요 기여 ★ (서비스 골격 · nonce 경합 롤백은 동료 구현)
+    box rgb(219,234,254) ★ = 내가 구현한 부분
     participant S as api-blockchain-supporter ★
     end
     participant P as 정책 (sentinel)
@@ -374,7 +374,7 @@ sequenceDiagram
         GW->>BC: 트랜잭션 전달
         BC-->>K: 성공 / 실패 / 드랍
         K->>S: 결과 컨슈머 (결과 토픽 의존으로 변경 ★)
-        S->>S: 같은 주소·nonce 의 경합 요청 롤백<br/>(동료 구현 · 3건 이상 케이스 보완 ★)
+        S->>S: 같은 주소·nonce 의 경합 요청 롤백<br/>(3건 이상 케이스 보완 ★)
         alt 실패 · 드랍
             S->>S: 선차감 롤백 (누적 감산 · 이력 cancelled)
         end
@@ -463,7 +463,7 @@ flowchart TB
     AC[api-account<br/>KYC · 본인인증 · 재인증 · 카드 · 닉네임 · 밴 · MFA]
     K[[도메인 이벤트 토픽 3종<br/>거래소 · Swap/Warp 결과 · 리액터]]
     CON[portal-console<br/>운영자 대량 알림]
-    subgraph NT["api-notification — 기존 서비스 · ★ = 내가 추가한 부분 · 점선 = 일부 기여"]
+    subgraph NT["api-notification · ★ = 내가 구현한 부분 · 점선 = 일부 기여"]
         G1["gRPC Notify 7종<br/>재인증 · KYB · MFA 등 추가 ★"]
         C[도메인 컨슈머 3종]
         Q[[내부 큐 · 단건 / 대량]]

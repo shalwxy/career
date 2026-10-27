@@ -7,7 +7,7 @@ flowchart LR
     end
     subgraph BK[api-bookmark ★]
         H[Bookmark / UnBookmark / SetView<br/>멱등: 중복 요청 = 성공<br/>조회수는 IP·지갑·대상 당 24h 1회]
-        L["일일 100 · 총 5000 제한<br/>설정값 · 첫 행동 기준 24h 창<br/>(초기 구현 ★ · 이후 리팩터링은 동료)"]
+        L["일일 100 · 총 5000 제한<br/>설정값 · 첫 행동 기준 24h 창"]
         PG[(북마크)]
         RD[(Redis 카운트<br/>사용자별 · 대상별<br/>0 이하면 조회 시 정리)]
     end
