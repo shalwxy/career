@@ -2,14 +2,14 @@
 %% title_en: api-bookmark — bookmarks / view counts and marketplace BFFs
 flowchart LR
     subgraph BFF["거래소 BFF — bff-marketplace 북마크 부분 ★"]
-        M[bff-marketplace<br/>북마크 · 조회수 · 북마크 인벤토리<br/>인벤토리 3초 TTL 캐시]
+        M[bff-marketplace<br/>북마크 · 조회수 · 북마크 인벤토리]
         NV[bff-navigator<br/>북마크 · 조회수]
     end
     subgraph BK[api-bookmark ★]
-        H[Bookmark / UnBookmark / SetView<br/>멱등: 중복 요청 = 성공<br/>조회수는 IP·지갑·대상 당 24h 1회]
-        L["일일 100 · 총 5000 제한<br/>설정값 · 첫 행동 기준 24h 창"]
+        H[Bookmark / UnBookmark / SetView<br/>중복 요청은 성공 처리]
+        L["북마크 개수 제한"]
         PG[(북마크)]
-        RD[(Redis 카운트<br/>사용자별 · 대상별<br/>0 이하면 조회 시 정리)]
+        RD[(Redis 카운트)]
     end
     AC[api-account<br/>탈퇴 시 일괄 삭제]
     NT[api-notification<br/>북마크한 사용자 조회]

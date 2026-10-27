@@ -7,33 +7,33 @@ sequenceDiagram
     participant A as api-account ★
     end
     participant R as Redis
-    participant W as Worldpay FraudSight
+    participant W as Worldpay
     participant N as api-notification
     U->>GW: Card verification request
     GW->>A: authorize
     A->>R: Check daily attempt count
-    alt more than 3
+    alt over the limit
         A-->>U: Daily limit reached
     else allowed
-        A->>R: Increment + expiry (Lua · resets at UTC midnight)
-        A->>W: Zero-amount payment · 3DS · FraudSight
-        W-->>A: Device-data / challenge step
-        A-->>U: 3DS step (supply-device-data · complete-challenge)
+        A->>R: Increase attempt count
+        A->>W: Zero-amount payment · 3DS request
+        W-->>A: 3DS step required
+        A-->>U: Guide through the 3DS step
         U->>A: 3DS step completed
         A->>W: Final authorisation
-        alt 4xx · fraudHighRisk
-            W-->>A: User-side failure
+        alt 4xx (user-side failure)
+            W-->>A: Declined
             A->>A: Store rejection history
             A->>N: Failure notification
-            A-->>U: 200 + outcome code
-        else 5xx · unexpected response
-            W-->>A: Vendor failure
+            A-->>U: 200 + failure reason code
+        else 5xx (vendor failure)
+            W-->>A: Failure
             A->>R: Roll back attempt count
             A-->>U: Error · ask to retry
         else approved
-            A->>A: Per-issuer circuit breaker (block) check
-            A->>A: Store card token · history (part of card data encrypted)
-            A-->>U: Success (credit level derived from holding a card)
+            A->>A: Check abnormal-attempt blocking
+            A->>A: Store card token · history
+            A-->>U: Success
         end
     end
-    note over GW,W: Re-verification: same endpoint · no daily limit · updates re-verification status + approval/rejection notification
+    note over GW,W: Re-verification: same path · no daily limit · result notification

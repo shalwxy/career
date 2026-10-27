@@ -1,19 +1,19 @@
 %% title: api-sentinel — single owner of business policies
 flowchart LR
     subgraph CALL[Runtime callers — read only]
-        AC[api-account<br/>auth-mail · card · sign-up rate limits<br/>OTP lockout · ACL · flags]
-        BC["api-blockchain-supporter<br/>withdrawal whitelist (exemption) · country/IP restrictions"]
-        AI["portal-ai<br/>error dedupe (rate limit)"]
-        CS[portal-console<br/>Discord reply rate limit]
+        AC[api-account<br/>auth-mail · card · sign-up limits<br/>OTP lockout · access control]
+        BC["api-blockchain-supporter<br/>withdrawal exemptions · country limits"]
+        AI["portal-ai<br/>error de-duplication"]
+        CS[portal-console<br/>Discord reply limit]
     end
-    CON[portal-console · back office<br/>manages ACL · flags · rate-limit policies]
+    CON[portal-console · back office<br/>policy management]
     subgraph SEN[api-sentinel ★]
-        RT[4 runtime gRPC services<br/>RateLimit · Lockout · ACL · FeatureFlag<br/>TryAcquire · RecordFailure · CheckBlocked · ExistsWhitelist · CheckEnabled]
-        RF[rate-limit · lockout policy refresher<br/>every 1 min ± 5 s jitter]
+        RT[Runtime gRPC<br/>rate limit · lockout · access control · feature flags]
+        RF[Periodic policy refresh]
         BOG[Back-office gRPC]
     end
-    RD[("Redis<br/>fixed / sliding window (Lua)<br/>lockout failures as sorted set")]
-    PG[(Policies · ACL · flags<br/>flags cached 30 min)]
+    RD[("Redis<br/>call counts · failure counts")]
+    PG[(Policy store)]
     AC & BC & AI & CS --> RT
     RT --> RD
     RT -- ACL · flags --> PG

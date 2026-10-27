@@ -2,23 +2,23 @@
 flowchart LR
     subgraph IN[Event sources]
         MK[Marketplace trade events]
-        DE1[DE asset events<br/>items FT·NFT · characters · nicknames]
-        DE2[DE cross-chain<br/>Swap · Warp events]
+        DE1[DE asset events<br/>items · characters · nicknames]
+        DE2[DE cross-chain events<br/>Swap · Warp]
     end
     subgraph ACT[api-activity ★]
-        C[Kafka consumers<br/>6 handlers, one per topic]
-        DD[Redis SET NX<br/>trade · asset · Swap<br/>blocks concurrent duplicates]
-        LK[PostgreSQL advisory lock<br/>Warp request↔result<br/>look up, then create or update]
-        W[Save to ledger<br/>unique violation = already processed]
-        DB[(Transaction ledger<br/>unique keys on hashes)]
+        C[Kafka consumers]
+        DD[Redis SET NX<br/>blocks duplicate trade · asset · Swap handling]
+        LK[advisory lock<br/>orders Warp request/result]
+        W[Save to ledger<br/>already saved = finish as success]
+        DB[(Transaction ledger)]
         PUB[Emit result event<br/>service produces directly after saving]
-        Q[gRPC query server<br/>by wallet · token · Swap · Warp · hash]
-        RT[[Retry queue 24 min × 5 → DLQ]]
+        Q[gRPC query server]
+        RT[[Retry queue → DLQ]]
     end
     N[api-notification<br/>result notifications]
     BCS[api-blockchain-supporter<br/>rolls back pre-deduction on failure]
     B[bff-swapnwarp · bff-marketplace]
-    SF[(Snowflake · CDC)]
+    SF[(Snowflake)]
     MK & DE1 --> C
     DE2 --> C
     C --> DD --> W
@@ -26,8 +26,8 @@ flowchart LR
     W --> DB
     W --> PUB
     C -. failure .-> RT
-    PUB -- one result topic --> N & BCS
-    DB -. Debezium .-> SF
+    PUB -- result event --> N & BCS
+    DB -. CDC .-> SF
     B --> Q --> DB
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
     class C,DD,LK,W,DB,PUB,Q,RT mine

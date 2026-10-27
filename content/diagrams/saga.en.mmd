@@ -3,26 +3,26 @@ sequenceDiagram
     autonumber
     participant G as Game server
     box rgb(219,234,254) My contributions ★
-    participant BP as business-provider<br/>(gRPC facade · input validation ★)
-    participant S as saga-provider<br/>(Saga runner · domain validators ★)
-    participant A as Transaction analyzer<br/>(chain-result worker · partial ★)
+    participant BP as business-provider<br/>(input validation ★)
+    participant S as saga-provider<br/>(Saga runner · validators ★)
+    participant A as Transaction analyzer<br/>(partial ★)
     end
     participant R as Redis
-    participant E as event-service<br/>(state store · Prepare/Commit/Rollback)
+    participant E as event-service<br/>(state store)
     participant BC as Blockchain
-    G->>BP: Mint character (gRPC)
-    BP->>BP: Validate input · convert
-    BP->>S: Saga Execute (synchronous gRPC)
-    S->>R: Pre-empt nickname · lock character ★<br/>(distributed lock instead of existence check)
-    S->>E: Prepare (create new nickname · remove old one)
+    G->>BP: Mint character
+    BP->>BP: Validate input
+    BP->>S: Saga Execute
+    S->>R: Pre-empt nickname · lock character ★<br/>(lock instead of existence check)
+    S->>E: Prepare: create new nickname · remove old one
     S->>BC: Mint transaction
-    BC-->>A: Chain result event (Kafka)
-    A->>S: ApplyMint success/failure + nickname ★ (Kafka)
+    BC-->>A: Chain result
+    A->>S: Mint success/failure + nickname ★
     alt success
-        S->>E: State UNLOCK · apply nickname (Prepare → Commit)
+        S->>E: Commit nickname change
         S->>R: Release old nickname pre-emption ★
     else failure
-        S->>E: Rollback · record failed state UNLOCK
+        S->>E: Roll back the prepared change
         S->>R: Release new nickname pre-emption ★
     end
     S->>R: Release character lock ★

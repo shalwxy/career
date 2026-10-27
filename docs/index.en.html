@@ -317,26 +317,26 @@ sequenceDiagram
     autonumber
     participant G as Game server
     box rgb(219,234,254) My contributions ★
-    participant BP as business-provider<br/>(gRPC facade · input validation ★)
-    participant S as saga-provider<br/>(Saga runner · domain validators ★)
-    participant A as Transaction analyzer<br/>(chain-result worker · partial ★)
+    participant BP as business-provider<br/>(input validation ★)
+    participant S as saga-provider<br/>(Saga runner · validators ★)
+    participant A as Transaction analyzer<br/>(partial ★)
     end
     participant R as Redis
-    participant E as event-service<br/>(state store · Prepare/Commit/Rollback)
+    participant E as event-service<br/>(state store)
     participant BC as Blockchain
-    G->>BP: Mint character (gRPC)
-    BP->>BP: Validate input · convert
-    BP->>S: Saga Execute (synchronous gRPC)
-    S->>R: Pre-empt nickname · lock character ★<br/>(distributed lock instead of existence check)
-    S->>E: Prepare (create new nickname · remove old one)
+    G->>BP: Mint character
+    BP->>BP: Validate input
+    BP->>S: Saga Execute
+    S->>R: Pre-empt nickname · lock character ★<br/>(lock instead of existence check)
+    S->>E: Prepare: create new nickname · remove old one
     S->>BC: Mint transaction
-    BC-->>A: Chain result event (Kafka)
-    A->>S: ApplyMint success/failure + nickname ★ (Kafka)
+    BC-->>A: Chain result
+    A->>S: Mint success/failure + nickname ★
     alt success
-        S->>E: State UNLOCK · apply nickname (Prepare → Commit)
+        S->>E: Commit nickname change
         S->>R: Release old nickname pre-emption ★
     else failure
-        S->>E: Rollback · record failed state UNLOCK
+        S->>E: Roll back the prepared change
         S->>R: Release new nickname pre-emption ★
     end
     S->>R: Release character lock ★
@@ -345,23 +345,23 @@ sequenceDiagram
 flowchart LR
     subgraph IN[Event sources]
         MK[Marketplace trade events]
-        DE1[DE asset events<br/>items FT·NFT · characters · nicknames]
-        DE2[DE cross-chain<br/>Swap · Warp events]
+        DE1[DE asset events<br/>items · characters · nicknames]
+        DE2[DE cross-chain events<br/>Swap · Warp]
     end
     subgraph ACT[api-activity ★]
-        C[Kafka consumers<br/>6 handlers, one per topic]
-        DD[Redis SET NX<br/>trade · asset · Swap<br/>blocks concurrent duplicates]
-        LK[PostgreSQL advisory lock<br/>Warp request↔result<br/>look up, then create or update]
-        W[Save to ledger<br/>unique violation = already processed]
-        DB[(Transaction ledger<br/>unique keys on hashes)]
+        C[Kafka consumers]
+        DD[Redis SET NX<br/>blocks duplicate trade · asset · Swap handling]
+        LK[advisory lock<br/>orders Warp request/result]
+        W[Save to ledger<br/>already saved = finish as success]
+        DB[(Transaction ledger)]
         PUB[Emit result event<br/>service produces directly after saving]
-        Q[gRPC query server<br/>by wallet · token · Swap · Warp · hash]
-        RT[[Retry queue 24 min × 5 → DLQ]]
+        Q[gRPC query server]
+        RT[[Retry queue → DLQ]]
     end
     N[api-notification<br/>result notifications]
     BCS[api-blockchain-supporter<br/>rolls back pre-deduction on failure]
     B[bff-swapnwarp · bff-marketplace]
-    SF[(Snowflake · CDC)]
+    SF[(Snowflake)]
     MK & DE1 --> C
     DE2 --> C
     C --> DD --> W
@@ -369,23 +369,23 @@ flowchart LR
     W --> DB
     W --> PUB
     C -. failure .-> RT
-    PUB -- one result topic --> N & BCS
-    DB -. Debezium .-> SF
+    PUB -- result event --> N & BCS
+    DB -. CDC .-> SF
     B --> Q --> DB
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
     class C,DD,LK,W,DB,PUB,Q,RT mine
 </script>
 <script type="text/plain" id="dg-src-activity-lock" data-title="Concurrent ingestion — defence per event type">
 flowchart TB
-    K[["Kafka messages<br/>retries · no ordering → the same item can arrive twice at once"]]
+    K[["Kafka messages<br/>retries and reordering mean the same item can arrive twice at once"]]
     subgraph A["Trade · asset · Swap — single-message events"]
-        R["Redis SET NX + TTL<br/>first one wins · released after processing"]
-        W1["DB write<br/>unique violation = already processed → succeed"]
+        R["Redis SET NX<br/>first one wins"]
+        W1["Save to DB<br/>already saved = finish as success"]
         R --> W1
     end
     subgraph B["Warp — request/result may arrive out of order"]
-        P["Transaction + advisory lock<br/>namespace key + hash-bucket key"]
-        S["Look up → create if missing / update if present<br/>whichever arrives first is stored as PENDING · NO_CONTENT<br/>(nullable schema)"]
+        P["advisory lock<br/>one at a time per item"]
+        S["Look up → create if missing, update if present<br/>whichever arrives first is saved first"]
         P --> S
     end
     N["Emit result event → notification · pre-deduction rollback"]
@@ -399,14 +399,14 @@ flowchart TB
 <script type="text/plain" id="dg-src-bookmark" data-title="api-bookmark — bookmarks / view counts and marketplace BFFs">
 flowchart LR
     subgraph BFF["Marketplace BFFs — bookmark parts of bff-marketplace ★"]
-        M[bff-marketplace<br/>bookmarks · views · bookmarked inventory<br/>inventory cached 3 s]
+        M[bff-marketplace<br/>bookmarks · views · bookmarked inventory]
         NV[bff-navigator<br/>bookmarks · views]
     end
     subgraph BK[api-bookmark ★]
-        H[Bookmark / UnBookmark / SetView<br/>idempotent: duplicate = success<br/>views counted once per IP · wallet · target per 24 h]
-        L["Limits: 100 / day · 5,000 total<br/>configurable · 24 h window from first action"]
+        H[Bookmark / UnBookmark / SetView<br/>duplicate request = success]
+        L["Bookmark count limits"]
         PG[(Bookmarks)]
-        RD[(Redis counters<br/>per user · per target<br/>cleaned up on read when ≤ 0)]
+        RD[(Redis counters)]
     end
     AC[api-account<br/>bulk delete on account closure]
     NT[api-notification<br/>who bookmarked a target]
@@ -425,12 +425,12 @@ flowchart LR
 flowchart LR
     U[User] --> SW[bff-swapnwarp<br/>swap · warp queries ★]
     U --> BC[Blockchain<br/>swap · bridge]
-    BC --> DEA[DE Swap/Warp analyzer<br/>normalises chain results]
-    DEA -- cross-chain history events --> ACT[api-activity ★<br/>out-of-order Warp info/result handling<br/>advisory lock]
-    ACT -- one result topic --> NT[api-notification<br/>result notifications]
-    ACT -- one result topic --> BCS[api-blockchain-supporter<br/>rolls back pre-deduction on failure<br/>switched to depend on result topics ★]
+    BC --> DEA[DE Swap/Warp analyzer]
+    DEA -- cross-chain history events --> ACT[api-activity ★<br/>orders Warp request/result]
+    ACT -- result event --> NT[api-notification<br/>result notifications]
+    ACT -- result event --> BCS[api-blockchain-supporter<br/>rolls back pre-deduction on failure ★]
     SW --> ACT
-    SW --> GD[api-account · api-gamedata<br/>nickname · profile image enrichment]
+    SW --> GD[api-account · api-gamedata<br/>nickname · profile image]
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
     class SW,ACT,BCS mine
 </script>
@@ -443,83 +443,83 @@ sequenceDiagram
     participant A as api-account ★
     end
     participant R as Redis
-    participant W as Worldpay FraudSight
+    participant W as Worldpay
     participant N as api-notification
     U->>GW: Card verification request
     GW->>A: authorize
     A->>R: Check daily attempt count
-    alt more than 3
+    alt over the limit
         A-->>U: Daily limit reached
     else allowed
-        A->>R: Increment + expiry (Lua · resets at UTC midnight)
-        A->>W: Zero-amount payment · 3DS · FraudSight
-        W-->>A: Device-data / challenge step
-        A-->>U: 3DS step (supply-device-data · complete-challenge)
+        A->>R: Increase attempt count
+        A->>W: Zero-amount payment · 3DS request
+        W-->>A: 3DS step required
+        A-->>U: Guide through the 3DS step
         U->>A: 3DS step completed
         A->>W: Final authorisation
-        alt 4xx · fraudHighRisk
-            W-->>A: User-side failure
+        alt 4xx (user-side failure)
+            W-->>A: Declined
             A->>A: Store rejection history
             A->>N: Failure notification
-            A-->>U: 200 + outcome code
-        else 5xx · unexpected response
-            W-->>A: Vendor failure
+            A-->>U: 200 + failure reason code
+        else 5xx (vendor failure)
+            W-->>A: Failure
             A->>R: Roll back attempt count
             A-->>U: Error · ask to retry
         else approved
-            A->>A: Per-issuer circuit breaker (block) check
-            A->>A: Store card token · history (part of card data encrypted)
-            A-->>U: Success (credit level derived from holding a card)
+            A->>A: Check abnormal-attempt blocking
+            A->>A: Store card token · history
+            A-->>U: Success
         end
     end
-    note over GW,W: Re-verification: same endpoint · no daily limit · updates re-verification status + approval/rejection notification
+    note over GW,W: Re-verification: same path · no daily limit · result notification
 </script>
 <script type="text/plain" id="dg-src-usdt" data-title="Stablecoin withdrawals — pre-deduction and result-driven rollback">
 sequenceDiagram
     autonumber
     participant U as User
-    participant GW as Blockchain gateway<br/>(bridge · RPC proxy)
+    participant GW as Blockchain gateway
     box rgb(219,234,254) ★ = built by me
     participant S as api-blockchain-supporter ★
     end
     participant P as Policy (sentinel)
     participant AC as api-account
     participant BC as Blockchain
-    participant K as Result topics<br/>(published by blockchain backend · api-activity)
-    U->>GW: Withdrawal (USDT bridge / NXPC transfer)
-    GW->>S: TryWithdrawal / TryTransfer (request id · nonce)
-    S->>P: Whitelist (exemption) · country/IP restrictions
-    S->>AC: MVP rank · feature lock (OTP)
-    S->>S: Daily limit per KYC level + pre-deduct ★<br/>(one transaction · FOR UPDATE · idempotent by request id)
+    participant K as Transaction result topics
+    U->>GW: Withdrawal (USDT · NXPC)
+    GW->>S: Ask whether the withdrawal is allowed
+    S->>P: Check exemptions · country limits
+    S->>AC: Check account state
+    S->>S: Daily limit check + pre-deduct ★
     alt over limit · restricted
         S-->>GW: Reject
     else allowed
         S-->>GW: Allow
         GW->>BC: Forward transaction
         BC-->>K: Success / failure / dropped
-        K->>S: Result consumer (switched to depend on result topics ★)
-        S->>S: Roll back competing requests with the same address · nonce<br/>(I covered the 3+ case ★)
+        K->>S: Receive result (switched to result topics ★)
+        S->>S: Clean up competing requests with the same nonce (3+ case ★)
         alt failure · dropped
-            S->>S: Roll back pre-deduction (decrement · mark cancelled)
+            S->>S: Roll back pre-deduction
         end
     end
-    note over GW,AC: Pre-deduction is final — only reversed on failure · bff-swapnwarp only reads limits and eligibility
+    note over GW,AC: Pre-deduction is final — only reversed on failure
 </script>
 <script type="text/plain" id="dg-src-notification" data-title="Unified notifications — SSE and bulk-recipient streaming">
 flowchart TB
-    AC[api-account<br/>KYC · identity · re-verification · card · nickname · ban · MFA]
-    K[[3 domain event topics<br/>marketplace · Swap/Warp results · reactor]]
+    AC[api-account<br/>KYC · re-verification · card · ban, etc.]
+    K[[Domain event topics<br/>marketplace · Swap/Warp results · reactor]]
     CON[portal-console<br/>operator bulk notifications]
     subgraph NT["api-notification · ★ = built by me · dashed = partial"]
-        G1["7 gRPC Notify RPCs<br/>re-verification · KYB · MFA added ★"]
-        C[3 domain consumers]
+        G1["gRPC Notify<br/>added notification types ★"]
+        C[Domain consumers]
         Q[[Internal queues · single / bulk]]
-        CR["Create consumer<br/>URL · title · body built server-side<br/>(URL generation · many payloads ★)"]
-        DB[(MongoDB · 30-day TTL)]
+        CR["Create notification<br/>URL · title · body generation ★"]
+        DB[(MongoDB)]
         PS[(Redis pub/sub)]
-        SSE["SSE server<br/>per-pod connection cap · verifies JWT itself ★"]
-        G["gRPC read · mark-as-read<br/>(per-item read · category filter ★)"]
-        ST["Back-office gRPC streaming ★<br/>recipients in 500-row chunks · 50k cap"]
+        SSE["SSE server<br/>verifies JWT itself ★"]
+        G["gRPC read · mark-as-read ★"]
+        ST["Back-office gRPC streaming ★<br/>recipients sent in chunks"]
         SCH[Scheduled sender]
         RDB[(Send settings · recipients)]
     end
@@ -538,19 +538,19 @@ flowchart TB
 <script type="text/plain" id="dg-src-sentinel" data-title="api-sentinel — single owner of business policies">
 flowchart LR
     subgraph CALL[Runtime callers — read only]
-        AC[api-account<br/>auth-mail · card · sign-up rate limits<br/>OTP lockout · ACL · flags]
-        BC["api-blockchain-supporter<br/>withdrawal whitelist (exemption) · country/IP restrictions"]
-        AI["portal-ai<br/>error dedupe (rate limit)"]
-        CS[portal-console<br/>Discord reply rate limit]
+        AC[api-account<br/>auth-mail · card · sign-up limits<br/>OTP lockout · access control]
+        BC["api-blockchain-supporter<br/>withdrawal exemptions · country limits"]
+        AI["portal-ai<br/>error de-duplication"]
+        CS[portal-console<br/>Discord reply limit]
     end
-    CON[portal-console · back office<br/>manages ACL · flags · rate-limit policies]
+    CON[portal-console · back office<br/>policy management]
     subgraph SEN[api-sentinel ★]
-        RT[4 runtime gRPC services<br/>RateLimit · Lockout · ACL · FeatureFlag<br/>TryAcquire · RecordFailure · CheckBlocked · ExistsWhitelist · CheckEnabled]
-        RF[rate-limit · lockout policy refresher<br/>every 1 min ± 5 s jitter]
+        RT[Runtime gRPC<br/>rate limit · lockout · access control · feature flags]
+        RF[Periodic policy refresh]
         BOG[Back-office gRPC]
     end
-    RD[("Redis<br/>fixed / sliding window (Lua)<br/>lockout failures as sorted set")]
-    PG[(Policies · ACL · flags<br/>flags cached 30 min)]
+    RD[("Redis<br/>call counts · failure counts")]
+    PG[(Policy store)]
     AC & BC & AI & CS --> RT
     RT --> RD
     RT -- ACL · flags --> PG
@@ -562,13 +562,13 @@ flowchart LR
 </script>
 <script type="text/plain" id="dg-src-cdc" data-title="PostgreSQL CDC → Snowflake">
 flowchart LR
-    PG[(PostgreSQL<br/>publication · slot created manually<br/>pgoutput)]
-    DZ[Debezium · Kafka Connect<br/>tombstones off, op field via rewrite<br/>incremental snapshot via signal table]
-    K[[Kafka<br/>one topic per table<br/>DLQ per connector]]
-    SK[Snowflake Sink<br/>Snowpipe Streaming<br/>schematization]
-    ST[Stream → Task<br/>every 1 min · only when stream has data<br/>MERGE latest change per PK<br/>stateful = apply deletes / history = ignore deletes]
+    PG[(PostgreSQL)]
+    DZ[Debezium<br/>Kafka Connect]
+    K[[Kafka<br/>topic per table · DLQ]]
+    SK[Snowflake Sink]
+    ST[Stream → Task<br/>MERGE only when there is data]
     T[(Analytics tables)]
-    KA[Replication-slot keepalive batch ★<br/>UPDATE pk=pk on latest row of quiet tables<br/>advances slot LSN → no WAL/disk build-up]
+    KA[Replication-slot keepalive batch ★<br/>prevents WAL build-up on quiet tables]
     PG --> DZ --> K --> SK --> ST --> T
     KA -. scheduled .-> PG
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
@@ -578,69 +578,68 @@ flowchart LR
 sequenceDiagram
     autonumber
     participant S as Slack error channel
-    box rgb(219,234,254) Built by me
+    box rgb(219,234,254) ★ = built by me
     participant B as portal-ai error-triage bot ★
     end
     participant P as Policy (sentinel)
     participant O as OpenSearch (analysis history)
     participant G as GitLab API
     participant L as Vertex AI (LLM)
-    S->>B: Error-alert thread event (Socket Mode)
-    B->>B: Detect truncated message → re-fetch thread
-    B->>P: Dedupe by signature (TTL policy)
-    B->>B: Count repeats
-    opt threshold exceeded within window
-        B-->>S: 🚨 escalation warning (once)
+    S->>B: Error alert event
+    B->>B: Re-fetch the full message if it was truncated
+    B->>P: Check whether it is a duplicate error
+    opt same error repeating in a short time
+        B-->>S: escalation warning (once)
     end
     alt duplicate
-        B-->>S: 👀 reaction only (skip analysis)
+        B-->>S: reaction only (skip analysis)
     else new
-        B->>O: Look up past analyses · first occurrence by signature
-        B->>G: Last 5 commits per file in stack trace (circuit breaker)
-        B->>L: Analyse (semaphore 2 · retry 3× on 429/5xx · backoff + jitter)
+        B->>O: Look up past analyses · first occurrence
+        B->>G: Fetch recent commits of files in the stack trace
+        B->>L: Analyse (concurrency limit · retries)
         L-->>B: First-pass analysis
         B->>O: Save analysis
         B-->>S: Thread reply (+ first-seen time · link to earlier thread)
     end
-    S->>B: 👍/👎 feedback · 🔍 re-analyse · follow-up via mention
+    S->>B: Feedback · re-analysis request
 </script>
 <script type="text/plain" id="dg-src-cicd" data-title="CI/CD — per-environment flow (★ = config I added or maintained)">
 flowchart TB
     subgraph CI["CI — GitLab CI"]
         direction LR
         BR["branch push<br/>develop · test · qa · stage · live"]
-        T["test<br/>go test"]
-        B["build<br/>multi-stage Dockerfile<br/>tags :pipeline-id · :latest"]
-        REL["release<br/>qa · live branches only · last stage<br/>semantic-release"]
+        T["test"]
+        B["build<br/>build and push Docker image"]
+        REL["release<br/>qa · live branches only"]
         BR --> T --> B --> REL
     end
     subgraph REG["Image registries"]
         direction LR
         R1[("GitLab Registry<br/>dev")]
-        R2[("AWS ECR<br/>one per environment · test · qa · stage · live")]
+        R2[("AWS ECR<br/>test · qa · stage · live")]
     end
     subgraph CD["CD — deployment · differs per environment"]
         direction LR
         subgraph DEVL["dev — CI deploys directly"]
             direction TB
-            D1["CI deploy job<br/>K8s API PATCH → rollout restart"]
-            H["Helm templates ★ for the new service<br/>gotohelm (synced by ArgoCD) · reference :latest"]
+            D1["CI deploy job<br/>restarts via K8s API"]
+            H["Helm templates ★<br/>for the new service"]
             K1["EKS dev"]
             D1 --> K1
             H -.-> K1
         end
         subgraph TQS["test · qa · stage — CI → Rundeck"]
             direction TB
-            D2["CI deploy job<br/>calls Rundeck API · -Version pipeline-id"]
-            RD["Rundeck job<br/>renders · applies manifests"]
-            M["Per-environment manifests ★ added for new service · maintained<br/>deploy-scripts · Deployment · HPA · Service"]
+            D2["CI deploy job<br/>calls Rundeck"]
+            RD["Rundeck job<br/>applies manifests"]
+            M["Per-environment manifests ★<br/>Deployment · HPA · Service"]
             K2["EKS test / qa / stage"]
             D2 --> RD --> M --> K2
         end
         subgraph LIVE["live — outside CI"]
             direction TB
             RL["Rundeck job run manually<br/>(no deploy job in CI)"]
-            ML["live manifests ★ for the new service<br/>deploy-scripts"]
+            ML["live manifests ★"]
             K3["EKS live"]
             RL --> ML --> K3
         end

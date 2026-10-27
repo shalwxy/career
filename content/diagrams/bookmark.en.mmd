@@ -1,14 +1,14 @@
 %% title: api-bookmark — bookmarks / view counts and marketplace BFFs
 flowchart LR
     subgraph BFF["Marketplace BFFs — bookmark parts of bff-marketplace ★"]
-        M[bff-marketplace<br/>bookmarks · views · bookmarked inventory<br/>inventory cached 3 s]
+        M[bff-marketplace<br/>bookmarks · views · bookmarked inventory]
         NV[bff-navigator<br/>bookmarks · views]
     end
     subgraph BK[api-bookmark ★]
-        H[Bookmark / UnBookmark / SetView<br/>idempotent: duplicate = success<br/>views counted once per IP · wallet · target per 24 h]
-        L["Limits: 100 / day · 5,000 total<br/>configurable · 24 h window from first action"]
+        H[Bookmark / UnBookmark / SetView<br/>duplicate request = success]
+        L["Bookmark count limits"]
         PG[(Bookmarks)]
-        RD[(Redis counters<br/>per user · per target<br/>cleaned up on read when ≤ 0)]
+        RD[(Redis counters)]
     end
     AC[api-account<br/>bulk delete on account closure]
     NT[api-notification<br/>who bookmarked a target]

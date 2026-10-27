@@ -1,12 +1,12 @@
 %% title: PostgreSQL CDC → Snowflake
 flowchart LR
-    PG[(PostgreSQL<br/>publication · slot created manually<br/>pgoutput)]
-    DZ[Debezium · Kafka Connect<br/>tombstones off, op field via rewrite<br/>incremental snapshot via signal table]
-    K[[Kafka<br/>one topic per table<br/>DLQ per connector]]
-    SK[Snowflake Sink<br/>Snowpipe Streaming<br/>schematization]
-    ST[Stream → Task<br/>every 1 min · only when stream has data<br/>MERGE latest change per PK<br/>stateful = apply deletes / history = ignore deletes]
+    PG[(PostgreSQL)]
+    DZ[Debezium<br/>Kafka Connect]
+    K[[Kafka<br/>topic per table · DLQ]]
+    SK[Snowflake Sink]
+    ST[Stream → Task<br/>MERGE only when there is data]
     T[(Analytics tables)]
-    KA[Replication-slot keepalive batch ★<br/>UPDATE pk=pk on latest row of quiet tables<br/>advances slot LSN → no WAL/disk build-up]
+    KA[Replication-slot keepalive batch ★<br/>prevents WAL build-up on quiet tables]
     PG --> DZ --> K --> SK --> ST --> T
     KA -. scheduled .-> PG
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a

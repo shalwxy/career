@@ -2,22 +2,22 @@
 %% title_en: api-sentinel — single owner of business policies
 flowchart LR
     subgraph CALL[런타임 호출자 — 조회만]
-        AC[api-account<br/>인증메일 · 카드 · 가입 rate limit<br/>OTP lockout · ACL · flag]
-        BC["api-blockchain-supporter<br/>출금 화이트리스트(면제) · 국가/IP 제한"]
-        AI["portal-ai<br/>에러 dedupe (rate limit)"]
-        CS[portal-console<br/>Discord 답장 rate limit]
+        AC[api-account<br/>인증메일 · 카드 · 가입 제한<br/>OTP 잠금 · 접근 제어]
+        BC["api-blockchain-supporter<br/>출금 예외 · 국가 제한"]
+        AI["portal-ai<br/>에러 중복 판정"]
+        CS[portal-console<br/>Discord 답장 제한]
     end
-    CON[portal-console · 백오피스<br/>ACL · flag · rate limit 정책 관리]
+    CON[portal-console · 백오피스<br/>정책 관리]
     subgraph SEN[api-sentinel ★]
-        RT[런타임 gRPC 4종<br/>RateLimit · Lockout · ACL · FeatureFlag<br/>TryAcquire · RecordFailure · CheckBlocked · ExistsWhitelist · CheckEnabled]
-        RF[rate limit · lockout 정책 refresher<br/>1분 ± 5초 jitter]
+        RT[런타임 gRPC<br/>호출 제한 · 잠금 · 접근 제어 · 기능 플래그]
+        RF[정책 주기 갱신]
         BOG[백오피스 gRPC]
     end
-    RD[("Redis<br/>fixed / sliding window (Lua)<br/>lockout 실패 시각 sorted set")]
-    PG[(정책 · ACL · flag<br/>flag 는 30분 캐시)]
+    RD[("Redis<br/>호출 횟수 · 실패 횟수")]
+    PG[(정책 저장소)]
     AC & BC & AI & CS --> RT
     RT --> RD
-    RT -- ACL · flag --> PG
+    RT -- 접근 제어 · 플래그 --> PG
     RF --> PG
     RF -.-> RT
     CON --> BOG --> PG

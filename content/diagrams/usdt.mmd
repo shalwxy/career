@@ -3,29 +3,29 @@
 sequenceDiagram
     autonumber
     participant U as 사용자
-    participant GW as 블록체인 게이트웨이<br/>(브리지 · RPC 프록시)
+    participant GW as 블록체인 게이트웨이
     box rgb(219,234,254) ★ = 내가 구현한 부분
     participant S as api-blockchain-supporter ★
     end
     participant P as 정책 (sentinel)
     participant AC as api-account
     participant BC as 블록체인
-    participant K as 결과 토픽<br/>(블록체인 백엔드 · api-activity 발행)
-    U->>GW: 출금 요청 (USDT 브리지 / NXPC 전송)
-    GW->>S: TryWithdrawal / TryTransfer (request id · nonce)
-    S->>P: 화이트리스트(면제) · 국가/IP 제한 조회
-    S->>AC: MVP 랭크 · 기능 잠금(OTP) 확인
-    S->>S: KYC 레벨별 일일 한도 검사 + 선차감 ★<br/>(한 트랜잭션 · FOR UPDATE · request id 멱등)
+    participant K as 트랜잭션 결과 토픽
+    U->>GW: 출금 요청 (USDT · NXPC)
+    GW->>S: 출금 가능 여부 요청
+    S->>P: 예외 대상 · 국가 제한 조회
+    S->>AC: 계정 상태 확인
+    S->>S: 일일 한도 검사 + 선차감 ★
     alt 한도 초과 · 제한
         S-->>GW: 거부
     else 허용
         S-->>GW: 허용
         GW->>BC: 트랜잭션 전달
         BC-->>K: 성공 / 실패 / 드랍
-        K->>S: 결과 컨슈머 (결과 토픽 의존으로 변경 ★)
-        S->>S: 같은 주소·nonce 의 경합 요청 롤백<br/>(3건 이상 케이스 보완 ★)
+        K->>S: 결과 수신 (결과 토픽 의존으로 변경 ★)
+        S->>S: 같은 nonce 의 경합 요청 정리 (3건 이상 보완 ★)
         alt 실패 · 드랍
-            S->>S: 선차감 롤백 (누적 감산 · 이력 cancelled)
+            S->>S: 선차감 롤백
         end
     end
-    note over GW,AC: 선차감이 곧 확정 — 실패일 때만 되돌림 · bff-swapnwarp 는 한도·자격 조회만 호출
+    note over GW,AC: 선차감이 곧 확정 — 실패일 때만 되돌림

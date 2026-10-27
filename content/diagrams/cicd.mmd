@@ -4,38 +4,38 @@ flowchart TB
     subgraph CI["CI — GitLab CI"]
         direction LR
         BR["브랜치 push<br/>develop · test · qa · stage · live"]
-        T["test<br/>go test"]
-        B["build<br/>multi-stage Dockerfile<br/>태그 :pipeline-id · :latest"]
-        REL["release<br/>qa · live 브랜치만 · 마지막 stage<br/>semantic-release"]
+        T["test"]
+        B["build<br/>Docker 이미지 빌드·푸시"]
+        REL["release<br/>qa · live 브랜치만"]
         BR --> T --> B --> REL
     end
     subgraph REG["이미지 레지스트리"]
         direction LR
         R1[("GitLab Registry<br/>dev")]
-        R2[("AWS ECR<br/>대역별 분리 · test · qa · stage · live")]
+        R2[("AWS ECR<br/>test · qa · stage · live")]
     end
     subgraph CD["CD — 배포 · 대역별로 다름"]
         direction LR
         subgraph DEVL["dev — CI 가 직접"]
             direction TB
-            D1["CI deploy job<br/>K8s API PATCH → rollout restart"]
-            H["Helm 템플릿 ★ 신설 서비스분<br/>gotohelm (ArgoCD 동기화) · :latest 참조"]
+            D1["CI deploy job<br/>K8s API 로 재시작"]
+            H["Helm 템플릿 ★<br/>신설 서비스분"]
             K1["EKS dev"]
             D1 --> K1
             H -.-> K1
         end
         subgraph TQS["test · qa · stage — CI → Rundeck"]
             direction TB
-            D2["CI deploy job<br/>Rundeck API 호출 · -Version pipeline-id"]
-            RD["Rundeck job<br/>매니페스트 렌더 · 적용"]
-            M["환경별 매니페스트 ★ 신설분 추가 · 보수<br/>deploy-scripts · Deployment · HPA · Service"]
+            D2["CI deploy job<br/>Rundeck 호출"]
+            RD["Rundeck job<br/>매니페스트 적용"]
+            M["환경별 매니페스트 ★<br/>Deployment · HPA · Service"]
             K2["EKS test / qa / stage"]
             D2 --> RD --> M --> K2
         end
         subgraph LIVE["live — CI 밖"]
             direction TB
             RL["Rundeck job 수동 실행<br/>(CI 에 deploy job 없음)"]
-            ML["live 매니페스트 ★ 신설분<br/>deploy-scripts"]
+            ML["live 매니페스트 ★"]
             K3["EKS live"]
             RL --> ML --> K3
         end

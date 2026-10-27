@@ -3,23 +3,23 @@
 flowchart LR
     subgraph IN[이벤트 소스]
         MK[거래소 거래 이벤트]
-        DE1[DE 자산 이벤트<br/>아이템 FT·NFT · 캐릭터 · 닉네임]
-        DE2[DE 크로스체인<br/>Swap · Warp 이벤트]
+        DE1[DE 자산 이벤트<br/>아이템 · 캐릭터 · 닉네임]
+        DE2[DE 크로스체인 이벤트<br/>Swap · Warp]
     end
     subgraph ACT[api-activity ★]
-        C[Kafka 컨슈머<br/>토픽별 핸들러 6종]
-        DD[Redis SET NX<br/>거래 · 자산 · Swap<br/>동시 중복 처리 차단]
-        LK[PostgreSQL advisory lock<br/>Warp 요청↔결과<br/>선조회 후 생성/수정]
-        W[이력 저장<br/>unique 위반 = 이미 처리됨]
-        DB[(트랜잭션 이력<br/>해시 유니크 키)]
-        PUB[결과 이벤트 발행<br/>저장 직후 서비스가 직접 produce]
-        Q[gRPC 조회 서버<br/>지갑 · 토큰 · Swap · Warp · 해시]
-        RT[[재시도 큐 24분 × 5회 → DLQ]]
+        C[Kafka 컨슈머]
+        DD[Redis SET NX<br/>거래 · 자산 · Swap 중복 처리 차단]
+        LK[advisory lock<br/>Warp 요청·결과 순서 보정]
+        W[이력 저장<br/>이미 저장된 건이면 성공 종료]
+        DB[(트랜잭션 이력)]
+        PUB[결과 이벤트 발행<br/>저장 직후 서비스가 직접]
+        Q[gRPC 조회 서버]
+        RT[[재시도 큐 → DLQ]]
     end
     N[api-notification<br/>결과 알림]
     BCS[api-blockchain-supporter<br/>실패 시 선차감 롤백]
     B[bff-swapnwarp · bff-marketplace]
-    SF[(Snowflake · CDC)]
+    SF[(Snowflake)]
     MK & DE1 --> C
     DE2 --> C
     C --> DD --> W
@@ -27,8 +27,8 @@ flowchart LR
     W --> DB
     W --> PUB
     C -. 실패 .-> RT
-    PUB -- 결과 이벤트 1토픽 --> N & BCS
-    DB -. Debezium .-> SF
+    PUB -- 결과 이벤트 --> N & BCS
+    DB -. CDC .-> SF
     B --> Q --> DB
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
     class C,DD,LK,W,DB,PUB,Q,RT mine

@@ -2,28 +2,27 @@
 sequenceDiagram
     autonumber
     participant S as Slack error channel
-    box rgb(219,234,254) Built by me
+    box rgb(219,234,254) ★ = built by me
     participant B as portal-ai error-triage bot ★
     end
     participant P as Policy (sentinel)
     participant O as OpenSearch (analysis history)
     participant G as GitLab API
     participant L as Vertex AI (LLM)
-    S->>B: Error-alert thread event (Socket Mode)
-    B->>B: Detect truncated message → re-fetch thread
-    B->>P: Dedupe by signature (TTL policy)
-    B->>B: Count repeats
-    opt threshold exceeded within window
-        B-->>S: 🚨 escalation warning (once)
+    S->>B: Error alert event
+    B->>B: Re-fetch the full message if it was truncated
+    B->>P: Check whether it is a duplicate error
+    opt same error repeating in a short time
+        B-->>S: escalation warning (once)
     end
     alt duplicate
-        B-->>S: 👀 reaction only (skip analysis)
+        B-->>S: reaction only (skip analysis)
     else new
-        B->>O: Look up past analyses · first occurrence by signature
-        B->>G: Last 5 commits per file in stack trace (circuit breaker)
-        B->>L: Analyse (semaphore 2 · retry 3× on 429/5xx · backoff + jitter)
+        B->>O: Look up past analyses · first occurrence
+        B->>G: Fetch recent commits of files in the stack trace
+        B->>L: Analyse (concurrency limit · retries)
         L-->>B: First-pass analysis
         B->>O: Save analysis
         B-->>S: Thread reply (+ first-seen time · link to earlier thread)
     end
-    S->>B: 👍/👎 feedback · 🔍 re-analyse · follow-up via mention
+    S->>B: Feedback · re-analysis request

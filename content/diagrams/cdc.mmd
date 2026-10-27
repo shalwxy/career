@@ -1,13 +1,13 @@
 %% title: PostgreSQL CDC → Snowflake
 %% title_en: PostgreSQL CDC → Snowflake
 flowchart LR
-    PG[(PostgreSQL<br/>publication · slot 수동 생성<br/>pgoutput)]
-    DZ[Debezium · Kafka Connect<br/>tombstone 끄고 op 필드로 rewrite<br/>signal 테이블 증분 스냅샷]
-    K[[Kafka<br/>테이블별 토픽<br/>connector 별 DLQ]]
-    SK[Snowflake Sink<br/>Snowpipe Streaming<br/>schematization]
-    ST[Stream → Task<br/>1분 주기 · 데이터 있을 때만<br/>PK 별 최신 변경만 MERGE<br/>상태성 = 삭제 반영 / 이력성 = 삭제 무시]
+    PG[(PostgreSQL)]
+    DZ[Debezium<br/>Kafka Connect]
+    K[[Kafka<br/>테이블별 토픽 · DLQ]]
+    SK[Snowflake Sink]
+    ST[Stream → Task<br/>데이터가 있을 때만 MERGE]
     T[(분석 테이블)]
-    KA[replication slot keepalive 배치 ★<br/>변경 뜸한 테이블 최신 1행 UPDATE pk=pk<br/>slot LSN 전진 → WAL/디스크 누적 방지]
+    KA[replication slot keepalive 배치 ★<br/>변경이 뜸한 테이블의 WAL 누적 방지]
     PG --> DZ --> K --> SK --> ST --> T
     KA -. 주기 실행 .-> PG
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
