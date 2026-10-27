@@ -259,7 +259,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <p><strong>문제.</strong> 서킷 브레이커는 공통 라이브러리에, rate limit 은 계정 서비스에, 화이트리스트는 블록체인 서비스에 — 제어 로직이 흩어져 중복과 운영 혼란의 원인이었습니다.</p>
 <p><strong>접근.</strong> 1단계로 계정 서비스·공통 라이브러리에 있던 rate limit·서킷 브레이커·feature flag·ACL 을 포털 서비스로 모은 뒤, 콘텐츠 도메인과 섞이지 않도록 <strong><a href="#" class="dg" data-dg="sentinel" title="도식 보기">정책 전용 서비스</a></strong>를 신설했습니다. rate limit 정책 refresh 를 각 서비스가 전체 정책을 메모리에 올리던 방식에서 <strong>정책 서비스가 단일 소유자</strong>가 되는 구조로 옮겨 메모리 이슈를 해결했고, sliding/fixed window 를 모두 지원하되 refresh 스파이크를 jitter 로 완화했습니다(ticker 대신 매 회차 랜덤 timer). 이어 OTP 반복 실패 잠금(lockout) 을 실패 횟수 보존/초기화 정책을 유연하게 설계해 추가하고, 블록체인 서비스의 화이트리스트까지 이전해 <strong>통합을 완료</strong>했습니다.</p>
 <p><strong>결과.</strong> 로그인 rate limit, 출금 화이트리스트, 백오피스 lockout 의 단일 진입점.</p>
-<p class="more">관련 설계 결정: <a href="decisions.html#d-sentinel">정책 전용 서비스 분리</a> · <a href="decisions.html#d-jitter">jitter 와 cadence</a> · <a href="decisions.html#d-enum">정책은 enum 으로</a></p>
+<p class="more">관련 설계 결정: <a href="decisions.html#d-sentinel">정책 전용 서비스 분리</a> · <a href="decisions.html#d-jitter">jitter 와 timer</a> · <a href="decisions.html#d-enum">정책은 enum 으로</a></p>
 
 <hr>
 <h2 id="cdc">8. PostgreSQL CDC → Snowflake 파이프라인</h2>

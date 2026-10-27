@@ -127,7 +127,7 @@
 
 **결과.** 로그인 rate limit, 출금 화이트리스트, 백오피스 lockout 의 단일 진입점.
 
-<p class="more">관련 설계 결정: <a href="decisions.html#d-sentinel">정책 전용 서비스 분리</a> · <a href="decisions.html#d-jitter">jitter 와 cadence</a> · <a href="decisions.html#d-enum">정책은 enum 으로</a></p>
+<p class="more">관련 설계 결정: <a href="decisions.html#d-sentinel">정책 전용 서비스 분리</a> · <a href="decisions.html#d-jitter">jitter 와 timer</a> · <a href="decisions.html#d-enum">정책은 enum 으로</a></p>
 
 ---
 
