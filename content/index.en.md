@@ -2,7 +2,7 @@
 
 Hi, I'm Seungha Lee — a backend engineer who enjoys nothing more than the time spent solving problems.
 
-**Three years of Go backend work** on payments, notifications, transaction history and data pipelines, mainly designing for **data consistency in distributed systems** (pre-emption, idempotency, recovery). I also work across the boundary of my services — **CI/CD, Kubernetes manifests, the gateway and DB DDL** — and I'm applying for both backend and DevOps roles.
+**Seven years in software and engineering** — Java backend (2 years) → AI/GPU infrastructure R&D (about 2 years) → **Go backend (3 years)**. In my current role I work on payments, notifications, transaction history and data pipelines, mainly designing for **data consistency in distributed systems** (pre-emption, idempotency, recovery), and I also handle **CI/CD, Kubernetes manifests, the gateway and DB DDL** for my services. I'm applying for both backend and DevOps roles.
 
 ---
 
@@ -15,7 +15,7 @@ Hi, I'm Seungha Lee — a backend engineer who enjoys nothing more than the time
 NEXON UNIVERSE (founded 2022, a Nexon affiliate) builds MapleStory Universe (MSU), a Web3 platform that brings blockchain to the MapleStory IP. I developed its backend on the platform development team. I started on the on-chain/off-chain synchronization layer and went on to work on transaction history, bookmarks, the marketplace BFF, account/payment, unified notifications, a policy service, a CDC data pipeline and an operations AI bot.
 
 <div class="stats">
-<div><strong>3 yrs</strong><span>at the company<br/>Nov 2023 – Nov 2026</span></div>
+<div><strong>7 yrs</strong><span>in development<br/>Go for 3 yrs (current job)</span></div>
 <div><strong>6</strong><span>main Go services<br/>built and operated</span></div>
 <div><strong>4</strong><span>services · domains · bots<br/>built new · joined early</span></div>
 <div><strong>5</strong><span>deployment environments<br/>dev · test · qa · stage · live</span></div>
