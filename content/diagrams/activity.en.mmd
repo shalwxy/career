@@ -9,7 +9,9 @@ flowchart LR
         C[Kafka consumers<br/>6 handlers, one per topic]
         DD[Redis SET NX<br/>trade · asset · Swap<br/>blocks concurrent duplicates]
         LK[PostgreSQL advisory lock<br/>Warp request↔result<br/>look up, then create or update]
+        W[Save to ledger<br/>unique violation = already processed]
         DB[(Transaction ledger<br/>unique keys on hashes)]
+        PUB[Emit result event<br/>service produces directly after saving]
         Q[gRPC query server<br/>by wallet · token · Swap · Warp · hash]
         RT[[Retry queue 24 min × 5 → DLQ]]
     end
@@ -19,11 +21,13 @@ flowchart LR
     SF[(Snowflake · CDC)]
     MK & DE1 --> C
     DE2 --> C
-    C --> DD --> DB
-    C -- Warp --> LK --> DB
+    C --> DD --> W
+    C -- Warp --> LK --> W
+    W --> DB
+    W --> PUB
     C -. failure .-> RT
-    DB -- one result topic --> N & BCS
+    PUB -- one result topic --> N & BCS
     DB -. Debezium .-> SF
     B --> Q --> DB
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
-    class C,DD,LK,DB,Q,RT mine
+    class C,DD,LK,W,DB,PUB,Q,RT mine

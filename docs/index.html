@@ -469,7 +469,9 @@ flowchart LR
         C[Kafka 컨슈머<br/>토픽별 핸들러 6종]
         DD[Redis SET NX<br/>거래 · 자산 · Swap<br/>동시 중복 처리 차단]
         LK[PostgreSQL advisory lock<br/>Warp 요청↔결과<br/>선조회 후 생성/수정]
+        W[이력 저장<br/>unique 위반 = 이미 처리됨]
         DB[(트랜잭션 이력<br/>해시 유니크 키)]
+        PUB[결과 이벤트 발행<br/>저장 직후 서비스가 직접 produce]
         Q[gRPC 조회 서버<br/>지갑 · 토큰 · Swap · Warp · 해시]
         RT[[재시도 큐 24분 × 5회 → DLQ]]
     end
@@ -479,14 +481,16 @@ flowchart LR
     SF[(Snowflake · CDC)]
     MK & DE1 --> C
     DE2 --> C
-    C --> DD --> DB
-    C -- Warp --> LK --> DB
+    C --> DD --> W
+    C -- Warp --> LK --> W
+    W --> DB
+    W --> PUB
     C -. 실패 .-> RT
-    DB -- 결과 이벤트 1토픽 --> N & BCS
+    PUB -- 결과 이벤트 1토픽 --> N & BCS
     DB -. Debezium .-> SF
     B --> Q --> DB
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
-    class C,DD,LK,DB,Q,RT mine
+    class C,DD,LK,W,DB,PUB,Q,RT mine
 </script>
 <script type="text/plain" id="dg-src-activity-lock" data-title="동시 적재 정합성 — 이벤트 종류별 방어">
 flowchart TB
