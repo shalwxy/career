@@ -17,7 +17,7 @@
 <div class="stats">
 <div><strong>33</strong><span>저장소</span></div>
 <div><strong>3,700+</strong><span>커밋</span></div>
-<div><strong>4</strong><span>신규 서비스·도메인·봇<br/>설계부터 운영까지</span></div>
+<div><strong>4</strong><span>신규 서비스·도메인·봇<br/>신설 · 초기 참여</span></div>
 <div><strong>3년</strong><span>재직</span></div>
 </div>
 
@@ -58,26 +58,26 @@
 <p class="chips"><span class="chip">gRPC</span><span class="chip">Kafka</span><span class="chip">PostgreSQL advisory lock</span><span class="chip">Redis NX</span><span class="chip">CDC</span><span class="chip">Snowflake</span></p>
 <div class="impact"><span class="impact-k">Impact</span> api-activity 구조 개선 후 확장(<strong>907 커밋</strong>) · api-bookmark 과반 커밋(<strong>550 커밋</strong>) 모두 라이브 승격 · Redis NX + advisory lock 으로 동시 적재 중복 차단 · 간헐적 pod 재시작 원인 규명·해결</div>
 
-- **대용량 트랜잭션 이력 서비스([api-activity](#dg:activity))** — 레이어·서버/컨슈머 분리 후 거래/민팅/전송/Swap&Warp/USDT 를 차례로 확장. 트랜잭션 해시 유니크 승격, Redis NX + PostgreSQL advisory lock 으로 [동시 적재 정합성](#dg:activity-lock), 비정상 이벤트는 DLQ
+- **대용량 트랜잭션 이력 서비스([api-activity](#dg:activity))** — 레이어 재정비·컨슈머 일반화·메시지 포맷 v2 후 거래/민팅/전송/Swap&Warp/USDT 를 차례로 확장. 트랜잭션 해시 유니크 승격, Redis NX + PostgreSQL advisory lock 으로 [동시 적재 정합성](#dg:activity-lock), 비정상 이벤트는 DLQ
 - **쿼리 튜닝·성능 개선** — DBA 와 협업한 OR → UNION ALL 전환, 커서 기반 무한 스크롤, 조건부 캐싱(공통 라이브러리 직접 개발)
 - **알림 이벤트 발행 구조**, Snowflake 적재를 Kafka 발행 → **CDC 로 전환**해 유실 경로 제거
 - **북마크/조회수 서비스([api-bookmark](#dg:bookmark))** 신규 설계 — 멱등 처리, Redis 카운트 캐시 → Kafka 이벤트 집계, 하루/총량 제한, 회원 탈퇴 연동
-- **거래소 웹 BFF(bff-marketplace)** — 북마크/액티비티 마이그레이션, 인벤토리 서비스 신설. 간헐적 pod 재시작을 로그 추적으로 비동기 루프 내 gRPC 호출 자원 점유로 좁혀 timeout·chunk 호출로 해결
-- [Swap & Warp](#dg:swapwarp) 신규 도메인(bff-swapnwarp 포함) · 전사 proto 저장소 도메인별 모듈화(165 커밋) · 공통 라이브러리 마이그레이션을 플랫폼·거래소 서비스 7곳에 동시 적용 · Envoy 게이트웨이 route 운영 · Java/Spring Kafka 컨슈머(sync-market-event) · 런칭 전 거래소 BFF·게임데이터 버그 픽스
+- **거래소 웹 BFF(bff-marketplace)** — 북마크/액티비티 마이그레이션, 인벤토리 서비스의 북마크·판매중 목록 조회 구현. 간헐적 pod 재시작을 로그 추적으로 비동기 루프 내 gRPC 호출 자원 점유로 좁혀 timeout·chunk 호출로 해결
+- [Swap & Warp](#dg:swapwarp) 신규 도메인(bff-swapnwarp 포함) · 전사 proto 저장소 도메인별 모듈화 주도(저장소 165 커밋) · 공통 라이브러리 마이그레이션을 플랫폼·거래소 서비스 6곳에 2주 내 연속 적용 · Envoy 게이트웨이 route 운영 · Java/Spring Kafka 컨슈머에 북마크 이벤트 적재 추가 · 런칭 전 거래소 BFF·게임데이터 버그 픽스
 - 확률 고지 서비스 요구사항 분석·버저닝·데이터 적재
-- 백오피스 아이템/토큰 제재(단건·일괄·대량) 및 제재 이력 시스템
+- 백오피스 아이템/토큰 제재(단건·일괄·대량) 기능과 제재 이력 조회 화면
 
 #### <span class="phase">3</span> 계정 · 결제 · 통합 알림
 <p class="period">2025.07 ~ 2026.08 · <a href="portfolio.html#creditcard">자세히 보기 →</a></p>
 <p class="chips"><span class="chip">Worldpay</span><span class="chip">Redis Lua</span><span class="chip">SSE</span><span class="chip">gRPC streaming</span><span class="chip">MongoDB</span><span class="chip">Outbox</span></p>
-<div class="impact"><span class="impact-k">Impact</span> 신용카드 인증·재인증을 <strong>리뷰 2회차</strong>로 라이브 승격 · 일일 한도를 <strong>Lua 원자 처리</strong>로 동시 요청에도 보장 · 대량 수신자 응답을 <strong>500건 청크 스트리밍</strong>으로 분리 · KYC 전 사용자 마이그레이션 live 완료</div>
+<div class="impact"><span class="impact-k">Impact</span> 신용카드 인증을 완성하고 계정 재인증에 <strong>신용카드 수단</strong>을 붙여 라이브 승격 · 일일 시도 카운트의 <strong>증가+만료를 Lua 로 원자 처리</strong> · 대량 수신자 응답을 <strong>500건 청크 스트리밍</strong>으로 분리 · KYC 전 사용자 마이그레이션 live 완료</div>
 
-- **월드페이(FraudSight 3DS) [신용카드 인증 · 재인증](#dg:creditcard)** — 벤더 응답 분기(400대는 outcome, 500대는 에러), Redis Lua 로 일일 3회 카운트 **증가+만료 원자 처리**, 카드 정보 일부 암호화·발급사별 서킷 브레이커(차단), OTP 리셋용 재인증
-- **[스테이블 코인(USDT) 도입](#dg:usdt)** — 오프체인 선차감·롤백 서비스를 USDT 에 맞춰 확장(한도 테이블 재설계·선차감 트랜잭션), 별도 롤백 토픽 대신 트랜잭션 결과 토픽을 구독해 실패 시만 되돌리도록 단순화
+- **월드페이(FraudSight 3DS) [신용카드 인증 · 재인증](#dg:creditcard)** — 벤더 응답 분기(400대는 outcome, 500대는 에러), Redis Lua 로 일일 3회 카운트 **증가+만료 원자 처리**, 카드 정보 일부 암호화, 결제수단 조합별 이상 시도 차단, OTP 리셋용 재인증
+- **[스테이블 코인(USDT) 도입](#dg:usdt)** — 오프체인 선차감·롤백 서비스를 USDT 에 맞춰 확장(토큰 단위 한도 테이블 재설계, 선차감·행 잠금 로직을 토큰별로 일반화), 별도 롤백 토픽 대신 트랜잭션 결과 토픽을 구독해 실패 시만 되돌리도록 단순화
 - **[MSU 통합 알림(SSE)](#dg:notification)** — JWT 검증 자체 흡수로 의존 제거, 백엔드 URL 생성, 대량 수신자를 **gRPC streaming RPC**(500건 청크·5만 건 상한)로 분리
-- Envoy 게이트웨이의 gRPC 의존성을 **HTTP 로 전환**해 결합도 축소
-- **KYC 업체 변경(Argos → Sumsub) 마이그레이션** — 병렬 호출·재진입 가능한 커서·rate limiter
-- 디스코드 자동 뱃지 봇·역할 동기화 배치·커뮤니티 공지 크롤링 봇 — 외부 side effect 는 **Outbox 재시도**로
+- 팀 단위 게이트웨이 gRPC → HTTP 전환에 맞춰 담당 서비스(통합 알림·블록체인 서포터)의 라우팅·포트 설정 이전
+- **KYC 업체 변경(Argos → Sumsub)에 따른 전 사용자 데이터 이관 배치** — 구간 분할 병렬 실행·재진입 가능한 커서·호출 한도 관리, live 이관 완료
+- 디스코드 자동 뱃지·역할 동기화 배치 개발, 공지 크롤링 봇에 게시판 추가·실패 지점 재개 확장 — 역할 부여 실패는 **Outbox 재시도**로(리뷰 중)
 - 이메일 변경 후 보안 설정 잠금 — Redis TTL → DB 컬럼 영속화, Primary 조회로 복제 지연 창 제거
 
 #### <span class="phase">4</span> 정책 서비스 · 데이터 파이프라인 · 운영 자동화
@@ -326,12 +326,12 @@ Oracle Cloud Infrastructure를 이용하는 고객사·관리자를 대상으로
 
 - **Golang 기반 개발과 리팩토링:** Go 언어의 고루틴과 채널을 활용한 동시성 처리에 능숙합니다. 복잡한 코드를 그대로 두지 않고, 인터페이스를 활용해 기능을 작은 단위로 쪼개고 결합도를 낮추는 리팩토링을 꾸준히 해왔습니다.
 - **데이터 설계 및 최적화:** 대용량 트래픽이나 동시 요청 상황에서도 데이터가 꼬이지 않도록 PostgreSQL advisory lock, Redis 분산 락·Lua 원자 처리, 멱등 설계를 활용한 설계와 최적화에 적극적입니다. 요청/결과 메시지가 순서 없이 들어오는 환경에서도 중복 저장이 발생하지 않도록 스키마·애플리케이션·DB 세 층에서 함께 설계합니다.
-- **실패 경로 우선 설계:** 선차감·롤백, Outbox(TxEvent) 재시도, DLQ, CDC 처럼 "잘못됐을 때 어떻게 복구할지"를 먼저 설계합니다. 큰 기능이 기획 변경으로 롤백되어도, 그 과정에서 발견한 결함 수정은 남겨 가치를 보존합니다.
+- **실패 경로 우선 설계:** 선차감·롤백, Outbox(TxEvent) 활용, DLQ, CDC 처럼 "잘못됐을 때 어떻게 복구할지"를 먼저 설계합니다. 큰 기능이 기획 변경으로 롤백되어도, 그 과정에서 발견한 결함 수정은 남겨 가치를 보존합니다.
 - **유연한 API 설계:** 새로운 가이드나 외부 API 문서를 분석해 서비스에 녹이는 것을 좋아하며, 나중에 다른 시스템(로봇이나 외부 서비스)이 붙더라도 유연하게 확장할 수 있는 구조를 고민하며 개발합니다. 정책은 코드 분기가 아니라 enum/설정으로 받아, 정책이 바뀔 때 커밋이 아니라 설정이 바뀌도록 합니다.
 
 ## Architecture & Operations
 
-- **신규 서비스·도메인을 라이브까지:** api-sentinel 은 초기 커밋부터 신설, api-bookmark 와 Swap&Warp 는 과반 커밋으로 라이브 승격, portal-ai 에는 에러시로봇 기능을 신설했습니다. 레이어와 서버/컨슈머를 처음부터 분리해 두면, 이후 기능 추가가 구조 변경 없이 들어온다는 걸 반복해서 경험했습니다.
+- **신규 서비스·도메인을 라이브까지:** api-sentinel 은 초기 커밋부터 신설, api-bookmark 와 Swap&Warp 는 과반 커밋으로 라이브 승격, portal-ai 에는 에러시로봇 기능을 신설했습니다. 레이어를 처음부터 나눠 두면, 이후 기능 추가가 구조 변경 없이 들어온다는 걸 반복해서 경험했습니다.
 - **데이터 파이프라인 분리:** "서비스가 직접 외부에 쓰지 않는다"는 원칙으로, 배치 → publish 제거 → CDC(Debezium + Snowflake Stream/Task)로 이동시켰습니다. 상태성/이력성 테이블 구분, replication slot keepalive, 조건부 task 처럼 운영 비용과 유실 경로를 함께 고려합니다.
 
 ## Infrastructure & CI/CD
@@ -344,7 +344,7 @@ Oracle Cloud Infrastructure를 이용하는 고객사·관리자를 대상으로
 
 - **의미 있는 로그 남기기:** 장애가 터졌을 때만 로그를 보는 게 아니라, 개발·운영 단계에서 필요한 위치에 로그를 꼼꼼히 남기고 주기적으로 모니터링합니다. Datadog · Jaeger · OpenSearch 를 사용해 요청 흐름을 끝까지 추적할 수 있도록 상관관계 키를 설계합니다.
 - **가설 기반의 빠른 디버깅:** 문제가 발생하면 무작정 코드부터 보지 않고, 에러가 발생한 환경과 맥락을 먼저 파악합니다. 원인을 추측하고 범위를 좁혀가며 근본적인 문제를 빠르게 잡아냅니다. BFF 의 간헐적 pod 재시작처럼 원인이 숨은 이슈도 로그 추적으로 근본 원인(비동기 루프 내 자원 점유)까지 짚고 해결했습니다.
-- **장애 재발 방지:** 모델 교체 같은 1차 조치로 끝내지 않고, 재시도·백오프·세마포어·테이블 테스트까지 함께 넣어 **재발 조건이 사라졌는지**를 기준으로 종결합니다.
+- **장애 재발 방지:** 모델 교체 같은 1차 조치에 재시도·백오프·세마포어·테이블 테스트를 함께 넣고, 교체한 모델이 다시 폐기된 재발을 겪은 뒤 **"가용 모델 사전 확인"** 을 종결 기준에 추가했습니다.
 
 ## Communication
 
