@@ -46,7 +46,7 @@
 ### What did I do
 
 #### <span class="phase">1</span> 온체인-오프체인 동기화 (DE)
-<p class="period">2023.11 ~ 2024.04 · <a href="portfolio.html#de">자세히 보기 →</a></p>
+<p class="period">주 작업 2023.11 ~ 2024.04 · <a href="portfolio.html#de">자세히 보기 →</a></p>
 <p class="chips"><span class="chip">Go</span><span class="chip">Saga</span><span class="chip">Redis 분산 락</span><span class="chip">Helm</span></p>
 <div class="impact"><span class="impact-k">Impact</span> 캐릭터 민트 시 <strong>닉네임 중복 생성 이슈를 Redis 락 선점으로 수정</strong> · NFT 아이템 유효성 검사의 건별 반복 조회를 <strong>목록 조회 1회</strong>로 개선</div>
 
@@ -56,7 +56,7 @@
 - Helm 배포 운영 — 신규 서비스 배포, 장애 재현용 임시 배포/롤백, test/qa 승격 전 dev 선행 배포
 
 #### <span class="phase">2</span> 트랜잭션 이력 · 북마크 · 거래소 BFF
-<p class="period">2024.06 ~ 2025.09 (이후 2026년까지 유지보수) · <a href="portfolio.html#activity">자세히 보기 →</a></p>
+<p class="period">주 작업 2024.06 ~ 2025.09 · 이후 유지보수 · <a href="portfolio.html#activity">자세히 보기 →</a></p>
 <p class="chips"><span class="chip">gRPC</span><span class="chip">Kafka</span><span class="chip">PostgreSQL advisory lock</span><span class="chip">Redis NX</span><span class="chip">CDC</span><span class="chip">Snowflake</span></p>
 <div class="impact"><span class="impact-k">Impact</span> api-activity 구조 개선·확장과 api-bookmark 개발을 <strong>라이브까지</strong> · 이벤트 종류별 <strong>동시 적재 방어</strong>(Redis NX · advisory lock) · 간헐적 pod 재시작 원인 규명·해결</div>
 
@@ -65,35 +65,47 @@
 - 거래 결과 확정 시 **알림 이벤트 발행**, Snowflake 적재를 Kafka 발행 → **CDC 로 전환**해 발행 실패 시 유실되던 경로 제거
 - **북마크/조회수 서비스([api-bookmark](#dg:bookmark))** 개발 — 멱등 처리, Redis 카운트 캐시 → Kafka 이벤트 집계, 하루/총량 제한, 회원 탈퇴 연동
 - **거래소 웹 BFF(bff-marketplace)** — 북마크·액티비티 호출을 신규 서비스로 이전, 인벤토리 서비스의 북마크·판매중 목록 조회 구현. 간헐적 pod 재시작을 로그 추적으로 비동기 루프 내 gRPC 호출 자원 점유로 좁혀 timeout·chunk 호출로 해결
-- 크로스체인 전송 이력·조회 도메인 [Swap & Warp](#dg:swapwarp) 추가(bff-swapnwarp 포함) · 전사 proto 저장소 도메인별 모듈화 주도 · Envoy 게이트웨이 route 운영 · Java/Spring Kafka 컨슈머에 북마크 이벤트 적재 추가 · 런칭 전 거래소 BFF·게임데이터 버그 픽스
-- 확률 정보 고지 서비스의 데이터 저장·버전 관리 구현
-- 백오피스 아이템/토큰 제재(단건·일괄·대량) 기능과 제재 이력 조회 화면
+- 크로스체인 전송 이력·조회 도메인 [Swap & Warp](#dg:swapwarp) 추가(bff-swapnwarp 포함)
+- Java/Spring Kafka 컨슈머에 북마크 이벤트 적재 추가, 런칭 전 거래소 BFF·게임데이터 버그 픽스
 
 #### <span class="phase">3</span> 계정 · 결제 · 통합 알림
-<p class="period">2025.07 ~ 2026.08 · <a href="portfolio.html#creditcard">자세히 보기 →</a></p>
+<p class="period">주 작업 2025.07 ~ 2026.08 · <a href="portfolio.html#creditcard">자세히 보기 →</a></p>
 <p class="chips"><span class="chip">Worldpay</span><span class="chip">Redis Lua</span><span class="chip">SSE</span><span class="chip">gRPC streaming</span><span class="chip">MongoDB</span></p>
 <div class="impact"><span class="impact-k">Impact</span> 신용카드 인증을 완성하고 계정 재인증에 <strong>신용카드 수단</strong>을 붙여 라이브 승격 · 일일 시도 카운트의 <strong>증가+만료를 Lua 로 원자 처리</strong> · 대량 수신자 응답을 <strong>500건 청크 스트리밍</strong>으로 분리 · KYC 전 사용자 마이그레이션 live 완료</div>
 
 - **월드페이(FraudSight 3DS) [신용카드 인증 · 재인증](#dg:creditcard)** — 벤더 응답 분기(400대는 outcome, 500대는 에러), Redis Lua 로 일일 3회 카운트 **증가+만료 원자 처리**, 카드 정보 일부 암호화, 결제수단 조합별 이상 시도 차단, OTP 초기화 시 카드로 본인 확인하는 재인증
-- **[스테이블 코인(USDT) 도입](#dg:usdt)** — 오프체인 선차감·롤백 서비스를 USDT 에 맞춰 확장(토큰 단위 한도 테이블 재설계, 선차감·행 잠금 로직을 토큰별로 일반화), 별도 롤백 토픽 대신 트랜잭션 결과 토픽을 구독해 실패 시만 되돌리도록 단순화
+- **[스테이블 코인(USDT) 도입](#dg:usdt)** — 오프체인 선차감·롤백 서비스를 USDT 에 맞춰 확장(토큰 단위 한도 테이블 재설계, 선차감·행 잠금 로직을 토큰별로 일반화), 별도 롤백 토픽 대신 트랜잭션 결과 토픽을 구독해 실패 시만 되돌리도록 단순화, 블록체인 서포터·BFF 지갑주소 유효성 검사 추가
 - **[MSU 통합 알림(SSE)](#dg:notification)** — JWT 검증 자체 흡수로 의존 제거, 백엔드 URL 생성, 대량 수신자를 **gRPC streaming RPC**(500건 청크·5만 건 상한)로 분리
-- 팀 단위 게이트웨이 gRPC → HTTP 전환에 맞춰 담당 서비스(통합 알림·블록체인 서포터)의 라우팅·포트 설정 이전
 - **KYC 업체 변경(Argos → Sumsub)에 따른 전 사용자 데이터 이관 배치** — 구간 분할 병렬 실행·재진입 가능한 커서·호출 한도 관리, live 이관 완료
 - 디스코드 자동 뱃지·역할 동기화 배치 개발, 공지 크롤링 봇에 게시판 추가·실패 지점 재개 확장
 - 이메일 변경 후 24시간 보안 옵션 변경 불가 — Redis TTL → DB 컬럼 영속화, 복제 지연으로 잠금이 늦게 보이는 구간은 Primary 조회로 제거
 
 #### <span class="phase">4</span> 정책 서비스 · 데이터 파이프라인 · 운영 자동화
-<p class="period">2026.01 ~ 2026.11 · <a href="portfolio.html#sentinel">자세히 보기 →</a></p>
-<p class="chips"><span class="chip">Debezium</span><span class="chip">Snowflake Stream/Task</span><span class="chip">Vertex AI</span><span class="chip">OpenSearch</span><span class="chip">GitLab CI</span><span class="chip">Helm · EKS</span></p>
+<p class="period">주 작업 2026.01 ~ 2026.11 · <a href="portfolio.html#sentinel">자세히 보기 →</a></p>
+<p class="chips"><span class="chip">Debezium</span><span class="chip">Snowflake Stream/Task</span><span class="chip">Vertex AI</span><span class="chip">OpenSearch</span></p>
 <div class="impact"><span class="impact-k">Impact</span> 흩어진 제어 로직을 <strong>정책 서비스 1개로 통합</strong>(4개 서비스가 단일 진입점 사용) · 배치 동기화 잡을 <strong>CDC 파이프라인</strong>으로 대체 · 운영 에러 1차 분석 자동화, 벤더 모델 폐기 장애 <strong>3일 내 1차 대응</strong>(재발 시 재교체)</div>
 
 - **비즈니스 정책 서비스([api-sentinel](#dg:sentinel)) 신설** — 여러 서비스에 흩어져 있던 제어 로직을 단일 서비스로 통합
     - **ACL** (지갑/IP 화이트·블랙리스트), **Rate Limit** (Sliding/Fixed Window + jitter), **Lockout** (OTP 반복 실패 시 차단, 실패 횟수 유지/초기화 정책을 설정으로), **Feature Flag** (런타임 변경)
 - **[PostgreSQL CDC → Snowflake 파이프라인](#dg:cdc)** — Debezium 커넥터, Stream/Task, replication slot keepalive 배치, 조건부 task 로 비용 최적화
 - **[에러시로봇(운영 AI)](#dg:errorbot)** — 운영 중 Slack 에러 알림을 LLM 으로 1차 분석해 스레드에 답하는 봇 (GitLab 커밋 대조·OpenSearch 히스토리·escalation). 벤더 모델 폐기 장애를 모델 교체·재시도/백오프·세마포어로 3일 내 대응
+
+#### <span class="phase">5</span> 인프라 · CI/CD · 게이트웨이
+<p class="period">전 기간 · <a href="portfolio.html#infra">자세히 보기 →</a></p>
+<p class="chips"><span class="chip">GitLab CI</span><span class="chip">Docker</span><span class="chip">Helm · EKS</span><span class="chip">Rundeck</span><span class="chip">Envoy</span></p>
+<div class="impact"><span class="impact-k">Impact</span> 신설 서비스를 <strong>배포 설정까지 한 세트</strong>로 추가 · 5개 배포 대역(dev · test · qa · stage · live) 운영 · 게이트웨이 route·인증 정리</div>
+
+- **[CI/CD · 인프라 운영](#dg:cicd)** — 담당 서비스의 GitLab CI · Dockerfile · Helm/K8s 매니페스트 · DDL 을 운영하고, 신설 서비스는 배포 설정까지 함께 추가
+- **Envoy 게이트웨이** — 서비스가 늘어날 때마다 gRPC → REST route 와 인증 설정을 추가·정리하고, 팀 단위 gRPC → HTTP 전환에 맞춰 담당 서비스(통합 알림·블록체인 서포터)의 라우팅·포트 설정 이전
+- 외부 노출 API(스왑워프·통합알림·BFF) 영향성 전수 조사와 인증 추가(팀 3인)
+- 전사 proto 저장소 도메인별 모듈화 주도
+
+#### <span class="phase">6</span> 백오피스 · 운영 도구 · 기타
+<p class="period">2025.03 ~ 2026.10 · <a href="portfolio.html#etc">자세히 보기 →</a></p>
+
+- 백오피스 아이템/토큰 제재(단건·일괄·대량) 기능과 제재 이력 조회 화면
 - 운영 콘솔 — 디스코드 메시지 재전송, SNS 권한 도메인 분리, 지갑↔SNS ID 조회
-- 외부 노출 API(스왑워프·통합알림·BFF) 영향성 전수 조사와 인증 추가(팀 3인), 지갑주소 유효성 검사 추가
-- **[CI/CD · 인프라 운영](#dg:cicd)** (전 기간) — 담당 서비스의 GitLab CI · Dockerfile · Helm/K8s 매니페스트 · Envoy route · DDL 을 운영하고, 신설 서비스는 배포 설정까지 함께 추가 · <a href="portfolio.html#infra">자세히 →</a>
+- 확률 정보 고지 서비스의 데이터 저장·버전 관리 구현
 
 ### Tech Stack
 

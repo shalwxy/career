@@ -164,7 +164,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 
 <h3 id="what-i-did">What I did</h3>
 <h4 id="1-on-chain-off-chain-synchronization-data-engine"><span class="phase">1</span> On-chain / off-chain synchronization (Data Engine)</h4>
-<p class="period">Nov 2023 – Apr 2024</p>
+<p class="period">Main work Nov 2023 – Apr 2024</p>
 <p class="chips"><span class="chip">Go</span><span class="chip">Saga</span><span class="chip">Redis distributed lock</span><span class="chip">Helm</span></p>
 <div class="impact"><span class="impact-k">Impact</span> Fixed nickname duplication at character mint with <strong>Redis-lock preemption</strong> · turned per-item NFT validation lookups into <strong>one list query</strong></div>
 
@@ -175,7 +175,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <li>Ran Helm rollouts for new services, reproduced an incident with throwaway deploys and rollbacks, and deployed to dev first before test/qa promotion</li>
 </ul>
 <h4 id="2-transaction-history-bookmarks-marketplace-bff"><span class="phase">2</span> Transaction history · bookmarks · marketplace BFF</h4>
-<p class="period">Jun 2024 – Sep 2025 (maintained through 2026)</p>
+<p class="period">Main work Jun 2024 – Sep 2025 · maintained afterwards</p>
 <p class="chips"><span class="chip">gRPC</span><span class="chip">Kafka</span><span class="chip">PostgreSQL advisory lock</span><span class="chip">Redis NX</span><span class="chip">CDC</span><span class="chip">Snowflake</span></p>
 <div class="impact"><span class="impact-k">Impact</span> Restructured and extended transaction history and built bookmarks, both <strong>through to production</strong> · <strong>per-event-type defence</strong> against concurrent duplicate writes (Redis NX · advisory locks) · narrowed intermittent BFF pod restarts to a cause and fixed them</div>
 
@@ -190,12 +190,11 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <li>Emitted notification events when a transaction result is finalized; moved Snowflake ingestion from Kafka publishes to <strong>CDC</strong>, removing the publish-failure loss path</li>
 <li><strong>Bookmark / view-count service (<a href="#" class="dg" data-dg="bookmark" title="Diagram">api-bookmark</a>)</strong> — core features: idempotent writes, Redis counters moved to Kafka-driven aggregation, daily/total limits, account-deletion hook</li>
 <li><strong>Marketplace web BFF</strong> — moved bookmark/activity calls to the new services, implemented bookmark and on-sale listings in the inventory service, parallelized rendering. Traced intermittent pod restarts to gRPC calls inside async loops holding resources and fixed them with timeouts and chunked calls</li>
-<li><a href="#" class="dg" data-dg="swapwarp" title="Diagram">Swap &amp; Warp</a> cross-chain transfer history and queries (incl. bff-swapnwarp); domain-split proto repository</li>
-<li>Item-probability disclosure service: data storage and versioning</li>
-<li>Back-office item/token sanctions (single, batch, bulk) and a sanction-history view</li>
+<li><a href="#" class="dg" data-dg="swapwarp" title="Diagram">Swap &amp; Warp</a> cross-chain transfer history and queries (incl. bff-swapnwarp)</li>
+<li>Added bookmark-event ingestion to a Java/Spring Kafka consumer; fixed bugs in the marketplace BFF and game-data service before launch</li>
 </ul>
 <h4 id="3-account-payment-unified-notifications"><span class="phase">3</span> Account · payment · unified notifications</h4>
-<p class="period">Jul 2025 – Aug 2026</p>
+<p class="period">Main work Jul 2025 – Aug 2026</p>
 <p class="chips"><span class="chip">Worldpay</span><span class="chip">Redis Lua</span><span class="chip">SSE</span><span class="chip">gRPC streaming</span><span class="chip">MongoDB</span></p>
 <div class="impact"><span class="impact-k">Impact</span> Completed credit-card verification and added the <strong>card path to account re-verification</strong> · daily attempt counter's <strong>increment + expiry made atomic with Lua</strong> · bulk recipients moved to <strong>500-row streaming chunks</strong> · full-user KYC migration completed in production</div>
 
@@ -207,25 +206,40 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <li>Added a re-verification path that confirms identity by card when OTP is reset</li>
 </ul>
 </li>
-<li><strong><a href="#" class="dg" data-dg="usdt" title="Diagram">Stablecoin (USDT) launch</a></strong> — extended the off-chain pre-deduction/rollback service for USDT (per-token limit tables, pre-deduction and row locking generalized per token) and replaced the rollback topic with a dependency on transaction result topics</li>
+<li><strong><a href="#" class="dg" data-dg="usdt" title="Diagram">Stablecoin (USDT) launch</a></strong> — extended the off-chain pre-deduction/rollback service for USDT (per-token limit tables, pre-deduction and row locking generalized per token), replaced the rollback topic with a dependency on transaction result topics, and added wallet-address validation to the blockchain supporter and BFF</li>
 <li><strong><a href="#" class="dg" data-dg="notification" title="Diagram">Unified notifications (SSE)</a></strong> — absorbed JWT verification to drop the account-service dependency, generated URLs server-side, and split bulk recipients into a <strong>gRPC streaming RPC</strong> (500-row chunks, 50,000 cap)</li>
-<li>Moved routing/port settings of my services (notifications, blockchain supporter) as part of the team-wide gateway gRPC → HTTP switch</li>
 <li><strong>Full-user data migration batch for the KYC vendor change (Argos → Sumsub)</strong> — range-partitioned parallel runs, resumable cursor, call-quota management; completed in production</li>
 <li>Discord auto-badge and role-sync batch; extended the community-notice crawler with new boards and resumable failures</li>
 <li>24-hour lock on security-option changes after an e-mail change — moved from Redis TTL to a persisted column, with primary reads to close the replication-lag window</li>
 </ul>
 <h4 id="4-policy-service-data-pipeline-ops-automation"><span class="phase">4</span> Policy service · data pipeline · ops automation</h4>
-<p class="period">Jan 2026 – Nov 2026</p>
-<p class="chips"><span class="chip">Debezium</span><span class="chip">Snowflake Stream/Task</span><span class="chip">Vertex AI</span><span class="chip">OpenSearch</span><span class="chip">GitLab CI</span><span class="chip">Helm · EKS</span></p>
+<p class="period">Main work Jan 2026 – Nov 2026</p>
+<p class="chips"><span class="chip">Debezium</span><span class="chip">Snowflake Stream/Task</span><span class="chip">Vertex AI</span><span class="chip">OpenSearch</span></p>
 <div class="impact"><span class="impact-k">Impact</span> Consolidated scattered control logic into <strong>one policy service</strong> used by four callers · replaced batch sync jobs with a <strong>CDC pipeline</strong> · automated first-pass error triage and shipped the first fix for a vendor model-deprecation outage <strong>within 3 days</strong> (re-swapped on recurrence)</div>
 
 <ul>
 <li><strong>Policy service (<a href="#" class="dg" data-dg="sentinel" title="Diagram">api-sentinel</a>)</strong> — ACL (wallet/IP allow &amp; deny lists), rate limiting (sliding + fixed window with jitter), lockout after repeated OTP failures (keep/reset failure counts by configurable policy), runtime feature flags</li>
 <li><strong><a href="#" class="dg" data-dg="cdc" title="Diagram">PostgreSQL CDC → Snowflake</a></strong> — Debezium connectors, Stream/Task, a replication-slot keepalive job, conditional tasks to cut cost</li>
-<li><strong><a href="#" class="dg" data-dg="errorbot" title="Diagram">Error-triage bot</a></strong> — replies in-thread to Slack error alerts with an LLM first-pass analysis with GitLab commit diffing, OpenSearch history and escalation; handled a vendor model deprecation with model swap, retry/backoff and a semaphore</li>
+<li><strong><a href="#" class="dg" data-dg="errorbot" title="Diagram">Error-triage bot</a></strong> — replies in-thread to Slack error alerts with an LLM first-pass analysis (GitLab commit diffing, OpenSearch history, escalation); handled a vendor model deprecation with model swap, retry/backoff and a semaphore</li>
+</ul>
+<h4 id="5-infrastructure-cicd-gateway"><span class="phase">5</span> Infrastructure · CI/CD · gateway</h4>
+<p class="period">Throughout</p>
+<p class="chips"><span class="chip">GitLab CI</span><span class="chip">Docker</span><span class="chip">Helm · EKS</span><span class="chip">Rundeck</span><span class="chip">Envoy</span></p>
+<div class="impact"><span class="impact-k">Impact</span> New services shipped with their <strong>full deployment set</strong> · five deployment environments operated (dev · test · qa · stage · live) · gateway routes and auth tidied</div>
+
+<ul>
+<li><strong><a href="#" class="dg" data-dg="cicd" title="Diagram">CI/CD &amp; infrastructure</a></strong> — operated GitLab CI, Dockerfiles, Helm/K8s manifests and DDL for the services I owned; new services shipped with their full deployment set</li>
+<li><strong>Envoy gateway</strong> — added and tidied gRPC → REST routes and auth settings whenever services were added; moved routing/port settings of my services (notifications, blockchain supporter) as part of the team-wide gateway gRPC → HTTP switch</li>
+<li>Reviewed all externally exposed APIs (Swap &amp; Warp, notifications, BFF) and added authentication (team of three)</li>
+<li>Led the split of the company-wide proto repository into domain modules</li>
+</ul>
+<h4 id="6-back-office-operations-tools-other"><span class="phase">6</span> Back office · operations tools · other</h4>
+<p class="period">Mar 2025 – Oct 2026</p>
+
+<ul>
+<li>Back-office item/token sanctions (single, batch, bulk) and a sanction-history view</li>
 <li>Operations console — Discord message re-send, permission-domain split, wallet ↔ SNS lookups</li>
-<li>Reviewed all externally exposed APIs (Swap &amp; Warp, notifications, BFF) and added authentication (team of three); added wallet-address validation</li>
-<li><strong><a href="#" class="dg" data-dg="cicd" title="Diagram">CI/CD &amp; infrastructure</a></strong> (throughout) — operated GitLab CI, Dockerfiles, Helm/K8s manifests, Envoy routes and DDL for the services I owned; new services shipped with their full deployment set</li>
+<li>Item-probability disclosure service: data storage and versioning</li>
 </ul>
 <h3 id="tech-stack">Tech Stack</h3>
 <div class="stack">
