@@ -128,7 +128,7 @@ NEXON UNIVERSE (founded 2022, a Nexon affiliate) builds MapleStory Universe (MSU
 <p class="meta">Backend Developer · R&D Lab 2 · Nov 2019 – Dec 2021 (2 years)</p>
 
 - **UNO-GATEWAY (Sep 2020 – Dec 2021)** — dynamic OPEN API platform (validation, transformation, auth, rate limiting, routing); WebSocket + performance view, connectors for 7 databases and Elasticsearch/Hazelcast/Redis, Ribbon load-balancing tests, packaging
-- **UNO-GATEWAY MDB project for a Korean financial client (Sep – Oct 2021, sole owner)** — JSON ↔ fixed-format message conversion over TCP
+- **UNO-GATEWAY MDB project for a Korean securities client (Sep – Oct 2021, sole owner)** — JSON ↔ fixed-format message conversion over TCP
 - **UNO-MSP (Feb 2020 – Dec 2021, lead developer)** — Oracle Cloud MSP platform across four releases: real-time resource collection, dashboards, billing integrity, OCI alarm/rule sync, Slack/mail alerts, monthly reports, HA agents, Zendesk integration, JDBC DB monitoring
 - **LISTEN2ME-SURVEY (Sep – Oct 2020)** — spreadsheet-to-survey web app; API contract and statistics dashboard data
 

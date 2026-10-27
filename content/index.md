@@ -224,7 +224,7 @@ NVIDIA GPU를 사용하는 Kubernetes 및 Slurm 클러스터 용도 인프라 �
 - **로드밸런싱 테스트** — Ribbon with/without Eureka
 - 통합 테스트 및 패키지 배포
 
-### <span class="phase">2</span> UNO-GATEWAY 국내 금융 고객사 MDB 프로젝트
+### <span class="phase">2</span> UNO-GATEWAY 국내 증권 고객사 MDB 프로젝트
 <p class="period">2021.09 ~ 2021.10 · 프로젝트 전체 담당</p>
 <p class="chips"><span class="chip">Java</span><span class="chip">Spring Boot</span><span class="chip">TCP</span><span class="chip">전문 변환</span></p>
 
