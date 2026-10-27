@@ -212,7 +212,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <li><strong><a href="#" class="dg" data-dg="errorbot" title="Diagram">Error-triage bot</a></strong> — replies in-thread to Slack error alerts with an LLM first-pass analysis with GitLab commit diffing, OpenSearch history and escalation; handled a vendor model deprecation with model swap, retry/backoff and a semaphore</li>
 <li>Operations console — Discord message re-send, permission-domain split, wallet ↔ SNS lookups</li>
 <li>Reviewed all externally exposed APIs (Swap &amp; Warp, notifications, BFF) and added authentication (team of three); added wallet-address validation</li>
-<li><strong><a href="#" class="dg" data-dg="cicd" title="Diagram">CI/CD &amp; infrastructure</a></strong> (throughout) — used the team&rsquo;s existing pipeline and manifest patterns to maintain GitLab CI, Dockerfiles, Helm/K8s manifests, Envoy routes and DDL for the services I owned; new services shipped with their full deployment set by copying those patterns</li>
+<li><strong><a href="#" class="dg" data-dg="cicd" title="Diagram">CI/CD &amp; infrastructure</a></strong> (throughout) — operated GitLab CI, Dockerfiles, Helm/K8s manifests, Envoy routes and DDL for the services I owned; new services shipped with their full deployment set</li>
 </ul>
 <h3 id="tech-stack">Tech Stack</h3>
 <div class="stack">
@@ -289,7 +289,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 </ul>
 <h2 id="infrastructure-devops">Infrastructure &amp; DevOps</h2>
 <ul>
-<li><strong>Using and maintaining CI/CD</strong> — the team&rsquo;s GitLab CI (test → build → deploy → release), multi-stage Dockerfiles and Rundeck deploy jobs; I didn&rsquo;t design them. I fixed broken builds (semantic-release, runtime upgrades) and wired new services into the <a href="#" class="dg" data-dg="cicd" title="Diagram">pipeline</a> by following existing patterns. Deployment differs per environment (dev: K8s API / test·qa·stage: Rundeck / live: Rundeck outside CI) and I operate with that distinction.</li>
+<li><strong>Operating CI/CD</strong> — GitLab CI (test → build → deploy → release), multi-stage Dockerfiles and Rundeck deploy jobs for the services I owned. I fixed broken builds (semantic-release, runtime upgrades) and wired new services into the <a href="#" class="dg" data-dg="cicd" title="Diagram">pipeline</a>, with dev-first promotion before test/qa. Deployment differs per environment (dev: K8s API / test·qa·stage: Rundeck / live: Rundeck outside CI) and I operate with that distinction.</li>
 <li><strong>Kubernetes manifests</strong> — wrote and operated Helm templates and per-environment Deployment · HPA · Service; tuned probes, resources and ports for cost and stability (e.g. reducing test/qa/stage resources).</li>
 <li><strong>Deploy and ops routine</strong> — dev-first deployment before promotion, post-deploy monitoring on live, and scheduled-maintenance support as part of regular work.</li>
 <li><strong>Gateway</strong> — operate Envoy gRPC → REST routes (82 commits) and auth settings; took part in the team&rsquo;s review of externally exposed APIs and adding authentication.</li>
@@ -600,9 +600,9 @@ sequenceDiagram
     end
     S->>B: 👍/👎 feedback · 🔍 re-analyse · follow-up via mention
 </script>
-<script type="text/plain" id="dg-src-cicd" data-title="CI/CD — per-environment flow (★ = config I added or maintained by copying existing patterns)">
+<script type="text/plain" id="dg-src-cicd" data-title="CI/CD — per-environment flow (★ = config I added or maintained)">
 flowchart TB
-    subgraph CI["CI — GitLab CI · shared team template (not designed by me; used and maintained)"]
+    subgraph CI["CI — GitLab CI"]
         direction LR
         BR["branch push<br/>develop · test · qa · stage · live"]
         T["test<br/>go test"]

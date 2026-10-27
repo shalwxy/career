@@ -1,7 +1,7 @@
-%% title: CI/CD — 대역별 흐름 (★ = 기존 패턴을 복제해 직접 추가·보수한 설정)
-%% title_en: CI/CD — per-environment flow (★ = config I added or maintained by copying existing patterns)
+%% title: CI/CD — 대역별 흐름 (★ = 직접 추가·보수한 설정)
+%% title_en: CI/CD — per-environment flow (★ = config I added or maintained)
 flowchart TB
-    subgraph CI["CI — GitLab CI · 팀 공용 템플릿 (설계 아님, 사용·보수)"]
+    subgraph CI["CI — GitLab CI"]
         direction LR
         BR["브랜치 push<br/>develop · test · qa · stage · live"]
         T["test<br/>go test"]

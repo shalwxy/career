@@ -93,7 +93,7 @@
 - **[에러시로봇(운영 AI)](#dg:errorbot)** — 운영 중 Slack 에러 알림을 LLM 으로 1차 분석해 스레드에 답하는 봇 (GitLab 커밋 대조·OpenSearch 히스토리·escalation). 벤더 모델 폐기 장애를 모델 교체·재시도/백오프·세마포어로 3일 내 대응
 - 운영 콘솔 — 디스코드 메시지 재전송, SNS 권한 도메인 분리, 지갑↔SNS ID 조회
 - 외부 노출 API(스왑워프·통합알림·BFF) 영향성 전수 조사와 인증 추가(팀 3인), 지갑주소 유효성 검사 추가
-- **[CI/CD · 인프라 운영](#dg:cicd)** (전 기간) — 팀의 기존 파이프라인·매니페스트 패턴을 가져다 쓰며 담당 서비스의 GitLab CI · Dockerfile · Helm/K8s 매니페스트 · Envoy route · DDL 을 보수, 신설 서비스는 배포 세트까지 복제 · <a href="portfolio.html#infra">자세히 →</a>
+- **[CI/CD · 인프라 운영](#dg:cicd)** (전 기간) — 담당 서비스의 GitLab CI · Dockerfile · Helm/K8s 매니페스트 · Envoy route · DDL 을 운영하고, 신설 서비스는 배포 설정까지 함께 추가 · <a href="portfolio.html#infra">자세히 →</a>
 
 ### Tech Stack
 
@@ -327,7 +327,7 @@ Oracle Cloud Infrastructure를 이용하는 고객사·관리자를 대상으로
 
 ## Infrastructure & DevOps
 
-- **CI/CD 사용·보수:** 팀의 GitLab CI(test → build → deploy → release) · multi-stage Dockerfile · Rundeck 배포 job 을 가져다 썼고, 설계한 것은 아닙니다. 깨진 빌드(semantic-release · 런타임 버전)를 고치고 신설 서비스를 기존 패턴대로 [파이프라인](#dg:cicd)에 태웠습니다. 대역마다 배포 방식(dev: K8s API / test·qa·stage: Rundeck / live: CI 밖 Rundeck)이 달라 이를 구분해 운영합니다.
+- **CI/CD 운영:** GitLab CI(test → build → deploy → release) · multi-stage Dockerfile · Rundeck 배포 job 으로 담당 서비스를 배포합니다. 깨진 빌드(semantic-release · 런타임 버전)를 고치고 신설 서비스를 [파이프라인](#dg:cicd)에 연결했습니다. 대역마다 배포 방식(dev: K8s API / test·qa·stage: Rundeck / live: CI 밖 Rundeck)이 달라 이를 구분해 운영합니다.
 - **Kubernetes 매니페스트:** Helm 템플릿과 환경별 Deployment · HPA · Service 를 작성·운영하고, probe · 리소스 · 포트를 비용과 안정성 기준으로 조정했습니다(test/qa/stage 리소스 감축 등).
 - **배포·운영 루틴:** 운영 대역 승격 전 dev 선행 배포, live 배포 후 모니터링, 정기점검 대응을 일상 업무로 해왔습니다.
 - **게이트웨이:** Envoy gRPC → REST route(82 커밋)와 인증 설정을 운영하고, 팀의 외부 노출 API 영향성 조사·인증 추가 작업에 참여했습니다.

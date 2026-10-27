@@ -163,12 +163,12 @@
 ## 10. 인프라 · CI/CD — 배포 파이프라인과 운영 저장소 {#infra}
 <p class="chips"><span class="chip">전 기간</span><span class="chip">GitLab CI · Docker · Helm · ArgoCD · Rundeck · EKS · Envoy · Kafka Connect</span></p>
 
-**맥락.** 담당 서비스의 CI/CD 설정(GitLab CI → Rundeck → EKS, Helm, Envoy)은 백엔드 개발자가 직접 관리하는 구조였습니다. **파이프라인을 설계한 것은 아니고**, [파이프라인](#dg:cicd)을 가져다 쓰면서 깨진 것을 고치고 신설 서비스를 같은 패턴으로 태운 것이 기여입니다. 대역별로 흐름이 달랐습니다 — dev 는 CI 가 K8s API 로 재시작, test·qa·stage 는 CI 가 Rundeck 을 호출, live 는 CI 가 이미지 빌드까지만 하고 배포는 CI 밖에서 Rundeck 으로.
+**맥락.** 담당 서비스의 CI/CD 설정(GitLab CI → Rundeck → EKS, Helm, Envoy)은 백엔드 개발자가 직접 관리하는 구조였습니다. [파이프라인](#dg:cicd)으로 배포하면서 깨진 빌드를 고치고 신설 서비스를 연결했습니다. 대역별로 흐름이 달랐습니다 — dev 는 CI 가 K8s API 로 재시작, test·qa·stage 는 CI 가 Rundeck 을 호출, live 는 CI 가 이미지 빌드까지만 하고 배포는 CI 밖에서 Rundeck 으로.
 
 **제가 한 일.**
 
-- **CI 파이프라인 사용·보수** — 팀 공용 템플릿을 그대로 쓰는 담당 서비스 3개의 `.gitlab-ci.yml`·Dockerfile(약 58 커밋): 누락된 go test 단계 보완, Go 1.23 → 1.26 · Docker · Node 런타임 업그레이드, semantic-release 빌드 깨짐 수정(버전 고정), 신설 서비스의 배포 job 을 기존 job 복제로 연결.
-- **신설 서비스의 배포 세트** — api-sentinel 신설 때 Helm 템플릿(dev) · 4개 환경 매니페스트(Deployment · HPA · Service) · Envoy route · CI 배포 job 을 복제해 코드와 같은 주에 한 세트로 추가. 레지스트리 deploy token 만료 시 dockerconfigjson 교체.
+- **CI 파이프라인 운영** — 담당 서비스 3개의 `.gitlab-ci.yml`·Dockerfile(약 58 커밋): 누락된 go test 단계 보완, Go 1.23 → 1.26 · Docker · Node 런타임 업그레이드, semantic-release 빌드 깨짐 수정(버전 고정), 신설 서비스의 배포 job 연결.
+- **신설 서비스의 배포 세트** — api-sentinel 신설 때 Helm 템플릿(dev) · 4개 환경 매니페스트(Deployment · HPA · Service) · Envoy route · CI 배포 job 을 코드와 같은 주에 한 세트로 추가. 레지스트리 deploy token 만료 시 dockerconfigjson 교체.
 - **Kubernetes 매니페스트 운영** (gotohelm 86 · deploy-scripts 12 커밋) — liveness/readiness probe 보정, 서비스 포트 추가, 서비스명 변경, test/qa/stage pod 리소스 감축(비용 절감 요청 건), live 로그 레벨 정리, DE 서비스 초기 배포.
 - **Envoy 게이트웨이** (marina 82 커밋) — gRPC → REST transcoding route 추가·정리, 인증 적용·skip 설정, 미사용 cluster 제거, live 에서 특정 인증 호출 차단.
 - **운영 저장소** (portal-ops 103 커밋) — PostgreSQL DDL 을 DBA 검토 흐름으로 관리, Debezium/Kafka Connect · Snowflake Stream/Task 설정([CDC](#dg:cdc)), MongoDB TTL 정책.

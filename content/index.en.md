@@ -90,7 +90,7 @@ NEXON UNIVERSE (founded 2022, a Nexon affiliate) builds MapleStory Universe (MSU
 - **[Error-triage bot](#dg:errorbot)** — replies in-thread to Slack error alerts with an LLM first-pass analysis with GitLab commit diffing, OpenSearch history and escalation; handled a vendor model deprecation with model swap, retry/backoff and a semaphore
 - Operations console — Discord message re-send, permission-domain split, wallet ↔ SNS lookups
 - Reviewed all externally exposed APIs (Swap & Warp, notifications, BFF) and added authentication (team of three); added wallet-address validation
-- **[CI/CD & infrastructure](#dg:cicd)** (throughout) — used the team's existing pipeline and manifest patterns to maintain GitLab CI, Dockerfiles, Helm/K8s manifests, Envoy routes and DDL for the services I owned; new services shipped with their full deployment set by copying those patterns
+- **[CI/CD & infrastructure](#dg:cicd)** (throughout) — operated GitLab CI, Dockerfiles, Helm/K8s manifests, Envoy routes and DDL for the services I owned; new services shipped with their full deployment set
 
 ### Tech Stack
 
@@ -189,7 +189,7 @@ Mathematics major (calculus, linear algebra, geometry, probability and statistic
 
 ## Infrastructure & DevOps
 
-- **Using and maintaining CI/CD** — the team's GitLab CI (test → build → deploy → release), multi-stage Dockerfiles and Rundeck deploy jobs; I didn't design them. I fixed broken builds (semantic-release, runtime upgrades) and wired new services into the [pipeline](#dg:cicd) by following existing patterns. Deployment differs per environment (dev: K8s API / test·qa·stage: Rundeck / live: Rundeck outside CI) and I operate with that distinction.
+- **Operating CI/CD** — GitLab CI (test → build → deploy → release), multi-stage Dockerfiles and Rundeck deploy jobs for the services I owned. I fixed broken builds (semantic-release, runtime upgrades) and wired new services into the [pipeline](#dg:cicd), with dev-first promotion before test/qa. Deployment differs per environment (dev: K8s API / test·qa·stage: Rundeck / live: Rundeck outside CI) and I operate with that distinction.
 - **Kubernetes manifests** — wrote and operated Helm templates and per-environment Deployment · HPA · Service; tuned probes, resources and ports for cost and stability (e.g. reducing test/qa/stage resources).
 - **Deploy and ops routine** — dev-first deployment before promotion, post-deploy monitoring on live, and scheduled-maintenance support as part of regular work.
 - **Gateway** — operate Envoy gRPC → REST routes (82 commits) and auth settings; took part in the team's review of externally exposed APIs and adding authentication.

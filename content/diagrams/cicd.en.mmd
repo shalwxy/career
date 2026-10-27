@@ -1,6 +1,6 @@
-%% title: CI/CD — per-environment flow (★ = config I added or maintained by copying existing patterns)
+%% title: CI/CD — per-environment flow (★ = config I added or maintained)
 flowchart TB
-    subgraph CI["CI — GitLab CI · shared team template (not designed by me; used and maintained)"]
+    subgraph CI["CI — GitLab CI"]
         direction LR
         BR["branch push<br/>develop · test · qa · stage · live"]
         T["test<br/>go test"]

@@ -285,11 +285,11 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <h2 id="infra">10. 인프라 · CI/CD — 배포 파이프라인과 운영 저장소</h2>
 <p class="chips"><span class="chip">전 기간</span><span class="chip">GitLab CI · Docker · Helm · ArgoCD · Rundeck · EKS · Envoy · Kafka Connect</span></p>
 
-<p><strong>맥락.</strong> 담당 서비스의 CI/CD 설정(GitLab CI → Rundeck → EKS, Helm, Envoy)은 백엔드 개발자가 직접 관리하는 구조였습니다. <strong>파이프라인을 설계한 것은 아니고</strong>, <a href="#" class="dg" data-dg="cicd" title="도식 보기">파이프라인</a>을 가져다 쓰면서 깨진 것을 고치고 신설 서비스를 같은 패턴으로 태운 것이 기여입니다. 대역별로 흐름이 달랐습니다 — dev 는 CI 가 K8s API 로 재시작, test·qa·stage 는 CI 가 Rundeck 을 호출, live 는 CI 가 이미지 빌드까지만 하고 배포는 CI 밖에서 Rundeck 으로.</p>
+<p><strong>맥락.</strong> 담당 서비스의 CI/CD 설정(GitLab CI → Rundeck → EKS, Helm, Envoy)은 백엔드 개발자가 직접 관리하는 구조였습니다. <a href="#" class="dg" data-dg="cicd" title="도식 보기">파이프라인</a>으로 배포하면서 깨진 빌드를 고치고 신설 서비스를 연결했습니다. 대역별로 흐름이 달랐습니다 — dev 는 CI 가 K8s API 로 재시작, test·qa·stage 는 CI 가 Rundeck 을 호출, live 는 CI 가 이미지 빌드까지만 하고 배포는 CI 밖에서 Rundeck 으로.</p>
 <p><strong>제가 한 일.</strong></p>
 <ul>
-<li><strong>CI 파이프라인 사용·보수</strong> — 팀 공용 템플릿을 그대로 쓰는 담당 서비스 3개의 <code>.gitlab-ci.yml</code>·Dockerfile(약 58 커밋): 누락된 go test 단계 보완, Go 1.23 → 1.26 · Docker · Node 런타임 업그레이드, semantic-release 빌드 깨짐 수정(버전 고정), 신설 서비스의 배포 job 을 기존 job 복제로 연결.</li>
-<li><strong>신설 서비스의 배포 세트</strong> — api-sentinel 신설 때 Helm 템플릿(dev) · 4개 환경 매니페스트(Deployment · HPA · Service) · Envoy route · CI 배포 job 을 복제해 코드와 같은 주에 한 세트로 추가. 레지스트리 deploy token 만료 시 dockerconfigjson 교체.</li>
+<li><strong>CI 파이프라인 운영</strong> — 담당 서비스 3개의 <code>.gitlab-ci.yml</code>·Dockerfile(약 58 커밋): 누락된 go test 단계 보완, Go 1.23 → 1.26 · Docker · Node 런타임 업그레이드, semantic-release 빌드 깨짐 수정(버전 고정), 신설 서비스의 배포 job 연결.</li>
+<li><strong>신설 서비스의 배포 세트</strong> — api-sentinel 신설 때 Helm 템플릿(dev) · 4개 환경 매니페스트(Deployment · HPA · Service) · Envoy route · CI 배포 job 을 코드와 같은 주에 한 세트로 추가. 레지스트리 deploy token 만료 시 dockerconfigjson 교체.</li>
 <li><strong>Kubernetes 매니페스트 운영</strong> (gotohelm 86 · deploy-scripts 12 커밋) — liveness/readiness probe 보정, 서비스 포트 추가, 서비스명 변경, test/qa/stage pod 리소스 감축(비용 절감 요청 건), live 로그 레벨 정리, DE 서비스 초기 배포.</li>
 <li><strong>Envoy 게이트웨이</strong> (marina 82 커밋) — gRPC → REST transcoding route 추가·정리, 인증 적용·skip 설정, 미사용 cluster 제거, live 에서 특정 인증 호출 차단.</li>
 <li><strong>운영 저장소</strong> (portal-ops 103 커밋) — PostgreSQL DDL 을 DBA 검토 흐름으로 관리, Debezium/Kafka Connect · Snowflake Stream/Task 설정(<a href="#" class="dg" data-dg="cdc" title="도식 보기">CDC</a>), MongoDB TTL 정책.</li>
@@ -602,9 +602,9 @@ sequenceDiagram
     end
     S->>B: 👍/👎 피드백 · 🔍 재분석 · 멘션 후속 대화
 </script>
-<script type="text/plain" id="dg-src-cicd" data-title="CI/CD — 대역별 흐름 (★ = 기존 패턴을 복제해 직접 추가·보수한 설정)">
+<script type="text/plain" id="dg-src-cicd" data-title="CI/CD — 대역별 흐름 (★ = 직접 추가·보수한 설정)">
 flowchart TB
-    subgraph CI["CI — GitLab CI · 팀 공용 템플릿 (설계 아님, 사용·보수)"]
+    subgraph CI["CI — GitLab CI"]
         direction LR
         BR["브랜치 push<br/>develop · test · qa · stage · live"]
         T["test<br/>go test"]

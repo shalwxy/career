@@ -221,7 +221,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <h2 id="d-sentinel"><a href="#" class="dg" data-dg="sentinel" title="도식 보기">정책 전용 서비스로 분리</a> ✅</h2>
 <p><strong>2026 Q1.</strong> 제어 로직이 공통 라이브러리·계정·블록체인 서비스에 흩어져 있었다. 1단계로 계정 서비스·공통 라이브러리의 제어 로직을 포털 서비스로 모았으나 콘텐츠 도메인과 섞여 <strong>정책 전용 서비스</strong>를 신설. refresh 를 각 서비스가 전체 정책을 메모리에 올리던 방식에서 정책 서비스가 단일 소유자가 되는 구조로(메모리 이슈). 이후 블록체인 서비스의 화이트리스트까지 이전해 통합 완료.</p>
 <h2 id="d-deployset"><a href="#" class="dg" data-dg="cicd" title="도식 보기">서비스 신설은 배포 세트까지</a> ✅</h2>
-<p><strong>2026 Q1 · api-sentinel.</strong> 코드만 넘기고 배포 설정을 뒤로 미루면 dev 에서만 도는 서비스가 된다. Helm 템플릿 · 4개 환경 매니페스트 · Envoy route · CI 배포 job 을 복제해 코드와 같은 주에 한 세트로 넣었다. 새로 설계한 것은 없고, 있는 패턴을 빠짐없이 따라간 것. <a href="#d-devfirst">dev 선행 배포</a> 원칙과 짝.</p>
+<p><strong>2026 Q1 · api-sentinel.</strong> 코드만 넘기고 배포 설정을 뒤로 미루면 dev 에서만 도는 서비스가 된다. Helm 템플릿 · 4개 환경 매니페스트 · Envoy route · CI 배포 job 을 코드와 같은 주에 한 세트로 넣었다. <a href="#d-devfirst">dev 선행 배포</a> 원칙과 짝.</p>
 <h2 id="d-jitter">jitter 와 cadence — timer 를 택한 이유 ✅</h2>
 <p><strong>2026 Q1.</strong> 정책 refresh 가 같은 경계에 몰려 스파이크. ticker 로 고정 주기를 잡아봤지만 인스턴스 간 위상이 같아 분산이 안 됨 → 매 회차 <code>refreshTTL ± 5s</code> 랜덤 <strong>timer</strong> 로 확정. fixed window 는 한 번 제거했다가 다시 둘 다 지원.</p>
 <h2 id="d-enum">정책은 코드 분기가 아니라 enum/설정으로 ✅</h2>
@@ -413,9 +413,9 @@ flowchart LR
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
     class RT,RF,BOG,RD,PG mine
 </script>
-<script type="text/plain" id="dg-src-cicd" data-title="CI/CD — 대역별 흐름 (★ = 기존 패턴을 복제해 직접 추가·보수한 설정)">
+<script type="text/plain" id="dg-src-cicd" data-title="CI/CD — 대역별 흐름 (★ = 직접 추가·보수한 설정)">
 flowchart TB
-    subgraph CI["CI — GitLab CI · 팀 공용 템플릿 (설계 아님, 사용·보수)"]
+    subgraph CI["CI — GitLab CI"]
         direction LR
         BR["브랜치 push<br/>develop · test · qa · stage · live"]
         T["test<br/>go test"]
