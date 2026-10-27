@@ -163,7 +163,7 @@
 ## 10. 인프라 · CI/CD — 배포 파이프라인과 운영 저장소 {#infra}
 <p class="chips"><span class="chip">전 기간</span><span class="chip">GitLab CI · Docker · Helm · ArgoCD · Rundeck · EKS · Envoy · Kafka Connect</span></p>
 
-**맥락.** CI/CD 파이프라인과 배포 체계(GitLab CI → Rundeck → EKS, Helm, Envoy)는 팀에 이미 갖춰져 있었고, 담당 서비스의 설정은 백엔드 개발자가 직접 관리하는 구조였습니다. **제가 설계한 것은 없습니다.** [기존 파이프라인](#dg:cicd)을 가져다 쓰면서 깨진 것을 고치고, 신설 서비스를 기존 패턴대로 태운 것이 기여의 전부입니다.
+**맥락.** CI/CD 파이프라인과 배포 체계(GitLab CI → Rundeck → EKS, Helm, Envoy)는 팀에 이미 갖춰져 있었고, 담당 서비스의 설정은 백엔드 개발자가 직접 관리하는 구조였습니다. **제가 설계한 것은 없습니다.** [기존 파이프라인](#dg:cicd)을 가져다 쓰면서 깨진 것을 고치고, 신설 서비스를 기존 패턴대로 태운 것이 기여의 전부입니다. 대역별로 흐름이 달랐습니다 — dev 는 CI 가 K8s API 로 재시작, test·qa·stage 는 CI 가 Rundeck 을 호출, live 는 CI 가 이미지 빌드까지만 하고 배포는 CI 밖에서 Rundeck 으로.
 
 **제가 한 일.**
 

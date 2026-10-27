@@ -1,32 +1,51 @@
-%% title: CI/CD — from branch push to EKS rollout (team pipeline · ★ = config I added or maintained by copying existing patterns)
-flowchart LR
-    BR[GitLab branch push<br/>develop · test · qa · stage · master]
-    subgraph CI[GitLab CI — shared team pipeline template]
-        T[test<br/>go test]
-        B[build<br/>multi-stage Dockerfile<br/>golang-alpine → scratch]
-        D[deploy]
-        R[release · master only<br/>semantic-release<br/>conventional commits]
+%% title: CI/CD — per-environment flow (★ = config I added or maintained by copying existing patterns)
+flowchart TB
+    subgraph CI["CI — GitLab CI · shared team template (not designed by me; used and maintained)"]
+        direction LR
+        BR["branch push<br/>develop · test · qa · stage · live"]
+        T["test<br/>go test"]
+        B["build<br/>multi-stage Dockerfile<br/>tags :pipeline-id · :latest"]
+        REL["release<br/>qa · live branches only · last stage<br/>semantic-release"]
+        BR --> T --> B --> REL
     end
-    REG[(Image registry<br/>dev: GitLab Registry :latest<br/>others: AWS ECR :pipeline-id)]
-    subgraph DEV[dev cluster]
-        H[Helm charts ★<br/>gotohelm · ArgoCD<br/>new services by copying templates]
-        K1[EKS Deployment<br/>K8s API PATCH → rollout restart]
+    subgraph REG["Image registries"]
+        direction LR
+        R1[("GitLab Registry<br/>dev")]
+        R2[("AWS ECR<br/>one per environment · test · qa · stage · live")]
     end
-    subgraph OPS[test · qa · stage · live]
-        RD[Rundeck job call<br/>-Version pipeline-id]
-        M[Per-environment manifests ★<br/>deploy-scripts<br/>Deployment · HPA · Service]
-        K2[EKS rollout]
+    subgraph CD["CD — deployment · differs per environment"]
+        direction LR
+        subgraph DEVL["dev — CI deploys directly"]
+            direction TB
+            D1["CI deploy job<br/>K8s API PATCH → rollout restart"]
+            H["Helm charts ★<br/>gotohelm · ArgoCD · reference :latest"]
+            K1["EKS dev"]
+            D1 --> K1
+            H -.-> K1
+        end
+        subgraph TQS["test · qa · stage — CI → Rundeck"]
+            direction TB
+            D2["CI deploy job<br/>calls Rundeck API · -Version pipeline-id"]
+            RD["Rundeck job<br/>renders · applies manifests"]
+            M["Per-environment manifests ★<br/>deploy-scripts · Deployment · HPA · Service"]
+            K2["EKS test / qa / stage"]
+            D2 --> RD --> M --> K2
+        end
+        subgraph LIVE["live — outside CI"]
+            direction TB
+            RL["Rundeck job run manually<br/>(no deploy job in CI)"]
+            ML["live manifests ★<br/>deploy-scripts"]
+            K3["EKS live"]
+            RL --> ML --> K3
+        end
     end
-    GW[Envoy gateway ★<br/>marina · gRPC → REST routes]
-    OPSREPO[(Ops repository ★<br/>portal-ops<br/>DDL · Kafka Connect · Snowflake)]
-    BR --> T --> B --> REG
-    B --> D --> R
-    D -- develop --> K1
-    H -.-> K1
-    D -- others --> RD --> M --> K2
-    REG -.-> K1
-    REG -.-> K2
-    K2 -.-> GW
-    OPSREPO -.-> K2
+    B -- develop --> R1
+    B -- "test · qa · stage · live" --> R2
+    R1 --> D1
+    R2 -- "test · qa · stage" --> D2
+    R2 -- live --> RL
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
-    class H,M,GW,OPSREPO mine
+    class H,M,ML mine
+    style CI fill:#fefce8,stroke:#ca8a04,stroke-width:2px
+    style CD fill:#ecfdf5,stroke:#059669,stroke-width:2px
+    style REG fill:#f8fafc,stroke:#94a3b8

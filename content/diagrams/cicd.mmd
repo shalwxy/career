@@ -1,33 +1,52 @@
-%% title: CI/CD — 브랜치 push 부터 EKS 롤아웃까지 (팀 공용 파이프라인 · ★ = 기존 패턴을 복제해 직접 추가·보수한 설정)
-%% title_en: CI/CD — from branch push to EKS rollout (team pipeline · ★ = config I added or maintained by copying existing patterns)
-flowchart LR
-    BR[GitLab 브랜치 push<br/>develop · test · qa · stage · master]
-    subgraph CI[GitLab CI — 팀 공용 파이프라인 템플릿 사용]
-        T[test<br/>go test]
-        B[build<br/>multi-stage Dockerfile<br/>golang-alpine → scratch]
-        D[deploy]
-        R[release · master 만<br/>semantic-release<br/>conventional commits]
+%% title: CI/CD — 대역별 흐름 (★ = 기존 패턴을 복제해 직접 추가·보수한 설정)
+%% title_en: CI/CD — per-environment flow (★ = config I added or maintained by copying existing patterns)
+flowchart TB
+    subgraph CI["CI — GitLab CI · 팀 공용 템플릿 (설계 아님, 사용·보수)"]
+        direction LR
+        BR["브랜치 push<br/>develop · test · qa · stage · live"]
+        T["test<br/>go test"]
+        B["build<br/>multi-stage Dockerfile<br/>태그 :pipeline-id · :latest"]
+        REL["release<br/>qa · live 브랜치만 · 마지막 stage<br/>semantic-release"]
+        BR --> T --> B --> REL
     end
-    REG[(이미지 레지스트리<br/>dev: GitLab Registry :latest<br/>그 외: AWS ECR :pipeline-id)]
-    subgraph DEV[dev 클러스터]
-        H[Helm 차트 ★<br/>gotohelm · ArgoCD<br/>신설 서비스 템플릿 복제]
-        K1[EKS Deployment<br/>K8s API PATCH → rollout restart]
+    subgraph REG["이미지 레지스트리"]
+        direction LR
+        R1[("GitLab Registry<br/>dev")]
+        R2[("AWS ECR<br/>대역별 분리 · test · qa · stage · live")]
     end
-    subgraph OPS[test · qa · stage · live]
-        RD[Rundeck job 호출<br/>-Version pipeline-id]
-        M[환경별 매니페스트 ★<br/>deploy-scripts<br/>Deployment · HPA · Service]
-        K2[EKS 롤아웃]
+    subgraph CD["CD — 배포 · 대역별로 다름"]
+        direction LR
+        subgraph DEVL["dev — CI 가 직접"]
+            direction TB
+            D1["CI deploy job<br/>K8s API PATCH → rollout restart"]
+            H["Helm 차트 ★<br/>gotohelm · ArgoCD · :latest 참조"]
+            K1["EKS dev"]
+            D1 --> K1
+            H -.-> K1
+        end
+        subgraph TQS["test · qa · stage — CI → Rundeck"]
+            direction TB
+            D2["CI deploy job<br/>Rundeck API 호출 · -Version pipeline-id"]
+            RD["Rundeck job<br/>매니페스트 렌더 · 적용"]
+            M["환경별 매니페스트 ★<br/>deploy-scripts · Deployment · HPA · Service"]
+            K2["EKS test / qa / stage"]
+            D2 --> RD --> M --> K2
+        end
+        subgraph LIVE["live — CI 밖"]
+            direction TB
+            RL["Rundeck job 수동 실행<br/>(CI 에 deploy job 없음)"]
+            ML["live 매니페스트 ★<br/>deploy-scripts"]
+            K3["EKS live"]
+            RL --> ML --> K3
+        end
     end
-    GW[Envoy 게이트웨이 ★<br/>marina · gRPC → REST route]
-    OPSREPO[(운영 저장소 ★<br/>portal-ops<br/>DDL · Kafka Connect · Snowflake)]
-    BR --> T --> B --> REG
-    B --> D --> R
-    D -- develop --> K1
-    H -.-> K1
-    D -- 그 외 --> RD --> M --> K2
-    REG -.-> K1
-    REG -.-> K2
-    K2 -.-> GW
-    OPSREPO -.-> K2
+    B -- develop --> R1
+    B -- "test · qa · stage · live" --> R2
+    R1 --> D1
+    R2 -- "test · qa · stage" --> D2
+    R2 -- live --> RL
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
-    class H,M,GW,OPSREPO mine
+    class H,M,ML mine
+    style CI fill:#fefce8,stroke:#ca8a04,stroke-width:2px
+    style CD fill:#ecfdf5,stroke:#059669,stroke-width:2px
+    style REG fill:#f8fafc,stroke:#94a3b8

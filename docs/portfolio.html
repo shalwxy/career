@@ -278,7 +278,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <h2 id="infra">10. 인프라 · CI/CD — 배포 파이프라인과 운영 저장소</h2>
 <p class="chips"><span class="chip">전 기간</span><span class="chip">GitLab CI · Docker · Helm · ArgoCD · Rundeck · EKS · Envoy · Kafka Connect</span></p>
 
-<p><strong>맥락.</strong> CI/CD 파이프라인과 배포 체계(GitLab CI → Rundeck → EKS, Helm, Envoy)는 팀에 이미 갖춰져 있었고, 담당 서비스의 설정은 백엔드 개발자가 직접 관리하는 구조였습니다. <strong>제가 설계한 것은 없습니다.</strong> <a href="#" class="dg" data-dg="cicd" title="도식 보기">기존 파이프라인</a>을 가져다 쓰면서 깨진 것을 고치고, 신설 서비스를 기존 패턴대로 태운 것이 기여의 전부입니다.</p>
+<p><strong>맥락.</strong> CI/CD 파이프라인과 배포 체계(GitLab CI → Rundeck → EKS, Helm, Envoy)는 팀에 이미 갖춰져 있었고, 담당 서비스의 설정은 백엔드 개발자가 직접 관리하는 구조였습니다. <strong>제가 설계한 것은 없습니다.</strong> <a href="#" class="dg" data-dg="cicd" title="도식 보기">기존 파이프라인</a>을 가져다 쓰면서 깨진 것을 고치고, 신설 서비스를 기존 패턴대로 태운 것이 기여의 전부입니다. 대역별로 흐름이 달랐습니다 — dev 는 CI 가 K8s API 로 재시작, test·qa·stage 는 CI 가 Rundeck 을 호출, live 는 CI 가 이미지 빌드까지만 하고 배포는 CI 밖에서 Rundeck 으로.</p>
 <p><strong>제가 한 일.</strong></p>
 <ul>
 <li><strong>CI 파이프라인 사용·보수</strong> — 팀 공용 템플릿을 그대로 쓰는 담당 서비스 3개의 <code>.gitlab-ci.yml</code>·Dockerfile(약 58 커밋): 누락된 go test 단계 보완, Go 1.23 → 1.26 · Docker · Node 런타임 업그레이드, semantic-release 빌드 깨짐 수정(버전 고정), 신설 서비스의 배포 job 을 기존 job 복제로 연결.</li>
@@ -593,38 +593,57 @@ sequenceDiagram
     end
     S->>B: 👍/👎 피드백 · 🔍 재분석 · 멘션 후속 대화
 </script>
-<script type="text/plain" id="dg-src-cicd" data-title="CI/CD — 브랜치 push 부터 EKS 롤아웃까지 (팀 공용 파이프라인 · ★ = 기존 패턴을 복제해 직접 추가·보수한 설정)">
-flowchart LR
-    BR[GitLab 브랜치 push<br/>develop · test · qa · stage · master]
-    subgraph CI[GitLab CI — 팀 공용 파이프라인 템플릿 사용]
-        T[test<br/>go test]
-        B[build<br/>multi-stage Dockerfile<br/>golang-alpine → scratch]
-        D[deploy]
-        R[release · master 만<br/>semantic-release<br/>conventional commits]
+<script type="text/plain" id="dg-src-cicd" data-title="CI/CD — 대역별 흐름 (★ = 기존 패턴을 복제해 직접 추가·보수한 설정)">
+flowchart TB
+    subgraph CI["CI — GitLab CI · 팀 공용 템플릿 (설계 아님, 사용·보수)"]
+        direction LR
+        BR["브랜치 push<br/>develop · test · qa · stage · live"]
+        T["test<br/>go test"]
+        B["build<br/>multi-stage Dockerfile<br/>태그 :pipeline-id · :latest"]
+        REL["release<br/>qa · live 브랜치만 · 마지막 stage<br/>semantic-release"]
+        BR --> T --> B --> REL
     end
-    REG[(이미지 레지스트리<br/>dev: GitLab Registry :latest<br/>그 외: AWS ECR :pipeline-id)]
-    subgraph DEV[dev 클러스터]
-        H[Helm 차트 ★<br/>gotohelm · ArgoCD<br/>신설 서비스 템플릿 복제]
-        K1[EKS Deployment<br/>K8s API PATCH → rollout restart]
+    subgraph REG["이미지 레지스트리"]
+        direction LR
+        R1[("GitLab Registry<br/>dev")]
+        R2[("AWS ECR<br/>대역별 분리 · test · qa · stage · live")]
     end
-    subgraph OPS[test · qa · stage · live]
-        RD[Rundeck job 호출<br/>-Version pipeline-id]
-        M[환경별 매니페스트 ★<br/>deploy-scripts<br/>Deployment · HPA · Service]
-        K2[EKS 롤아웃]
+    subgraph CD["CD — 배포 · 대역별로 다름"]
+        direction LR
+        subgraph DEVL["dev — CI 가 직접"]
+            direction TB
+            D1["CI deploy job<br/>K8s API PATCH → rollout restart"]
+            H["Helm 차트 ★<br/>gotohelm · ArgoCD · :latest 참조"]
+            K1["EKS dev"]
+            D1 --> K1
+            H -.-> K1
+        end
+        subgraph TQS["test · qa · stage — CI → Rundeck"]
+            direction TB
+            D2["CI deploy job<br/>Rundeck API 호출 · -Version pipeline-id"]
+            RD["Rundeck job<br/>매니페스트 렌더 · 적용"]
+            M["환경별 매니페스트 ★<br/>deploy-scripts · Deployment · HPA · Service"]
+            K2["EKS test / qa / stage"]
+            D2 --> RD --> M --> K2
+        end
+        subgraph LIVE["live — CI 밖"]
+            direction TB
+            RL["Rundeck job 수동 실행<br/>(CI 에 deploy job 없음)"]
+            ML["live 매니페스트 ★<br/>deploy-scripts"]
+            K3["EKS live"]
+            RL --> ML --> K3
+        end
     end
-    GW[Envoy 게이트웨이 ★<br/>marina · gRPC → REST route]
-    OPSREPO[(운영 저장소 ★<br/>portal-ops<br/>DDL · Kafka Connect · Snowflake)]
-    BR --> T --> B --> REG
-    B --> D --> R
-    D -- develop --> K1
-    H -.-> K1
-    D -- 그 외 --> RD --> M --> K2
-    REG -.-> K1
-    REG -.-> K2
-    K2 -.-> GW
-    OPSREPO -.-> K2
+    B -- develop --> R1
+    B -- "test · qa · stage · live" --> R2
+    R1 --> D1
+    R2 -- "test · qa · stage" --> D2
+    R2 -- live --> RL
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
-    class H,M,GW,OPSREPO mine
+    class H,M,ML mine
+    style CI fill:#fefce8,stroke:#ca8a04,stroke-width:2px
+    style CD fill:#ecfdf5,stroke:#059669,stroke-width:2px
+    style REG fill:#f8fafc,stroke:#94a3b8
 </script>
 <script>var MERMAID_CDN="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js";
 (function(){
