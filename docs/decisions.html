@@ -186,7 +186,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <h2 id="d-idempotent">북마크는 멱등이 기본 ✅</h2>
 <p><strong>2024 Q3.</strong> 더블클릭·재시도가 흔하다. 중복 요청은 성공 반환, 해제는 미존재 시 실패로 명확히, 카운트는 DB 저장 성공 시에만 증가. 카운트 캐시는 0 이하면 키를 제거해 &ldquo;틀리면 재계산&rdquo; 이 가능한 쪽으로.</p>
 <h2 id="d-proto">proto 저장소는 도메인별 모듈로 ✅</h2>
-<p><strong>2024 Q3.</strong> 단일 proto 패키지에서 한 도메인 변경이 전 서비스 리빌드를 유발했다. 도메인별 독립 모듈·태그로 재구성, 생성은 1회, 게이트웨이 descriptor 는 CI 가 push. 폴더 구조 변경은 소비 서비스 전부를 깨뜨리므로 <strong>한 번에</strong> 해야 한다는 걸 revert 반복으로 배움. 같은 이유로 공통 라이브러리에서 proto 의존을 떼는 마이그레이션을 플랫폼·거래소 서비스 6곳에 2주 안에 연속 적용.</p>
+<p><strong>2024 Q3.</strong> 단일 proto 패키지에서 한 도메인 변경이 전 서비스 리빌드를 유발했다. 도메인별 독립 모듈·태그로 재구성, 생성은 1회, 게이트웨이 descriptor 는 CI 가 push. 폴더 구조 변경은 소비 서비스 전부를 깨뜨리므로 <strong>한 번에</strong> 해야 한다는 걸 revert 반복으로 배움.</p>
 <h2 id="d-unique">트랜잭션 해시를 유니크 키로 ✅</h2>
 <p><strong>2024 Q4.</strong> 기존 복합 키로는 같은 트랜잭션을 구분할 수 없어 중복 저장이 발생. 트랜잭션 해시 컬럼을 추가해 유니크 승격. 소모성 아이템은 판매자 주문 해시가 충돌해 구매자 주문 해시를 저장. 이후 크로스체인 도메인에서는 이 키가 &ldquo;계속 바뀌는 값&rdquo; 이라 안정 키가 아니라는 게 드러나 상관관계 키를 따로 둠.</p>
 <h2 id="d-dlq">비정상 이벤트는 DB 가 아니라 DLQ ✅</h2>
