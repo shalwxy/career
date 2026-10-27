@@ -181,7 +181,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <li><strong>High-volume transaction ledger (<a href="#" class="dg" data-dg="activity" title="Diagram">api-activity</a>)</strong> — reorganized layers, generalized the consumer and moved to message format v2, then extended it to trades, mints, transfers, Swap &amp; Warp, bridge-in and USDT. Promoted the transaction hash to a unique key, routed malformed events to a DLQ, and protected <a href="#" class="dg" data-dg="activity-lock" title="Diagram">concurrent ingestion</a> with Redis NX + PostgreSQL advisory locks</li>
 <li><strong>Query performance</strong> — OR → UNION ALL rewrite with the DBA, cursor-based infinite scroll, a conditional-caching option added to the shared cache decorator</li>
 <li>Emitted notification events when a transaction result is finalized; moved Snowflake ingestion from Kafka publishes to <strong>CDC</strong>, removing the publish-failure loss path</li>
-<li><strong>Bookmark / view-count service (<a href="#" class="dg" data-dg="bookmark" title="Diagram">api-bookmark</a>)</strong> — core features (majority of commits): idempotent writes, Redis counters moved to Kafka-driven aggregation, daily/total limits, account-deletion hook</li>
+<li><strong>Bookmark / view-count service (<a href="#" class="dg" data-dg="bookmark" title="Diagram">api-bookmark</a>)</strong> — core features: idempotent writes, Redis counters moved to Kafka-driven aggregation, daily/total limits, account-deletion hook</li>
 <li><strong>Marketplace web BFF</strong> — moved bookmark/activity calls to the new services, implemented bookmark and on-sale listings in the inventory service, parallelized rendering. Traced intermittent pod restarts to gRPC calls inside async loops holding resources and fixed them with timeouts and chunked calls</li>
 <li><a href="#" class="dg" data-dg="swapwarp" title="Diagram">Swap &amp; Warp</a> cross-chain transfer history and queries (incl. bff-swapnwarp); domain-split proto repository</li>
 <li>Item-probability disclosure service: data storage and versioning</li>
@@ -285,14 +285,14 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <li><strong>Kafka</strong> — consumer handlers, retry queues and DLQs.</li>
 <li><strong>CDC and pipelines</strong> — Debezium → Kafka → Snowflake Stream/Task. Took part in moving batch jobs and direct publishing to CDC under a &ldquo;services don&rsquo;t write outward themselves&rdquo; rule, and manage cost with a slot-keepalive batch, conditional tasks and a stateful/history table split.</li>
 <li><strong>Datastores</strong> — PostgreSQL, Redis, MongoDB and AWS DocumentDB (developed locally against MongoDB for compatibility), chosen per service.</li>
-<li><strong>DB design and query tuning</strong> — DDL managed through DBA review (103 commits in portal-ops); improved reads with OR → UNION ALL and cursor pagination.</li>
+<li><strong>DB design and query tuning</strong> — the DDL of my services managed through DBA review; improved reads with OR → UNION ALL and cursor pagination.</li>
 </ul>
 <h2 id="infrastructure-devops">Infrastructure &amp; DevOps</h2>
 <ul>
 <li><strong>Operating CI/CD</strong> — GitLab CI (test → build → deploy → release), multi-stage Dockerfiles and Rundeck deploy jobs for the services I owned. I fixed broken builds (semantic-release, runtime upgrades) and wired new services into the <a href="#" class="dg" data-dg="cicd" title="Diagram">pipeline</a>, with dev-first promotion before test/qa. Deployment differs per environment (dev: K8s API / test·qa·stage: Rundeck / live: Rundeck outside CI) and I operate with that distinction.</li>
 <li><strong>Kubernetes manifests</strong> — wrote and operated Helm templates and per-environment Deployment · HPA · Service; tuned probes, resources and ports for cost and stability (e.g. reducing test/qa/stage resources).</li>
 <li><strong>Deploy and ops routine</strong> — dev-first deployment before promotion, post-deploy monitoring on live, and scheduled-maintenance support as part of regular work.</li>
-<li><strong>Gateway</strong> — operate Envoy gRPC → REST routes (82 commits) and auth settings; took part in the team&rsquo;s review of externally exposed APIs and adding authentication.</li>
+<li><strong>Gateway</strong> — added and tidied the Envoy gRPC → REST routing rules and auth settings whenever services were added; took part in the team&rsquo;s review of externally exposed APIs and adding authentication.</li>
 </ul>
 <h2 id="observability-debugging">Observability &amp; Debugging</h2>
 <ul>

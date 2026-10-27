@@ -402,14 +402,14 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <li><strong>Kafka:</strong> 컨슈머 핸들러·재시도 큐·DLQ 를 설계하고 운영했습니다.</li>
 <li><strong>저장소:</strong> PostgreSQL · Redis · MongoDB · AWS DocumentDB(로컬 개발은 MongoDB 호환으로 진행)를 서비스 성격에 맞춰 사용했습니다.</li>
 <li><strong>CDC·데이터 파이프라인:</strong> Debezium → Kafka → Snowflake Stream/Task. 서비스가 직접 외부에 쓰지 않는 원칙으로 배치·publish 를 CDC 로 옮기는 데 참여했고, slot keepalive 배치·조건부 task·상태성/이력성 테이블 구분으로 운영 비용을 관리합니다.</li>
-<li><strong>DB 설계·쿼리 튜닝:</strong> DDL 을 DBA 검토 흐름으로 관리하고(portal-ops 103 커밋), OR → UNION ALL · 커서 페이지네이션 등으로 조회를 개선했습니다.</li>
+<li><strong>DB 설계·쿼리 튜닝:</strong> 담당 서비스의 DB DDL 을 DBA 검토를 거쳐 관리하고, OR → UNION ALL · 커서 페이지네이션 등으로 조회를 개선했습니다.</li>
 </ul>
 <h2 id="infrastructure-devops">Infrastructure &amp; DevOps</h2>
 <ul>
 <li><strong>CI/CD 운영:</strong> GitLab CI(test → build → deploy → release) · multi-stage Dockerfile · Rundeck 배포 job 으로 담당 서비스를 배포합니다. 깨진 빌드(semantic-release · 런타임 버전)를 고치고 신설 서비스를 <a href="#" class="dg" data-dg="cicd" title="도식 보기">파이프라인</a>에 연결했습니다. 대역마다 배포 방식(dev: K8s API / test·qa·stage: Rundeck / live: CI 밖 Rundeck)이 달라 이를 구분해 운영합니다.</li>
 <li><strong>Kubernetes 매니페스트:</strong> Helm 템플릿과 환경별 Deployment · HPA · Service 를 작성·운영하고, probe · 리소스 · 포트를 비용과 안정성 기준으로 조정했습니다(test/qa/stage 리소스 감축 등).</li>
 <li><strong>배포·운영 루틴:</strong> 운영 대역 승격 전 dev 선행 배포, live 배포 후 모니터링, 정기점검 대응을 일상 업무로 해왔습니다.</li>
-<li><strong>게이트웨이:</strong> Envoy gRPC → REST route(82 커밋)와 인증 설정을 운영하고, 팀의 외부 노출 API 영향성 조사·인증 추가 작업에 참여했습니다.</li>
+<li><strong>게이트웨이:</strong> 서비스가 늘어날 때마다 Envoy 게이트웨이에 gRPC → REST 연결 규칙(route)과 인증 설정을 추가·정리하고, 팀의 외부 노출 API 영향성 조사·인증 추가 작업에 참여했습니다.</li>
 </ul>
 <h2 id="observability-debugging">Observability &amp; Debugging</h2>
 <ul>

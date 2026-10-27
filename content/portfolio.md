@@ -61,7 +61,7 @@
 
 <span class="tag">2024-06 ~ 2025-09</span> <span class="tag">Go · gRPC · Kafka · Redis</span>
 
-**[북마크 서비스](#dg:bookmark)(서버).** 초기부터 참여해 proto 설계부터 라이브까지 메인 담당(리포 커밋 과반). 북마크는 더블클릭·재시도가 흔해 **멱등**이 기본이어야 했습니다 — 중복 요청은 성공 반환, 카운트는 DB 저장 성공 시에만 증가, 0 이하면 캐시 키 제거. 카운트 갱신은 요청 경로의 동기 처리에서 **Kafka 이벤트 기반**으로 옮겨 레이턴시와 정합성을 함께 잡았고, 하루/총량 제한과 회원 탈퇴 연동을 더했습니다.
+**[북마크 서비스](#dg:bookmark)(서버).** 초기부터 참여해 proto 설계부터 라이브까지 담당했습니다. 북마크는 더블클릭·재시도가 흔해 **멱등**이 기본이어야 했습니다 — 중복 요청은 성공 반환, 카운트는 DB 저장 성공 시에만 증가, 0 이하면 캐시 키 제거. 카운트 갱신은 요청 경로의 동기 처리에서 **Kafka 이벤트 기반**으로 옮겨 레이턴시와 정합성을 함께 잡았고, 하루/총량 제한과 회원 탈퇴 연동을 더했습니다.
 
 **거래소 BFF(소비자).** 같은 서비스를 소비하는 거래소 웹 BFF 도 직접 마이그레이션해, 서버 proto 변경이 BFF 에 어떻게 닿는지 양쪽에서 확인했습니다. 인벤토리 서비스의 북마크·판매중 목록 조회 구현, 조회수 증가 비동기화, 캐릭터 이미지 렌더 병렬화·bulk 호출, 외부 조회 chunk 분할.
 
@@ -167,12 +167,12 @@
 
 **제가 한 일.**
 
-- **CI 파이프라인 운영** — 담당 서비스 3개의 `.gitlab-ci.yml`·Dockerfile(약 58 커밋): 누락된 go test 단계 보완, Go 1.23 → 1.26 · Docker · Node 런타임 업그레이드, semantic-release 빌드 깨짐 수정(버전 고정), 신설 서비스의 배포 job 연결.
+- **CI 파이프라인 운영** — 담당 서비스 3개의 `.gitlab-ci.yml`·Dockerfile: 누락된 go test 단계 보완, Go 1.23 → 1.26 · Docker · Node 런타임 업그레이드, semantic-release 빌드 깨짐 수정(버전 고정), 신설 서비스의 배포 job 연결.
 - **신설 서비스의 배포 세트** — api-sentinel 신설 때 Helm 템플릿(dev) · 4개 환경 매니페스트(Deployment · HPA · Service) · Envoy route · CI 배포 job 을 코드와 같은 주에 한 세트로 추가. 레지스트리 deploy token 만료 시 dockerconfigjson 교체.
-- **Kubernetes 매니페스트 운영** (gotohelm 86 · deploy-scripts 12 커밋) — liveness/readiness probe 보정, 서비스 포트 추가, 서비스명 변경, test/qa/stage pod 리소스 감축(비용 절감 요청 건), live 로그 레벨 정리, DE 서비스 초기 배포.
-- **Envoy 게이트웨이** (marina 82 커밋) — gRPC → REST transcoding route 추가·정리, 인증 적용·skip 설정, 미사용 cluster 제거, live 에서 특정 인증 호출 차단.
-- **운영 저장소** (portal-ops 103 커밋) — PostgreSQL DDL 을 DBA 검토 흐름으로 관리, Debezium/Kafka Connect · Snowflake Stream/Task 설정([CDC](#dg:cdc)), MongoDB TTL 정책.
-- **공용 Go 라이브러리** (platform-lib 24 커밋) — PostgreSQL 드라이버 `target_session_attrs`(읽기 복제본 라우팅), 캐시 데코레이터에 조건부 캐싱 옵션 추가.
+- **Kubernetes 매니페스트 운영** (gotohelm · deploy-scripts) — liveness/readiness probe 보정, 서비스 포트 추가, 서비스명 변경, test/qa/stage pod 리소스 감축(비용 절감 요청 건), live 로그 레벨 정리, DE 서비스 초기 배포.
+- **Envoy 게이트웨이** (marina) — 서비스가 늘어날 때마다 gRPC → REST 연결 규칙(route)을 추가·정리, 인증 적용·skip 설정, 미사용 cluster 제거, live 에서 특정 인증 호출 차단.
+- **운영 저장소** (portal-ops) — PostgreSQL DDL 을 DBA 검토 흐름으로 관리, Debezium/Kafka Connect · Snowflake Stream/Task 설정([CDC](#dg:cdc)), MongoDB TTL 정책.
+- **공용 Go 라이브러리** (platform-lib) — PostgreSQL 드라이버 `target_session_attrs`(읽기 복제본 라우팅), 캐시 데코레이터에 조건부 캐싱 옵션 추가.
 
 **결과.** 서비스 신설·확장 시 애플리케이션 코드와 배포 설정을 같은 사람이 같은 MR 흐름에서 끝낼 수 있었습니다. 파이프라인 자체를 만들거나 바꾼 경험은 없고, 구조를 읽고 그 위에서 운영한 경험입니다.
 

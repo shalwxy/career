@@ -216,7 +216,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <hr>
 <h2 id="bookmark">3. 북마크 · 조회수 서비스 신설과 거래소 BFF</h2>
 <p><span class="tag">2024-06 ~ 2025-09</span> <span class="tag">Go · gRPC · Kafka · Redis</span></p>
-<p><strong><a href="#" class="dg" data-dg="bookmark" title="도식 보기">북마크 서비스</a>(서버).</strong> 초기부터 참여해 proto 설계부터 라이브까지 메인 담당(리포 커밋 과반). 북마크는 더블클릭·재시도가 흔해 <strong>멱등</strong>이 기본이어야 했습니다 — 중복 요청은 성공 반환, 카운트는 DB 저장 성공 시에만 증가, 0 이하면 캐시 키 제거. 카운트 갱신은 요청 경로의 동기 처리에서 <strong>Kafka 이벤트 기반</strong>으로 옮겨 레이턴시와 정합성을 함께 잡았고, 하루/총량 제한과 회원 탈퇴 연동을 더했습니다.</p>
+<p><strong><a href="#" class="dg" data-dg="bookmark" title="도식 보기">북마크 서비스</a>(서버).</strong> 초기부터 참여해 proto 설계부터 라이브까지 담당했습니다. 북마크는 더블클릭·재시도가 흔해 <strong>멱등</strong>이 기본이어야 했습니다 — 중복 요청은 성공 반환, 카운트는 DB 저장 성공 시에만 증가, 0 이하면 캐시 키 제거. 카운트 갱신은 요청 경로의 동기 처리에서 <strong>Kafka 이벤트 기반</strong>으로 옮겨 레이턴시와 정합성을 함께 잡았고, 하루/총량 제한과 회원 탈퇴 연동을 더했습니다.</p>
 <p><strong>거래소 BFF(소비자).</strong> 같은 서비스를 소비하는 거래소 웹 BFF 도 직접 마이그레이션해, 서버 proto 변경이 BFF 에 어떻게 닿는지 양쪽에서 확인했습니다. 인벤토리 서비스의 북마크·판매중 목록 조회 구현, 조회수 증가 비동기화, 캐릭터 이미지 렌더 병렬화·bulk 호출, 외부 조회 chunk 분할.</p>
 <p><strong>장애 — 간헐적 pod 재시작.</strong> 원인 불명으로 BFF pod 가 재시작되던 문제를 로그 추적으로 <strong>비동기 반복문 안의 gRPC 호출이 자원을 점유</strong>하는 것으로 좁히고, timeout 과 chunk 호출로 해결했습니다.</p>
 <p><strong>캐시의 교훈.</strong> BFF 북마크 캐시를 &ldquo;변경 시 무효화&rdquo; 로 설계했다가 비동기 무효화 실패·context 취소 문제로 timeout 을 늘려가던 끝에 <strong>3초 TTL, 무효화 없음</strong> 으로 단순화했습니다. 무효화보다 짧은 TTL 이 낫다는 걸 체감한 사례입니다.</p>
@@ -288,12 +288,12 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <p><strong>맥락.</strong> 담당 서비스의 CI/CD 설정(GitLab CI → Rundeck → EKS, Helm, Envoy)은 백엔드 개발자가 직접 관리하는 구조였습니다. <a href="#" class="dg" data-dg="cicd" title="도식 보기">파이프라인</a>으로 배포하면서 깨진 빌드를 고치고 신설 서비스를 연결했습니다. 대역별로 흐름이 달랐습니다 — dev 는 CI 가 K8s API 로 재시작, test·qa·stage 는 CI 가 Rundeck 을 호출, live 는 CI 가 이미지 빌드까지만 하고 배포는 CI 밖에서 Rundeck 으로.</p>
 <p><strong>제가 한 일.</strong></p>
 <ul>
-<li><strong>CI 파이프라인 운영</strong> — 담당 서비스 3개의 <code>.gitlab-ci.yml</code>·Dockerfile(약 58 커밋): 누락된 go test 단계 보완, Go 1.23 → 1.26 · Docker · Node 런타임 업그레이드, semantic-release 빌드 깨짐 수정(버전 고정), 신설 서비스의 배포 job 연결.</li>
+<li><strong>CI 파이프라인 운영</strong> — 담당 서비스 3개의 <code>.gitlab-ci.yml</code>·Dockerfile: 누락된 go test 단계 보완, Go 1.23 → 1.26 · Docker · Node 런타임 업그레이드, semantic-release 빌드 깨짐 수정(버전 고정), 신설 서비스의 배포 job 연결.</li>
 <li><strong>신설 서비스의 배포 세트</strong> — api-sentinel 신설 때 Helm 템플릿(dev) · 4개 환경 매니페스트(Deployment · HPA · Service) · Envoy route · CI 배포 job 을 코드와 같은 주에 한 세트로 추가. 레지스트리 deploy token 만료 시 dockerconfigjson 교체.</li>
-<li><strong>Kubernetes 매니페스트 운영</strong> (gotohelm 86 · deploy-scripts 12 커밋) — liveness/readiness probe 보정, 서비스 포트 추가, 서비스명 변경, test/qa/stage pod 리소스 감축(비용 절감 요청 건), live 로그 레벨 정리, DE 서비스 초기 배포.</li>
-<li><strong>Envoy 게이트웨이</strong> (marina 82 커밋) — gRPC → REST transcoding route 추가·정리, 인증 적용·skip 설정, 미사용 cluster 제거, live 에서 특정 인증 호출 차단.</li>
-<li><strong>운영 저장소</strong> (portal-ops 103 커밋) — PostgreSQL DDL 을 DBA 검토 흐름으로 관리, Debezium/Kafka Connect · Snowflake Stream/Task 설정(<a href="#" class="dg" data-dg="cdc" title="도식 보기">CDC</a>), MongoDB TTL 정책.</li>
-<li><strong>공용 Go 라이브러리</strong> (platform-lib 24 커밋) — PostgreSQL 드라이버 <code>target_session_attrs</code>(읽기 복제본 라우팅), 캐시 데코레이터에 조건부 캐싱 옵션 추가.</li>
+<li><strong>Kubernetes 매니페스트 운영</strong> (gotohelm · deploy-scripts) — liveness/readiness probe 보정, 서비스 포트 추가, 서비스명 변경, test/qa/stage pod 리소스 감축(비용 절감 요청 건), live 로그 레벨 정리, DE 서비스 초기 배포.</li>
+<li><strong>Envoy 게이트웨이</strong> (marina) — 서비스가 늘어날 때마다 gRPC → REST 연결 규칙(route)을 추가·정리, 인증 적용·skip 설정, 미사용 cluster 제거, live 에서 특정 인증 호출 차단.</li>
+<li><strong>운영 저장소</strong> (portal-ops) — PostgreSQL DDL 을 DBA 검토 흐름으로 관리, Debezium/Kafka Connect · Snowflake Stream/Task 설정(<a href="#" class="dg" data-dg="cdc" title="도식 보기">CDC</a>), MongoDB TTL 정책.</li>
+<li><strong>공용 Go 라이브러리</strong> (platform-lib) — PostgreSQL 드라이버 <code>target_session_attrs</code>(읽기 복제본 라우팅), 캐시 데코레이터에 조건부 캐싱 옵션 추가.</li>
 </ul>
 <p><strong>결과.</strong> 서비스 신설·확장 시 애플리케이션 코드와 배포 설정을 같은 사람이 같은 MR 흐름에서 끝낼 수 있었습니다. 파이프라인 자체를 만들거나 바꾼 경험은 없고, 구조를 읽고 그 위에서 운영한 경험입니다.</p>
 <p class="more">관련 설계 결정: <a href="decisions.html#d-deployset">서비스 신설은 배포 세트까지</a> · <a href="decisions.html#d-devfirst">test/qa 승격 전 dev 선행 배포</a> · <a href="decisions.html#d-cdc">publish 대신 CDC</a></p>

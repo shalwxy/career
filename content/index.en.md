@@ -61,7 +61,7 @@ NEXON UNIVERSE (founded 2022, a Nexon affiliate) builds MapleStory Universe (MSU
 - **High-volume transaction ledger ([api-activity](#dg:activity))** — reorganized layers, generalized the consumer and moved to message format v2, then extended it to trades, mints, transfers, Swap & Warp, bridge-in and USDT. Promoted the transaction hash to a unique key, routed malformed events to a DLQ, and protected [concurrent ingestion](#dg:activity-lock) with Redis NX + PostgreSQL advisory locks
 - **Query performance** — OR → UNION ALL rewrite with the DBA, cursor-based infinite scroll, a conditional-caching option added to the shared cache decorator
 - Emitted notification events when a transaction result is finalized; moved Snowflake ingestion from Kafka publishes to **CDC**, removing the publish-failure loss path
-- **Bookmark / view-count service ([api-bookmark](#dg:bookmark))** — core features (majority of commits): idempotent writes, Redis counters moved to Kafka-driven aggregation, daily/total limits, account-deletion hook
+- **Bookmark / view-count service ([api-bookmark](#dg:bookmark))** — core features: idempotent writes, Redis counters moved to Kafka-driven aggregation, daily/total limits, account-deletion hook
 - **Marketplace web BFF** — moved bookmark/activity calls to the new services, implemented bookmark and on-sale listings in the inventory service, parallelized rendering. Traced intermittent pod restarts to gRPC calls inside async loops holding resources and fixed them with timeouts and chunked calls
 - [Swap & Warp](#dg:swapwarp) cross-chain transfer history and queries (incl. bff-swapnwarp); domain-split proto repository
 - Item-probability disclosure service: data storage and versioning
@@ -185,14 +185,14 @@ Mathematics major (calculus, linear algebra, geometry, probability and statistic
 - **Kafka** — consumer handlers, retry queues and DLQs.
 - **CDC and pipelines** — Debezium → Kafka → Snowflake Stream/Task. Took part in moving batch jobs and direct publishing to CDC under a "services don't write outward themselves" rule, and manage cost with a slot-keepalive batch, conditional tasks and a stateful/history table split.
 - **Datastores** — PostgreSQL, Redis, MongoDB and AWS DocumentDB (developed locally against MongoDB for compatibility), chosen per service.
-- **DB design and query tuning** — DDL managed through DBA review (103 commits in portal-ops); improved reads with OR → UNION ALL and cursor pagination.
+- **DB design and query tuning** — the DDL of my services managed through DBA review; improved reads with OR → UNION ALL and cursor pagination.
 
 ## Infrastructure & DevOps
 
 - **Operating CI/CD** — GitLab CI (test → build → deploy → release), multi-stage Dockerfiles and Rundeck deploy jobs for the services I owned. I fixed broken builds (semantic-release, runtime upgrades) and wired new services into the [pipeline](#dg:cicd), with dev-first promotion before test/qa. Deployment differs per environment (dev: K8s API / test·qa·stage: Rundeck / live: Rundeck outside CI) and I operate with that distinction.
 - **Kubernetes manifests** — wrote and operated Helm templates and per-environment Deployment · HPA · Service; tuned probes, resources and ports for cost and stability (e.g. reducing test/qa/stage resources).
 - **Deploy and ops routine** — dev-first deployment before promotion, post-deploy monitoring on live, and scheduled-maintenance support as part of regular work.
-- **Gateway** — operate Envoy gRPC → REST routes (82 commits) and auth settings; took part in the team's review of externally exposed APIs and adding authentication.
+- **Gateway** — added and tidied the Envoy gRPC → REST routing rules and auth settings whenever services were added; took part in the team's review of externally exposed APIs and adding authentication.
 
 ## Observability & Debugging
 
