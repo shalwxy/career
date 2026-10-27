@@ -20,7 +20,7 @@ OUT_DIR = ROOT / "docs"
 CONFIG = {
     "name": "이승하",
     "name_en": "Seungha Lee",
-    "title": "Backend Engineer · Go / gRPC / Kafka / PostgreSQL",
+    "title": "Software Engineer · Backend / DevOps · Go / gRPC / Kafka",
     "links": {                # 값이 비어 있으면 숨김. 상단 바와 푸터에 표시
         "Email": "mailto:shalwxy@gmail.com",
         "GitHub": "https://github.com/shalwxy",

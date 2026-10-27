@@ -1,4 +1,4 @@
-# Seungha Lee (이승하) — Backend / DevOps Engineer
+# Seungha Lee (이승하) — Software Engineer (Backend · DevOps)
 
 **🔗 https://shalwxy.github.io/resume/**
 
