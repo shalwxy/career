@@ -186,6 +186,6 @@
 - **디스코드 자동 뱃지·역할 동기화** — 게임 내 달성도에 따라 역할을 자동 부여. 비동기 → 동기 전환으로 누락 방지, 연결 해제 시 식별 정보는 보존. 역할 부여 실패를 **Outbox 재시도**로 복구하고 배치를 continue-and-count 로 바꾸는 변경은 리뷰 중.
 - **이메일 변경 후 보안 설정 잠금** — Redis TTL 에서 DB 컬럼 영속화로 전환, 선검사 API 대신 응답 필드 하나로 UX 통합, Primary 조회로 복제 지연 창 제거.
 - **운영 콘솔** — 디스코드 메시지 재전송(rate limit·변경 감지), 권한 도메인 분리, 지갑↔SNS 조회.
-- **그 밖의 기여** — 커뮤니티 공지 → 디스코드 크롤러에 게시판 추가·실패 지점 재개, 거래소 런칭 전 네비게이터·게임데이터 버그 픽스. 인프라·CI/CD 는 [§10](#infra).
+- **그 밖의 기여** — 외부 노출 API(스왑워프·통합알림·BFF) 영향성 전수 조사와 인증 추가(팀 3인), 블록체인 서포터·BFF 지갑주소 유효성 검사 추가, 액티비티 로그 제거, PostgreSQL 메이저 버전 업그레이드에 따른 QA 대역 CDC 작업, 커뮤니티 공지 → 디스코드 크롤러에 게시판 추가·실패 지점 재개, 거래소 런칭 전 네비게이터·게임데이터 버그 픽스. 인프라·CI/CD 는 [§10](#infra).
 
 <p class="more">관련 설계 결정: <a href="decisions.html#d-outbox">외부 side effect 는 Outbox</a> · <a href="decisions.html#d-batch">배치는 continue-and-count</a> · <a href="decisions.html#d-lock-email">잠금은 Redis 가 아니라 컬럼</a></p>

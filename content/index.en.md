@@ -87,6 +87,7 @@ MapleStory Universe (MSU) is a Web3 platform built on the MapleStory IP. I start
 - **[PostgreSQL CDC → Snowflake](#dg:cdc)** — Debezium connectors, Stream/Task, a replication-slot keepalive job, conditional tasks to cut cost
 - **[Error-triage bot](#dg:errorbot)** — LLM first-pass analysis of Slack alerts with GitLab commit diffing, OpenSearch history and escalation; handled a vendor model deprecation with model swap, retry/backoff and a semaphore
 - Operations console — Discord message re-send, permission-domain split, wallet ↔ SNS lookups
+- Reviewed all externally exposed APIs (Swap & Warp, notifications, BFF) and added authentication (team of three); added wallet-address validation
 - **[CI/CD & infrastructure](#dg:cicd)** (throughout) — used the team's existing pipeline and manifest patterns to maintain GitLab CI, Dockerfiles, Helm/K8s manifests, Envoy routes and DDL for the services I owned; new services shipped with their full deployment set by copying those patterns
 
 ### Tech Stack
@@ -170,32 +171,34 @@ Calculus, linear algebra, geometry, probability and statistics, analysis, topolo
 
 # Skills
 
-## Backend Development
+## Backend (Go)
 
-- **Go and refactoring** — comfortable with goroutine/channel concurrency; I keep splitting complex code into small, loosely coupled units behind interfaces.
-- **Data design under concurrency** — PostgreSQL advisory locks, Redis distributed locks and Lua atomics, idempotent writes; I design the schema, the application layer and the database layer together so out-of-order messages never create duplicates.
-- **Failure paths first** — pre-deduction/rollback, outbox retries, DLQs and CDC. When a large feature is rolled back, the defect fixes discovered along the way stay.
-- **Flexible APIs** — policies come in as enums/config rather than code branches, so policy changes don't become commits.
+- **Go services and restructuring** — gRPC (unary/streaming), Kafka consumers and PostgreSQL/Redis/MongoDB, built in clear layers. Over three years I developed and restructured several Go services (api-activity, api-bookmark, api-sentinel, api-account, api-notification, api-blockchain-supporter) and split complex code behind interfaces to keep coupling low.
+- **Concurrency and consistency** — PostgreSQL advisory locks, Redis NX/distributed locks/Lua, idempotency keys and unique keys, chosen per event type: look-up-then-create/update for messages that may arrive out of order, Redis NX for single-message events. I also re-check where atomicity actually ends — in a daily-limit counter I found the check sat outside the Lua script and wrote that up as a retrospective.
+- **Failure paths first** — pre-deduction/rollback, DLQ and retries, CDC: decide how to recover before implementing. From a rolled-back feature (withdrawal delay) I learned to merge defect fixes separately from the feature so they survive a rollback.
+- **API and policy design** — policies come in as enums/config rather than code branches, so policy changes don't become commits.
 
-## Architecture & Operations
+## Data & Messaging
 
-- **New services and domains to production** — the policy service from its first commit, bookmarks and Swap & Warp carried to production with the majority of commits, and an error-triage bot added to portal-ai. Splitting layers early is what lets features land without structural change later.
-- **Pipelines outside the service** — batch → publish removal → CDC with Debezium and Snowflake Stream/Task, including slot keepalive and conditional tasks.
+- **Kafka** — consumer handlers, retry queues and DLQs; recovering failed external calls through an outbox (in review).
+- **CDC and pipelines** — Debezium → Kafka → Snowflake Stream/Task. Took part in moving batch jobs and direct publishing to CDC under a "services don't write outward themselves" rule, and manage cost with a slot-keepalive batch, conditional tasks and a stateful/history table split.
+- **DB design and query tuning** — DDL managed through DBA review (103 commits in portal-ops); improved reads with OR → UNION ALL and cursor pagination.
 
-## Infrastructure & CI/CD
+## Infrastructure & DevOps
 
-- **Using and maintaining pipelines** — the team's GitLab CI (test → build → deploy → release), multi-stage Dockerfiles and Rundeck deploy jobs — I didn't design the pipeline; my part was fixing broken builds (semantic-release, runtime upgrades) and wiring new services into the [pipeline](#dg:cicd) by following existing patterns, with dev-first promotion before test/qa.
-- **Kubernetes manifests** — wrote and operated Helm templates and per-environment Deployment · HPA · Service; tune probes, resources and ports for cost and stability.
-- **Gateway & data infrastructure** — Envoy gRPC → REST routes, Debezium/Kafka Connect and Snowflake configuration, DDL managed through DBA review — I look past the application boundary.
+- **Using and maintaining CI/CD** — the team's GitLab CI (test → build → deploy → release), multi-stage Dockerfiles and Rundeck deploy jobs; I didn't design them. I fixed broken builds (semantic-release, runtime upgrades) and wired new services into the [pipeline](#dg:cicd) by following existing patterns. Deployment differs per environment (dev: K8s API / test·qa·stage: Rundeck / live: Rundeck outside CI) and I operate with that distinction.
+- **Kubernetes manifests** — wrote and operated Helm templates and per-environment Deployment · HPA · Service; tuned probes, resources and ports for cost and stability (e.g. reducing test/qa/stage resources).
+- **Deploy and ops routine** — dev-first deployment before promotion, post-deploy monitoring on live, and scheduled-maintenance support as part of regular work.
+- **Gateway** — operate Envoy gRPC → REST routes (82 commits) and auth settings; took part in the team's review of externally exposed APIs and adding authentication.
 
-## Logging / Debugging
+## Observability & Debugging
 
-- **Meaningful logs and correlation keys** so a request can be traced end to end across Datadog, Jaeger and OpenSearch.
-- **Hypothesis-driven debugging** — context and environment first, then narrow the scope; hidden causes like async-loop resource exhaustion get found and fixed at the root.
-- **Closing incidents on recurrence**, not on the first fix — retries, backoff, semaphores and table tests ship together; after the replacement model was itself deprecated, "check vendor availability first" became part of the closing criteria.
+- **Observability** — correlation keys so a request can be traced across Datadog, Jaeger and OpenSearch; logs where they're needed; monitoring after each deploy.
+- **Hypothesis-driven debugging** — context and environment first, then narrow the scope. Intermittent BFF pod restarts were traced to gRPC calls inside async loops holding resources and fixed with timeouts and chunked calls.
+- **Operational automation** — built an error-triage bot that gives LLM first-pass analysis of Slack alerts, and hardened it after a vendor model deprecation with retries, backoff and a semaphore. After the replacement model was itself deprecated, "check vendor availability first" became part of the closing criteria.
 
-## Communication
+## Collaboration
 
-- **Clarifying requirements** and separating "current assumptions" from "needs verification" when working with DBAs, data engineering, security and product.
-- **Visual, horizontal communication** — diagrams and written proposals; I change direction when a better one appears.
-- **Proactive risk management** and turning review feedback into team principles ("no log-and-swallow on external calls", "inject config at boot").
+- **Clarifying requirements** — turn vague specs into developer terms and separate "current assumptions" from "needs verification" with DBA, data engineering, security, product, front-end and blockchain teams.
+- **Visual communication and documentation** — diagrams and written proposals, open to a better direction; documentation and handover notes are how I close work.
+- **Reviews as principles** — payment/security features go through two review rounds; feedback ("no log-and-swallow on external calls", "inject config at boot") is written down as team principles.

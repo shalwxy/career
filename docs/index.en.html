@@ -203,6 +203,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <li><strong><a href="#" class="dg" data-dg="cdc" title="Diagram">PostgreSQL CDC → Snowflake</a></strong> — Debezium connectors, Stream/Task, a replication-slot keepalive job, conditional tasks to cut cost</li>
 <li><strong><a href="#" class="dg" data-dg="errorbot" title="Diagram">Error-triage bot</a></strong> — LLM first-pass analysis of Slack alerts with GitLab commit diffing, OpenSearch history and escalation; handled a vendor model deprecation with model swap, retry/backoff and a semaphore</li>
 <li>Operations console — Discord message re-send, permission-domain split, wallet ↔ SNS lookups</li>
+<li>Reviewed all externally exposed APIs (Swap &amp; Warp, notifications, BFF) and added authentication (team of three); added wallet-address validation</li>
 <li><strong><a href="#" class="dg" data-dg="cicd" title="Diagram">CI/CD &amp; infrastructure</a></strong> (throughout) — used the team&rsquo;s existing pipeline and manifest patterns to maintain GitLab CI, Dockerfiles, Helm/K8s manifests, Envoy routes and DDL for the services I owned; new services shipped with their full deployment set by copying those patterns</li>
 </ul>
 <h3 id="tech-stack">Tech Stack</h3>
@@ -264,38 +265,40 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <p>Calculus, linear algebra, geometry, probability and statistics, analysis, topology, number theory and abstract algebra.</p>
 <hr>
 <h1 id="skills">Skills</h1>
-<h2 id="backend-development">Backend Development</h2>
+<h2 id="backend-go">Backend (Go)</h2>
 <ul>
-<li><strong>Go and refactoring</strong> — comfortable with goroutine/channel concurrency; I keep splitting complex code into small, loosely coupled units behind interfaces.</li>
-<li><strong>Data design under concurrency</strong> — PostgreSQL advisory locks, Redis distributed locks and Lua atomics, idempotent writes; I design the schema, the application layer and the database layer together so out-of-order messages never create duplicates.</li>
-<li><strong>Failure paths first</strong> — pre-deduction/rollback, outbox retries, DLQs and CDC. When a large feature is rolled back, the defect fixes discovered along the way stay.</li>
-<li><strong>Flexible APIs</strong> — policies come in as enums/config rather than code branches, so policy changes don&rsquo;t become commits.</li>
+<li><strong>Go services and restructuring</strong> — gRPC (unary/streaming), Kafka consumers and PostgreSQL/Redis/MongoDB, built in clear layers. Over three years I developed and restructured several Go services (api-activity, api-bookmark, api-sentinel, api-account, api-notification, api-blockchain-supporter) and split complex code behind interfaces to keep coupling low.</li>
+<li><strong>Concurrency and consistency</strong> — PostgreSQL advisory locks, Redis NX/distributed locks/Lua, idempotency keys and unique keys, chosen per event type: look-up-then-create/update for messages that may arrive out of order, Redis NX for single-message events. I also re-check where atomicity actually ends — in a daily-limit counter I found the check sat outside the Lua script and wrote that up as a retrospective.</li>
+<li><strong>Failure paths first</strong> — pre-deduction/rollback, DLQ and retries, CDC: decide how to recover before implementing. From a rolled-back feature (withdrawal delay) I learned to merge defect fixes separately from the feature so they survive a rollback.</li>
+<li><strong>API and policy design</strong> — policies come in as enums/config rather than code branches, so policy changes don&rsquo;t become commits.</li>
 </ul>
-<h2 id="architecture-operations">Architecture &amp; Operations</h2>
+<h2 id="data-messaging">Data &amp; Messaging</h2>
 <ul>
-<li><strong>New services and domains to production</strong> — the policy service from its first commit, bookmarks and Swap &amp; Warp carried to production with the majority of commits, and an error-triage bot added to portal-ai. Splitting layers early is what lets features land without structural change later.</li>
-<li><strong>Pipelines outside the service</strong> — batch → publish removal → CDC with Debezium and Snowflake Stream/Task, including slot keepalive and conditional tasks.</li>
+<li><strong>Kafka</strong> — consumer handlers, retry queues and DLQs; recovering failed external calls through an outbox (in review).</li>
+<li><strong>CDC and pipelines</strong> — Debezium → Kafka → Snowflake Stream/Task. Took part in moving batch jobs and direct publishing to CDC under a &ldquo;services don&rsquo;t write outward themselves&rdquo; rule, and manage cost with a slot-keepalive batch, conditional tasks and a stateful/history table split.</li>
+<li><strong>DB design and query tuning</strong> — DDL managed through DBA review (103 commits in portal-ops); improved reads with OR → UNION ALL and cursor pagination.</li>
 </ul>
-<h2 id="infrastructure-cicd">Infrastructure &amp; CI/CD</h2>
+<h2 id="infrastructure-devops">Infrastructure &amp; DevOps</h2>
 <ul>
-<li><strong>Using and maintaining pipelines</strong> — the team&rsquo;s GitLab CI (test → build → deploy → release), multi-stage Dockerfiles and Rundeck deploy jobs — I didn&rsquo;t design the pipeline; my part was fixing broken builds (semantic-release, runtime upgrades) and wiring new services into the <a href="#" class="dg" data-dg="cicd" title="Diagram">pipeline</a> by following existing patterns, with dev-first promotion before test/qa.</li>
-<li><strong>Kubernetes manifests</strong> — wrote and operated Helm templates and per-environment Deployment · HPA · Service; tune probes, resources and ports for cost and stability.</li>
-<li><strong>Gateway &amp; data infrastructure</strong> — Envoy gRPC → REST routes, Debezium/Kafka Connect and Snowflake configuration, DDL managed through DBA review — I look past the application boundary.</li>
+<li><strong>Using and maintaining CI/CD</strong> — the team&rsquo;s GitLab CI (test → build → deploy → release), multi-stage Dockerfiles and Rundeck deploy jobs; I didn&rsquo;t design them. I fixed broken builds (semantic-release, runtime upgrades) and wired new services into the <a href="#" class="dg" data-dg="cicd" title="Diagram">pipeline</a> by following existing patterns. Deployment differs per environment (dev: K8s API / test·qa·stage: Rundeck / live: Rundeck outside CI) and I operate with that distinction.</li>
+<li><strong>Kubernetes manifests</strong> — wrote and operated Helm templates and per-environment Deployment · HPA · Service; tuned probes, resources and ports for cost and stability (e.g. reducing test/qa/stage resources).</li>
+<li><strong>Deploy and ops routine</strong> — dev-first deployment before promotion, post-deploy monitoring on live, and scheduled-maintenance support as part of regular work.</li>
+<li><strong>Gateway</strong> — operate Envoy gRPC → REST routes (82 commits) and auth settings; took part in the team&rsquo;s review of externally exposed APIs and adding authentication.</li>
 </ul>
-<h2 id="logging-debugging">Logging / Debugging</h2>
+<h2 id="observability-debugging">Observability &amp; Debugging</h2>
 <ul>
-<li><strong>Meaningful logs and correlation keys</strong> so a request can be traced end to end across Datadog, Jaeger and OpenSearch.</li>
-<li><strong>Hypothesis-driven debugging</strong> — context and environment first, then narrow the scope; hidden causes like async-loop resource exhaustion get found and fixed at the root.</li>
-<li><strong>Closing incidents on recurrence</strong>, not on the first fix — retries, backoff, semaphores and table tests ship together; after the replacement model was itself deprecated, &ldquo;check vendor availability first&rdquo; became part of the closing criteria.</li>
+<li><strong>Observability</strong> — correlation keys so a request can be traced across Datadog, Jaeger and OpenSearch; logs where they&rsquo;re needed; monitoring after each deploy.</li>
+<li><strong>Hypothesis-driven debugging</strong> — context and environment first, then narrow the scope. Intermittent BFF pod restarts were traced to gRPC calls inside async loops holding resources and fixed with timeouts and chunked calls.</li>
+<li><strong>Operational automation</strong> — built an error-triage bot that gives LLM first-pass analysis of Slack alerts, and hardened it after a vendor model deprecation with retries, backoff and a semaphore. After the replacement model was itself deprecated, &ldquo;check vendor availability first&rdquo; became part of the closing criteria.</li>
 </ul>
-<h2 id="communication">Communication</h2>
+<h2 id="collaboration">Collaboration</h2>
 <ul>
-<li><strong>Clarifying requirements</strong> and separating &ldquo;current assumptions&rdquo; from &ldquo;needs verification&rdquo; when working with DBAs, data engineering, security and product.</li>
-<li><strong>Visual, horizontal communication</strong> — diagrams and written proposals; I change direction when a better one appears.</li>
-<li><strong>Proactive risk management</strong> and turning review feedback into team principles (&ldquo;no log-and-swallow on external calls&rdquo;, &ldquo;inject config at boot&rdquo;).</li>
+<li><strong>Clarifying requirements</strong> — turn vague specs into developer terms and separate &ldquo;current assumptions&rdquo; from &ldquo;needs verification&rdquo; with DBA, data engineering, security, product, front-end and blockchain teams.</li>
+<li><strong>Visual communication and documentation</strong> — diagrams and written proposals, open to a better direction; documentation and handover notes are how I close work.</li>
+<li><strong>Reviews as principles</strong> — payment/security features go through two review rounds; feedback (&ldquo;no log-and-swallow on external calls&rdquo;, &ldquo;inject config at boot&rdquo;) is written down as team principles.</li>
 </ul>
 </article>
-<aside class="toc"><p class="t">Contents</p><ul><li><a href="#career-description">Career Description</a></li><li><a href="#work-experience">Work Experience</a><ul><li><a href="#nexon-universe-maplestory-universe">NEXON UNIVERSE — MapleStory Universe</a></li><li><a href="#uclick-ai-engineering-rd">UCLICK — AI Engineering R&amp;D</a></li><li><a href="#uclick-backend-developer">UCLICK — Backend Developer</a></li></ul></li><li><a href="#other-experiences">Other Experiences</a><ul><li><a href="#certifications">Certifications</a></li><li><a href="#korea-national-open-university-computer-science">Korea National Open University — Computer Science</a></li><li><a href="#korea-polytechnic-data-convergence-software">Korea Polytechnic — Data Convergence Software</a></li><li><a href="#ewha-womans-university-mathematics-education">Ewha Womans University — Mathematics Education</a></li></ul></li><li><a href="#skills">Skills</a><ul><li><a href="#backend-development">Backend Development</a></li><li><a href="#architecture-operations">Architecture &amp; Operations</a></li><li><a href="#infrastructure-cicd">Infrastructure &amp; CI/CD</a></li><li><a href="#logging-debugging">Logging / Debugging</a></li><li><a href="#communication">Communication</a></li></ul></li></ul></aside>
+<aside class="toc"><p class="t">Contents</p><ul><li><a href="#career-description">Career Description</a></li><li><a href="#work-experience">Work Experience</a><ul><li><a href="#nexon-universe-maplestory-universe">NEXON UNIVERSE — MapleStory Universe</a></li><li><a href="#uclick-ai-engineering-rd">UCLICK — AI Engineering R&amp;D</a></li><li><a href="#uclick-backend-developer">UCLICK — Backend Developer</a></li></ul></li><li><a href="#other-experiences">Other Experiences</a><ul><li><a href="#certifications">Certifications</a></li><li><a href="#korea-national-open-university-computer-science">Korea National Open University — Computer Science</a></li><li><a href="#korea-polytechnic-data-convergence-software">Korea Polytechnic — Data Convergence Software</a></li><li><a href="#ewha-womans-university-mathematics-education">Ewha Womans University — Mathematics Education</a></li></ul></li><li><a href="#skills">Skills</a><ul><li><a href="#backend-go">Backend (Go)</a></li><li><a href="#data-messaging">Data &amp; Messaging</a></li><li><a href="#infrastructure-devops">Infrastructure &amp; DevOps</a></li><li><a href="#observability-debugging">Observability &amp; Debugging</a></li><li><a href="#collaboration">Collaboration</a></li></ul></li></ul></aside>
 </div>
 <button class="toc-btn" aria-label="목차">☰</button>
 <footer><div class="in"><span>Last updated 2026-10-27</span><span class="links"><a href="mailto:shalwxy@gmail.com" rel="me noopener">Email</a><a href="https://github.com/shalwxy" rel="me noopener">GitHub</a><a href="https://www.linkedin.com/in/seungha-lee-2aa442229" rel="me noopener">LinkedIn</a><a href="https://shalwxy.github.io/" rel="me noopener">Blog</a></span><span>Public summary. Internal identifiers and operational details are intentionally omitted.</span></div></footer>
