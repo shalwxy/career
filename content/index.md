@@ -314,7 +314,7 @@ Oracle Cloud Infrastructure를 이용하는 고객사·관리자를 대상으로
 ## Backend (Go)
 
 - **Go 서비스 개발·구조 개선:** gRPC(unary·streaming)·Kafka 컨슈머·PostgreSQL·Redis·MongoDB 기반 서비스를 레이어 단위로 나눠 개발합니다. 3년간 api-activity · api-bookmark · api-sentinel · api-account · api-notification · api-blockchain-supporter 등 Go 서비스 여러 개에서 기능 개발과 구조 개선을 했고, 복잡한 코드는 인터페이스로 쪼개 결합도를 낮춥니다.
-- **동시성·정합성 설계:** PostgreSQL advisory lock, Redis NX·분산 락·Lua, 멱등 키, 유니크 키를 이벤트 성격에 맞춰 나눠 씁니다. 요청/결과가 순서 없이 들어오는 메시지는 "선조회 후 생성/수정"으로, 단건 이벤트는 Redis NX 로 처리했습니다. 원자 범위를 어디까지 잡을지 되짚는 것도 습관입니다 — 일일 한도 카운터에서 확인 단계가 Lua 밖에 있어 원자성이 완전하지 않았다는 점을 스스로 찾아 회고로 남겼습니다.
+- **동시성·정합성 설계:** PostgreSQL advisory lock, Redis NX·분산 락·Lua, 멱등 키, 유니크 키를 이벤트 성격에 맞춰 나눠 씁니다. 요청/결과가 순서 없이 들어오는 메시지는 "선조회 후 생성/수정"으로, 단건 이벤트는 Redis NX 로 처리했습니다.
 - **실패 경로 우선 설계:** 선차감·롤백, DLQ·재시도, CDC 처럼 "잘못됐을 때 어떻게 복구할지"를 먼저 정하고 구현합니다. 큰 기능이 기획 변경으로 롤백된 경험(출금 지연)에서는, 결함 수정을 피처와 분리해 먼저 머지해야 롤백에서 살아남는다는 것을 배웠습니다.
 - **API·정책 설계:** 정책은 코드 분기가 아니라 enum/설정으로 받아, 정책이 바뀔 때 커밋이 아니라 설정이 바뀌도록 합니다.
 

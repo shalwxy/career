@@ -176,7 +176,7 @@ Mathematics major (calculus, linear algebra, geometry, probability and statistic
 ## Backend (Go)
 
 - **Go services and restructuring** — gRPC (unary/streaming), Kafka consumers and PostgreSQL/Redis/MongoDB, built in clear layers. Over three years I developed and restructured several Go services (api-activity, api-bookmark, api-sentinel, api-account, api-notification, api-blockchain-supporter) and split complex code behind interfaces to keep coupling low.
-- **Concurrency and consistency** — PostgreSQL advisory locks, Redis NX/distributed locks/Lua, idempotency keys and unique keys, chosen per event type: look-up-then-create/update for messages that may arrive out of order, Redis NX for single-message events. I also re-check where atomicity actually ends — in a daily-limit counter I found the check sat outside the Lua script and wrote that up as a retrospective.
+- **Concurrency and consistency** — PostgreSQL advisory locks, Redis NX/distributed locks/Lua, idempotency keys and unique keys, chosen per event type: look-up-then-create/update for messages that may arrive out of order, Redis NX for single-message events.
 - **Failure paths first** — pre-deduction/rollback, DLQ and retries, CDC: decide how to recover before implementing. From a rolled-back feature (withdrawal delay) I learned to merge defect fixes separately from the feature so they survive a rollback.
 - **API and policy design** — policies come in as enums/config rather than code branches, so policy changes don't become commits.
 
