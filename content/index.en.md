@@ -12,11 +12,11 @@ In my current role I work on payments, notifications, transaction history and da
 
 ::: skills
 Languages | Go:3, Java (Spring):3, SQL:3, Python:2, Shell:2
-Communication | gRPC (unary·streaming):3, HTTP / REST:3, SSE:3, Kafka:3, Envoy:2, Debezium (CDC):2, Watermill:2
+Communication | gRPC:3, HTTP / REST:3, SSE:3, Kafka:3, Envoy:2, Debezium (CDC):2, Watermill:2
 Data | PostgreSQL:3, Redis:3, MongoDB:2, DocumentDB:2, Snowflake:2
 Infrastructure | Docker:3, Kubernetes (EKS):3, Helm:3, GitLab CI:3, ArgoCD:2, Rundeck:2, Ansible:2
-Observability | Datadog:3, Jaeger:2, OpenSearch:2, Prometheus / Grafana:2
-AI | Vertex AI (LLM):2, NVIDIA Omniverse / IsaacSim:1
+Observability | Datadog:3, Jaeger:2, OpenSearch:2, Prometheus·Grafana:2
+AI | Vertex AI (LLM):2, Omniverse·IsaacSim:1
 :::
 
 ---
