@@ -4,7 +4,20 @@
 
 백엔드 엔지니어로 일하고 문제를 해결하는 시간을 가장 좋아합니다.
 
-**개발·엔지니어링 7년차** — Java 백엔드(2년) → AI·GPU 인프라 R&D(약 2년) → **Go 백엔드(3년)**. 현재 직장에서는 결제·알림·트랜잭션 이력·데이터 파이프라인을 다루며 **분산 환경에서의 데이터 정합성**(선점·멱등·복구 설계)을 주로 설계했고, 담당 서비스의 **CI/CD·Kubernetes 매니페스트·게이트웨이·DB DDL 운영**까지 해 왔습니다. 백엔드와 DevOps 양쪽 포지션에 지원합니다.
+**개발·엔지니어링 7년차** — Java 백엔드(2년) → AI·GPU 인프라 R&D(약 2년) → **Go 백엔드(3년)**. 현재 직장에서는 결제·알림·트랜잭션 이력·데이터 파이프라인을 다루며 **분산 환경에서의 데이터 정합성**(선점·멱등·복구 설계)을 주로 설계했고, 담당 서비스의 **CI/CD·Kubernetes 매니페스트·게이트웨이·DB DDL 운영**까지 해 왔습니다. 실패 경로를 먼저 설계하고, 리뷰에서 나온 원칙을 팀 문서로 남기는 편입니다. 백엔드와 DevOps 양쪽 포지션에 지원합니다.
+
+---
+
+# Skills
+
+::: skills
+Languages | Go:3, Java (Spring):3, SQL:3, Python:2, Shell:2
+Communication | gRPC (unary·streaming):3, HTTP / REST:3, SSE:3, Kafka:3, Envoy:2, Debezium (CDC):2, Watermill:2
+Data | PostgreSQL:3, Redis:3, MongoDB:2, DocumentDB:2, Snowflake:2
+Infrastructure | Docker:3, Kubernetes (EKS):3, Helm:3, GitLab CI:3, ArgoCD:2, Rundeck:2, Ansible:2
+Observability | Datadog:3, Jaeger:2, OpenSearch:2, Prometheus / Grafana:2
+AI | Vertex AI (LLM):2, NVIDIA Omniverse / IsaacSim:1
+:::
 
 ---
 
@@ -280,6 +293,30 @@ Oracle Cloud Infrastructure를 이용하는 고객사·관리자를 대상으로
 
 ---
 
+# How I Work
+
+## 설계
+
+- **실패 경로부터 정합니다.** 선차감·롤백, DLQ·재시도, CDC 처럼 "잘못됐을 때 어떻게 복구할지"를 먼저 정하고 구현합니다. 결함 수정은 피처와 분리해 먼저 머지합니다 — 피처가 롤백돼도 수정은 살아남아야 하니까요.
+- **잠금과 멱등은 이벤트 성격에 맞춰 고릅니다.** 순서 없이 들어오는 요청/결과는 "선조회 후 생성/수정"과 advisory lock 으로, 단건 이벤트는 Redis NX 로 처리하고, 그 위에 유니크 키를 마지막 방어선으로 둡니다.
+- **정책은 코드 분기가 아니라 설정으로 받습니다.** 정책이 바뀔 때 커밋이 아니라 설정이 바뀌어야 하고, 설정은 요청 경로가 아니라 부팅 시 주입합니다.
+- **서비스는 외부에 직접 쓰지 않습니다.** 분석·하류 적재는 CDC 로 흘려, 애플리케이션 발행 실패라는 유실 경로 자체를 없앱니다.
+- **복잡한 코드는 인터페이스로 쪼개** 결합도를 낮추고 레이어 경계를 지킵니다.
+
+## 운영
+
+- **담당 서비스의 배포·매니페스트·DDL 은 제 일입니다.** GitLab CI → Helm/Kubernetes → Rundeck 배포, 대역마다 다른 배포 방식, DBA 검토를 거친 DDL 까지 한 사람이 끝까지 봅니다. 신설 서비스는 [파이프라인](#dg:cicd)에 직접 연결합니다.
+- **요청 하나를 끝까지 따라갈 수 있어야 합니다.** 상관관계 키를 먼저 설계하고, Datadog · Jaeger · OpenSearch 에서 실제로 추적되는지 배포 후 확인합니다.
+- **디버깅은 가설부터.** 에러가 난 환경과 맥락으로 범위를 좁힌 뒤 로그로 검증합니다. 반복되는 운영 작업은 자동화하고, 재발을 겪으면 종결 기준에 항목을 추가합니다.
+
+## 협업
+
+- **"현재 가정"과 "검증이 필요한 지점"을 분리해** DBA·DE·보안·기획·프론트·블록체인 팀과 공유합니다.
+- **설계 의도와 결정의 이유를 문서로 남깁니다.** 다이어그램으로 먼저 그려 공유하고, 더 좋은 방향이 나오면 수용합니다. 이 사이트의 [Design Decisions](decisions.html)가 그 기록입니다.
+- **리뷰에서 나온 지적은 팀 원칙으로 승격합니다.** 결제·보안 기능은 리뷰 2회차까지 돌리고, "외부 호출은 log-and-swallow 금지", "설정은 부팅 시 주입" 같은 원칙을 문서화해 다음 작업에 반영합니다.
+
+---
+
 # Other Experiences
 
 ## 자격증
@@ -324,40 +361,3 @@ Oracle Cloud Infrastructure를 이용하는 고객사·관리자를 대상으로
 <p class="meta">2011.03 ~ 2016.02</p>
 
 수학 전공(미분적분학, 선형대수학, 기하학, 확률과 통계, 해석학, 위상수학, 정수론, 현대대수학)으로, 정의와 증명으로 문제를 풀어가는 방식을 훈련했습니다.
-
----
-
-# Skills
-
-## Backend (Go)
-
-- **Go 서비스 개발·구조 개선:** gRPC(unary·streaming)·Kafka 컨슈머·PostgreSQL·Redis·MongoDB 기반 서비스를 레이어 단위로 나눠 개발합니다. 3년간 api-activity · api-bookmark · api-sentinel · api-account · api-notification · api-blockchain-supporter 등 Go 서비스 여러 개에서 기능 개발과 구조 개선을 했고, 복잡한 코드는 인터페이스로 쪼개 결합도를 낮춥니다.
-- **동시성·정합성 설계:** PostgreSQL advisory lock, Redis NX·분산 락·Lua, 멱등 키, 유니크 키를 이벤트 성격에 맞춰 나눠 씁니다. 요청/결과가 순서 없이 들어오는 메시지는 "선조회 후 생성/수정"으로, 단건 이벤트는 Redis NX 로 처리했습니다.
-- **실패 경로 우선 설계:** 선차감·롤백, DLQ·재시도, CDC 처럼 "잘못됐을 때 어떻게 복구할지"를 먼저 정하고 구현합니다. 큰 기능이 기획 변경으로 롤백된 경험(출금 지연)에서는, 결함 수정을 피처와 분리해 먼저 머지해야 롤백에서 살아남는다는 것을 배웠습니다.
-- **API·정책 설계:** 정책은 코드 분기가 아니라 enum/설정으로 받아, 정책이 바뀔 때 커밋이 아니라 설정이 바뀌도록 합니다.
-
-## Data & Messaging
-
-- **Kafka:** 컨슈머 핸들러·재시도 큐·DLQ 를 설계하고 운영했습니다.
-- **저장소:** PostgreSQL · Redis · MongoDB · AWS DocumentDB(로컬 개발은 MongoDB 호환으로 진행)를 서비스 성격에 맞춰 사용했습니다.
-- **CDC·데이터 파이프라인:** Debezium → Kafka → Snowflake Stream/Task. 서비스가 직접 외부에 쓰지 않는 원칙으로 배치·publish 를 CDC 로 옮기는 데 참여했고, slot keepalive 배치·조건부 task·상태성/이력성 테이블 구분으로 운영 비용을 관리합니다.
-- **DB 설계·쿼리 튜닝:** 담당 서비스의 DB DDL 을 DBA 검토를 거쳐 관리하고, OR → UNION ALL · 커서 페이지네이션 등으로 조회를 개선했습니다.
-
-## Infrastructure & DevOps
-
-- **CI/CD 운영:** GitLab CI(test → build → deploy → release) · multi-stage Dockerfile · Rundeck 배포 job 으로 담당 서비스를 배포합니다. 깨진 빌드(semantic-release · 런타임 버전)를 고치고 신설 서비스를 [파이프라인](#dg:cicd)에 연결했습니다. 대역마다 배포 방식(dev: K8s API / test·qa·stage: Rundeck / live: CI 밖 Rundeck)이 달라 이를 구분해 운영합니다.
-- **Kubernetes 매니페스트:** Helm 템플릿과 환경별 Deployment · HPA · Service 를 작성·운영하고, probe · 리소스 · 포트를 비용과 안정성 기준으로 조정했습니다(test/qa/stage 리소스 감축 등).
-- **배포·운영 루틴:** 운영 대역 승격 전 dev 선행 배포, live 배포 후 모니터링, 정기점검 대응을 일상 업무로 해왔습니다.
-- **게이트웨이:** 서비스가 늘어날 때마다 Envoy 게이트웨이에 gRPC → REST 연결 규칙(route)과 인증 설정을 추가·정리하고, 팀의 외부 노출 API 영향성 조사·인증 추가 작업에 참여했습니다.
-
-## Observability & Debugging
-
-- **관측:** Datadog · Jaeger · OpenSearch 로 요청 흐름을 끝까지 추적할 수 있도록 상관관계 키를 설계하고, 필요한 위치에 로그를 남기며 배포 후 모니터링합니다.
-- **가설 기반 디버깅:** 에러가 난 환경과 맥락을 먼저 보고 범위를 좁힙니다. BFF 의 간헐적 pod 재시작은 로그 추적으로 비동기 루프 내 gRPC 호출 자원 점유를 짚어 timeout·chunk 호출로 해결했습니다.
-- **운영 자동화:** Slack 에러 알림을 LLM 으로 1차 분석하는 에러시로봇을 만들었고, 벤더 모델 폐기 장애를 재시도·백오프·세마포어로 보강했습니다. 교체한 모델이 다시 폐기된 재발을 겪은 뒤 "가용 모델 사전 확인"을 종결 기준에 추가했습니다.
-
-## Collaboration
-
-- **요구사항 명료화:** 모호한 기획을 개발자 관점에서 정리하고, DBA·DE·보안·기획·프론트·블록체인 팀과 "현재 가정"과 "검증이 필요한 지점"을 분리해 공유합니다.
-- **시각화와 문서화:** 생각을 글과 다이어그램으로 정리해 공유하고, 더 좋은 방향이 있으면 수용합니다. 작업이 끝나면 설계 의도와 결정의 이유를 문서로 남겨, 다른 사람이 이어받아도 맥락을 잃지 않게 합니다.
-- **리뷰를 원칙으로:** 결제·보안 기능은 리뷰 2회차까지 돌리고, 지적받은 내용("외부 호출은 log-and-swallow 금지", "설정은 부팅 시 주입")은 팀 원칙으로 문서화해 다음 작업에 반영합니다.

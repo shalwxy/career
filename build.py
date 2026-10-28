@@ -108,6 +108,21 @@ a.dg{color:inherit;text-decoration:none;border-bottom:1px dashed var(--accent);c
 a.dg::after{content:"";position:absolute;right:0;top:50%;width:.8em;height:.8em;transform:translateY(-55%);opacity:.7;background:currentColor;-webkit-mask:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="6" rx="1.5"/><rect x="14" y="15" width="7" height="6" rx="1.5"/><path d="M10 6h4v9"/></svg>') center/contain no-repeat;mask:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="6" rx="1.5"/><rect x="14" y="15" width="7" height="6" rx="1.5"/><path d="M10 6h4v9"/></svg>') center/contain no-repeat}
 a.dg:hover{background:color-mix(in srgb,var(--accent) 10%,transparent);border-bottom-style:solid}
 h2 a.dg{border-bottom-width:2px}
+article .skills{margin:.4em 0 1.6em}
+article .sk-legend{display:flex;justify-content:flex-end;padding:6px 0 2px}
+article .sk-q{position:relative;display:inline-flex;align-items:center;gap:8px;font-size:.78rem;color:var(--muted)}
+article .sk-q>i{display:inline-flex;width:18px;height:18px;border-radius:50%;align-items:center;justify-content:center;background:var(--fg);color:var(--bg);font-style:normal;font-weight:700;font-size:.72rem;cursor:help}
+article .sk-q .tip{position:absolute;right:0;top:calc(100% + 6px);z-index:10;display:none;white-space:nowrap;background:var(--fg);color:var(--bg);padding:8px 12px;border-radius:8px;font-size:.78rem;line-height:1.6;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+article .sk-q:hover .tip,article .sk-q:focus-within .tip{display:block}
+article .sk-row{display:grid;grid-template-columns:170px minmax(0,1fr);gap:0 28px;padding:13px 0;border-bottom:1px solid var(--line)}
+article .sk-cat{color:var(--muted);font-weight:600;text-align:right;line-height:1.9}
+article ul.sk-items{columns:3;column-gap:24px;list-style:none;padding:0;margin:0}
+article ul.sk-items li{break-inside:avoid;display:flex;align-items:center;gap:8px;line-height:1.9;margin:0}
+article .lv{display:inline-flex;width:18px;height:18px;border-radius:50%;align-items:center;justify-content:center;font-style:normal;font-size:.68rem;font-weight:700;flex-shrink:0;font-variant-numeric:tabular-nums}
+article .lv3{background:var(--accent);color:#fff}
+article .lv2{background:var(--muted);color:var(--bg)}
+article .lv1{border:1px solid var(--line);color:var(--muted)}
+@media(max-width:700px){article .sk-row{grid-template-columns:1fr;gap:4px 0}article .sk-cat{text-align:left}article ul.sk-items{columns:1}}
 .modal{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);padding:16px}
 .modal.open{display:flex}
 .modal .box{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:14px;width:min(1240px,96vw);max-height:92vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.35)}
@@ -145,6 +160,8 @@ article h4+p.period,article h4+p.period+p.chips,article p.chips+.impact{break-be
 article .impact,article .stats>div,article .stack,article table tr{break-inside:avoid}
 article>h1{break-before:auto}
 article .impact{border:1px solid #bbb;background:#fff}
+article .sk-q>i{display:none}article .sk-q .tip{display:inline;position:static;background:none;color:var(--muted);padding:0;box-shadow:none;white-space:normal}
+article .lv3{background:#000;color:#fff}article .lv2{background:#777;color:#fff}article .sk-row{break-inside:avoid}
 article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-break-after:avoid}article li,article p{page-break-inside:avoid}a{text-decoration:none}}
 """
 
@@ -303,6 +320,35 @@ def inject_diagrams(body: str, lang: str) -> tuple[str, str]:
     return body, modal
 
 
+SKILLS_RE = re.compile(r"^::: *skills *\n(.*?)^::: *$", re.S | re.M)
+SKILL_LEGEND = {
+    "ko": ("1: 기초 수준", "2: 운영 경험 있음", "3: Production 설계·운영 가능"),
+    "en": ("1: Basic", "2: Used in operations", "3: Can design & run in production"),
+}
+
+
+def skills_html(block: str, lang: str) -> str:
+    """`카테고리 | 항목:레벨, 항목:레벨` 줄 묶음 → 좌측 카테고리 + 3열 항목 + 숙련도 배지. 레벨 생략 가능"""
+    rows = []
+    for line in block.strip().splitlines():
+        if "|" not in line:
+            sys.exit(f"skills block: '|' 가 없는 줄 — {line!r}")
+        cat, items = (s.strip() for s in line.split("|", 1))
+        lis = []
+        for item in (s.strip() for s in items.split(",") if s.strip()):
+            name, _, lvl = item.rpartition(":")
+            if lvl in ("1", "2", "3") and name:
+                lis.append(f'<li><i class="lv lv{lvl}">{lvl}</i>{html.escape(name.strip())}</li>')
+            else:
+                lis.append(f"<li>{html.escape(item)}</li>")
+        rows.append(f'<div class="sk-row"><div class="sk-cat">{html.escape(cat)}</div>'
+                    f'<ul class="sk-items">{"".join(lis)}</ul></div>')
+    legend = "<br>".join(html.escape(s) for s in SKILL_LEGEND[lang])
+    head = (f'<div class="sk-legend"><span class="sk-q" tabindex="0"><i>?</i>'
+            f'<span class="tip">{legend}</span></span></div>')
+    return f'\n\n<div class="skills">{head}{"".join(rows)}</div>\n\n'
+
+
 def build_page(stem: str, label: str, with_toc: bool, lang: str) -> None:
     src = CONTENT / (f"{stem}.en.md" if lang == "en" else f"{stem}.md")
     if not src.exists():
@@ -312,7 +358,8 @@ def build_page(stem: str, label: str, with_toc: bool, lang: str) -> None:
                     TocExtension(slugify=slugify_unicode, toc_depth="1-3", permalink=False)],
         output_format="html5",
     )
-    body = md.convert(src.read_text(encoding="utf-8"))
+    text = SKILLS_RE.sub(lambda m: skills_html(m.group(1), lang), src.read_text(encoding="utf-8"))
+    body = md.convert(text)
     body = re.sub(r'( · )(<a href="portfolio\.html#)', r'<span class="sep">\1</span>\2', body)
     body, modal = inject_diagrams(body, lang)
     toc = ""

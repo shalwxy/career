@@ -4,7 +4,20 @@ Hi, I'm Seungha Lee — a backend engineer who enjoys nothing more than the time
 
 **Seven years in software and engineering** — Java backend (2 years) → AI/GPU infrastructure R&D (about 2 years) → **Go backend (3 years)**.
 
-In my current role I work on payments, notifications, transaction history and data pipelines, mainly designing for **data consistency in distributed systems** (pre-emption, idempotency, recovery), and I also handle **CI/CD, Kubernetes manifests, the gateway and DB DDL** for my services. I'm applying for both backend and DevOps roles.
+In my current role I work on payments, notifications, transaction history and data pipelines, mainly designing for **data consistency in distributed systems** (pre-emption, idempotency, recovery), and I also handle **CI/CD, Kubernetes manifests, the gateway and DB DDL** for my services. I design the failure path first and turn review feedback into written team principles. I'm applying for both backend and DevOps roles.
+
+---
+
+# Skills
+
+::: skills
+Languages | Go:3, Java (Spring):3, SQL:3, Python:2, Shell:2
+Communication | gRPC (unary·streaming):3, HTTP / REST:3, SSE:3, Kafka:3, Envoy:2, Debezium (CDC):2, Watermill:2
+Data | PostgreSQL:3, Redis:3, MongoDB:2, DocumentDB:2, Snowflake:2
+Infrastructure | Docker:3, Kubernetes (EKS):3, Helm:3, GitLab CI:3, ArgoCD:2, Rundeck:2, Ansible:2
+Observability | Datadog:3, Jaeger:2, OpenSearch:2, Prometheus / Grafana:2
+AI | Vertex AI (LLM):2, NVIDIA Omniverse / IsaacSim:1
+:::
 
 ---
 
@@ -157,6 +170,30 @@ I started on the on-chain/off-chain synchronization layer and went on to work on
 
 ---
 
+# How I Work
+
+## Design
+
+- **Failure paths first.** Pre-deduction/rollback, DLQ and retries, CDC — I decide how to recover before I implement. Defect fixes are merged separately from the feature, so they survive if the feature is rolled back.
+- **Locks and idempotency chosen per event type.** Requests and results that arrive out of order get look-up-then-create/update under an advisory lock; single-message events get Redis NX; unique keys are the last line of defence underneath.
+- **Policy as configuration, not code branches.** A policy change should change a setting, not a commit — and settings are injected at boot, never read on the request path.
+- **Services don't write outward themselves.** Analytics and downstream loads flow through CDC, which removes "the app failed to publish" as a loss path altogether.
+- **Complex code is split behind interfaces** to keep coupling low and layer boundaries intact.
+
+## Operations
+
+- **Deploys, manifests and DDL for my services are my job.** GitLab CI → Helm/Kubernetes → Rundeck, a different deploy path per environment, and DDL that goes through DBA review — one person sees it through. New services get wired into the [pipeline](#dg:cicd) by me.
+- **A single request must be traceable end to end.** I design the correlation keys first, then verify after each deploy that Datadog, Jaeger and OpenSearch actually follow the request.
+- **Debugging starts from a hypothesis.** Narrow the scope by environment and context, then confirm with logs. Repeated ops work gets automated, and after a recurrence the closing criteria gain a new item.
+
+## Collaboration
+
+- **Separate "current assumptions" from "needs verification"** when working with DBA, data engineering, security, product, front-end and blockchain teams.
+- **Write down design intent and the reasons behind decisions.** Diagrams first, open to a better direction; the [Design Decisions](decisions.html) page on this site is that record.
+- **Review feedback becomes team principle.** Payment and security features go through a second review round, and rules like "no log-and-swallow on external calls" and "inject config at boot" are documented and carried into the next piece of work.
+
+---
+
 # Other Experiences
 
 ## Certifications
@@ -191,46 +228,3 @@ Hands-on Java/Spring, Python, R, Linux and database training, including TensorFl
 <p class="meta">Mar 2011 – Feb 2016</p>
 
 Mathematics major (calculus, linear algebra, geometry, probability and statistics, analysis, topology, number theory, abstract algebra) — trained to solve problems through definitions and proofs.
-
----
-
-# Skills
-
-## Backend (Go)
-
-- **Go services and restructuring**
-    - gRPC (unary/streaming), Kafka consumers and PostgreSQL/Redis/MongoDB, built in clear layers
-    - Over three years I developed and restructured several Go services: api-activity, api-bookmark, api-sentinel, api-account, api-notification, api-blockchain-supporter
-    - Complex code is split behind interfaces to keep coupling low
-- **Concurrency and consistency** — PostgreSQL advisory locks, Redis NX/distributed locks/Lua, idempotency keys and unique keys, chosen per event type: look-up-then-create/update for messages that may arrive out of order, Redis NX for single-message events.
-- **Failure paths first** — pre-deduction/rollback, DLQ and retries, CDC: decide how to recover before implementing. From a rolled-back feature (withdrawal delay) I learned to merge defect fixes separately from the feature so they survive a rollback.
-- **API and policy design** — policies come in as enums/config rather than code branches, so policy changes don't become commits.
-
-## Data & Messaging
-
-- **Kafka** — consumer handlers, retry queues and DLQs.
-- **CDC and pipelines** — Debezium → Kafka → Snowflake Stream/Task. Took part in moving batch jobs and direct publishing to CDC under a "services don't write outward themselves" rule, and manage cost with a slot-keepalive batch, conditional tasks and a stateful/history table split.
-- **Datastores** — PostgreSQL, Redis, MongoDB and AWS DocumentDB (developed locally against MongoDB for compatibility), chosen per service.
-- **DB design and query tuning** — the DDL of my services managed through DBA review; improved reads with OR → UNION ALL and cursor pagination.
-
-## Infrastructure & DevOps
-
-- **Operating CI/CD**
-    - GitLab CI (test → build → deploy → release), multi-stage Dockerfiles and Rundeck deploy jobs for the services I owned
-    - Fixed broken builds (semantic-release, runtime upgrades) and wired new services into the [pipeline](#dg:cicd), with dev-first promotion before test/qa
-    - Deployment differs per environment — dev: K8s API / test·qa·stage: Rundeck / live: Rundeck outside CI — and I operate with that distinction
-- **Kubernetes manifests** — wrote and operated Helm templates and per-environment Deployment · HPA · Service; tuned probes, resources and ports for cost and stability (e.g. reducing test/qa/stage resources).
-- **Deploy and ops routine** — dev-first deployment before promotion, post-deploy monitoring on live, and scheduled-maintenance support as part of regular work.
-- **Gateway** — added and tidied the Envoy gRPC → REST routing rules and auth settings whenever services were added; took part in the team's review of externally exposed APIs and adding authentication.
-
-## Observability & Debugging
-
-- **Observability** — correlation keys so a request can be traced across Datadog, Jaeger and OpenSearch; logs where they're needed; monitoring after each deploy.
-- **Hypothesis-driven debugging** — context and environment first, then narrow the scope. Intermittent BFF pod restarts were traced to gRPC calls inside async loops holding resources and fixed with timeouts and chunked calls.
-- **Operational automation** — built an error-triage bot that gives LLM first-pass analysis of Slack alerts, and hardened it after a vendor model deprecation with retries, backoff and a semaphore. After the replacement model was itself deprecated, "check vendor availability first" became part of the closing criteria.
-
-## Collaboration
-
-- **Clarifying requirements** — turn vague specs into developer terms and separate "current assumptions" from "needs verification" with DBA, data engineering, security, product, front-end and blockchain teams.
-- **Visual communication and documentation** — diagrams and written proposals, open to a better direction. When a piece of work ends I write down the design intent and why decisions went the way they did, so whoever picks it up keeps the context.
-- **Reviews as principles** — payment/security features go through two review rounds; feedback ("no log-and-swallow on external calls", "inject config at boot") is written down as team principles.
