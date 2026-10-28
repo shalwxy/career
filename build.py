@@ -206,6 +206,8 @@ PAGE = """<!DOCTYPE html>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{page_title} — {name}</title>
 <meta name="description" content="{name} · {title}">
+<link rel="icon" href="favicon.png" sizes="64x64">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <style>{css}</style>
 </head>
 <body>
