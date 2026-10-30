@@ -297,19 +297,17 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <li><strong>Locks and idempotency chosen per event type.</strong> Requests and results that arrive out of order get look-up-then-create/update under an advisory lock; single-message events get Redis NX; unique keys are the last line of defence underneath.</li>
 <li><strong>Policy as configuration, not code branches.</strong> A policy change should change a setting, not a commit — and settings are injected at boot, never read on the request path.</li>
 <li><strong>Services don&rsquo;t write outward themselves.</strong> Analytics and downstream loads flow through CDC, which removes &ldquo;the app failed to publish&rdquo; as a loss path altogether.</li>
-<li><strong>Complex code is split behind interfaces</strong> to keep coupling low and layer boundaries intact.</li>
 </ul>
 <h2 id="operations">Operations</h2>
 <ul>
 <li><strong>Deploys, manifests and DDL for my services are my job.</strong> GitLab CI → Helm/Kubernetes → Rundeck, a different deploy path per environment, and DDL that goes through DBA review — one person sees it through. New services get wired into the <a href="#" class="dg" data-dg="cicd" title="Diagram">pipeline</a> by me.</li>
 <li><strong>A single request must be traceable end to end.</strong> I design the correlation keys first, then verify after each deploy that Datadog, Jaeger and OpenSearch actually follow the request.</li>
-<li><strong>Debugging starts from a hypothesis.</strong> Narrow the scope by environment and context, then confirm with logs. Repeated ops work gets automated, and after a recurrence the closing criteria gain a new item.</li>
 </ul>
 <h2 id="collaboration">Collaboration</h2>
 <ul>
 <li><strong>Separate &ldquo;current assumptions&rdquo; from &ldquo;needs verification&rdquo;</strong> when working with DBA, data engineering, security, product, front-end and blockchain teams.</li>
 <li><strong>Write down design intent and the reasons behind decisions.</strong> Diagrams first, open to a better direction; the <a href="decisions.html">Design Decisions</a> page on this site is that record.</li>
-<li><strong>Review feedback becomes team principle.</strong> Payment and security features go through a second review round, and rules like &ldquo;no log-and-swallow on external calls&rdquo; and &ldquo;inject config at boot&rdquo; are documented and carried into the next piece of work.</li>
+<li><strong>Review feedback becomes team principle.</strong> Rules like &ldquo;no log-and-swallow on external calls&rdquo; are documented and carried into the next piece of work.</li>
 </ul>
 <hr>
 <h1 id="other-experiences">Other Experiences</h1>

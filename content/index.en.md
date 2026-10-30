@@ -174,19 +174,17 @@ I started on the on-chain/off-chain synchronization layer and went on to work on
 - **Locks and idempotency chosen per event type.** Requests and results that arrive out of order get look-up-then-create/update under an advisory lock; single-message events get Redis NX; unique keys are the last line of defence underneath.
 - **Policy as configuration, not code branches.** A policy change should change a setting, not a commit — and settings are injected at boot, never read on the request path.
 - **Services don't write outward themselves.** Analytics and downstream loads flow through CDC, which removes "the app failed to publish" as a loss path altogether.
-- **Complex code is split behind interfaces** to keep coupling low and layer boundaries intact.
 
 ## Operations
 
 - **Deploys, manifests and DDL for my services are my job.** GitLab CI → Helm/Kubernetes → Rundeck, a different deploy path per environment, and DDL that goes through DBA review — one person sees it through. New services get wired into the [pipeline](#dg:cicd) by me.
 - **A single request must be traceable end to end.** I design the correlation keys first, then verify after each deploy that Datadog, Jaeger and OpenSearch actually follow the request.
-- **Debugging starts from a hypothesis.** Narrow the scope by environment and context, then confirm with logs. Repeated ops work gets automated, and after a recurrence the closing criteria gain a new item.
 
 ## Collaboration
 
 - **Separate "current assumptions" from "needs verification"** when working with DBA, data engineering, security, product, front-end and blockchain teams.
 - **Write down design intent and the reasons behind decisions.** Diagrams first, open to a better direction; the [Design Decisions](decisions.html) page on this site is that record.
-- **Review feedback becomes team principle.** Payment and security features go through a second review round, and rules like "no log-and-swallow on external calls" and "inject config at boot" are documented and carried into the next piece of work.
+- **Review feedback becomes team principle.** Rules like "no log-and-swallow on external calls" are documented and carried into the next piece of work.
 
 ---
 
