@@ -62,13 +62,12 @@ I started on the on-chain/off-chain synchronization layer and went on to work on
 
 #### <span class="phase">1</span> On-chain / off-chain synchronization (Data Engine)
 <p class="period">Main work Nov 2023 – Apr 2024</p>
-<p class="chips"><span class="chip">Go</span><span class="chip">Saga</span><span class="chip">Redis distributed lock</span><span class="chip">Helm</span></p>
+<p class="chips"><span class="chip">Go</span><span class="chip">Saga</span><span class="chip">Redis distributed lock</span></p>
 <div class="impact"><span class="impact-k">Impact</span> Fixed nickname duplication at character mint with <strong>Redis-lock preemption</strong> · turned per-item NFT validation lookups into <strong>one list query</strong></div>
 
 - Added input validation, request/response conversion with unit tests, and gRPC error handling while wiring a new core service into the game-facing gRPC service (business-provider)
 - Added currency/character validators for the [Saga v2](#dg:saga) migration and reworked NFT item validation from per-item state lookups to a single list query
 - Fixed nickname duplication at character mint: dropped the existence check, **preempted with a Redis lock**, released only on successful mint — a small fix, but a pattern I kept reusing
-- Ran Helm rollouts for new services and deployed to dev first before test/qa promotion
 
 #### <span class="phase">2</span> Transaction history · bookmarks · marketplace BFF
 <p class="period">Main work Jun 2024 – Sep 2025 · maintained afterwards</p>
@@ -84,7 +83,6 @@ I started on the on-chain/off-chain synchronization layer and went on to work on
 - **Bookmark / view-count service ([api-bookmark](#dg:bookmark))** — core features: idempotent writes, Redis counters moved to Kafka-driven aggregation, daily/total limits, account-deletion hook
 - **Marketplace web BFF** — moved bookmark/activity calls to the new services, implemented bookmark and on-sale listings in the inventory service, parallelized rendering
 - [Swap & Warp](#dg:swapwarp) cross-chain transfer history and queries (incl. bff-swapnwarp)
-- Added bookmark-event ingestion to a Java/Spring Kafka consumer; fixed bugs in the marketplace BFF and game-data service before launch
 
 #### <span class="phase">3</span> Account · payment · unified notifications
 <p class="period">Main work Jul 2025 – Aug 2026</p>
@@ -99,7 +97,7 @@ I started on the on-chain/off-chain synchronization layer and went on to work on
 - **[Stablecoin (USDT) launch](#dg:usdt)** — extended the off-chain pre-deduction/rollback service for USDT (per-token limit tables, pre-deduction and row locking generalized per token), replaced the rollback topic with a dependency on transaction result topics, and added wallet-address validation to the blockchain supporter and BFF
 - **[Unified notifications (SSE)](#dg:notification)** — absorbed JWT verification to drop the account-service dependency, generated URLs server-side, and split bulk recipients into a **gRPC streaming RPC** (500-row chunks, 50,000 cap)
 - **Full-user data migration batch for the KYC vendor change (Argos → Sumsub)** — range-partitioned parallel runs, resumable cursor, call-quota management; completed in production
-- Discord auto-badge and role-sync batch
+- Discord auto-badge and role-sync batch — cut run time from about 2 hours to 20 minutes
 
 #### <span class="phase">4</span> Policy service · data pipeline · ops automation
 <p class="period">Main work Jan 2026 – Nov 2026</p>
@@ -108,7 +106,7 @@ I started on the on-chain/off-chain synchronization layer and went on to work on
 
 - **Policy service ([api-sentinel](#dg:sentinel))** — ACL (wallet/IP allow & deny lists), rate limiting (sliding + fixed window with jitter), lockout after repeated OTP failures (keep/reset failure counts by configurable policy), runtime feature flags
 - **[PostgreSQL CDC → Snowflake](#dg:cdc)** — Debezium connectors, Stream/Task, a replication-slot keepalive job, conditional tasks to cut cost
-- **[Error-triage bot](#dg:errorbot)** — replies in-thread to Slack error alerts with an LLM first-pass analysis (GitLab commit diffing, OpenSearch history, escalation)
+- **[Error-triage bot](#dg:errorbot)** — replies in-thread to Slack error alerts with an LLM first-pass analysis (GitLab commit diffing, OpenSearch history, escalation). Guardrails — daily/monthly cost caps, PII masking, dedupe, a circuit breaker — run as independent components outside the service logic, and prompt rules are promoted from failure modes seen in real use
 
 #### <span class="phase">5</span> Infrastructure · CI/CD · gateway
 <p class="period">Throughout</p>
@@ -125,7 +123,6 @@ I started on the on-chain/off-chain synchronization layer and went on to work on
 
 - Back-office item/token sanctions (single, batch, bulk) and a sanction-history view
 - Operations console — Discord message re-send, permission-domain split, wallet ↔ SNS lookups
-- Item-probability disclosure service: data storage and versioning
 
 ### Tech Stack
 
@@ -205,8 +202,6 @@ I started on the on-chain/off-chain synchronization layer and went on to work on
 <tr><td><strong>Information Security Engineer</strong></td><td>Ministry of Science and ICT</td><td>May 2023</td></tr>
 <tr><td><strong>Linux Master Level 1</strong></td><td>KAIT</td><td>May 2021</td></tr>
 <tr><td><strong>Network Administrator Level 1</strong></td><td>ICQA</td><td>May 2023</td></tr>
-<tr><td>Linux Master Level 2</td><td>KAIT</td><td>Jul 2020</td></tr>
-<tr><td>Network Administrator Level 2</td><td>ICQA</td><td>Jul 2020</td></tr>
 </tbody>
 </table>
 

@@ -162,7 +162,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 </tr>
 <tr>
 <td>2024 Q1</td>
-<td><a href="#d-preempt">확인 대신 선점</a> · <a href="#d-validator">검증은 목록 조회로</a> · <a href="#d-devfirst">dev 선행 배포</a></td>
+<td><a href="#d-preempt">확인 대신 선점</a> · <a href="#d-validator">검증은 목록 조회로</a></td>
 </tr>
 <tr>
 <td>2024 Q2~Q3</td>
@@ -219,13 +219,6 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <li><strong>상황</strong> — NFT 아이템 등록/해제를 검증할 때, 아이템 하나마다 상태 서비스를 호출했습니다.</li>
 <li><strong>선택</strong> — 목록을 한 번에 조회해서 검증합니다. 검증 오류의 종류도 하나로 통일해, 호출하는 쪽이 오류별로 분기하기 쉽게 했습니다.</li>
 <li><strong>이유·결과</strong> — 호출 수가 아이템 수에 비례해 늘어나던 것이 1회로 줄었습니다.</li>
-</ul>
-<h2 id="d-devfirst">test/qa 승격 전에 dev 에 먼저 배포한다 ✅</h2>
-<p><strong>2024 Q1 · Helm 운영</strong></p>
-<ul>
-<li><strong>상황</strong> — DE 서비스를 배포할 때, 새 버전이 올라가는 환경이 바로 test/qa 였습니다.</li>
-<li><strong>선택</strong> — test/qa 로 올리기 전에 dev 대역에 먼저 올려 확인합니다. 장애를 재현하려고 임시로 올렸다 내린 배포도 커밋으로 남깁니다.</li>
-<li><strong>이유·결과</strong> — &ldquo;언제 무엇을 올렸다가 내렸는지&rdquo;가 이력으로 남아, 문제가 생겼을 때 원인을 따라가기 쉽습니다.</li>
 </ul>
 <h2 id="d-split">레이어를 나누고 컨슈머를 일반화한다 ✅</h2>
 <p><strong>2024 Q2 · 트랜잭션 이력</strong></p>
@@ -347,7 +340,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <ul>
 <li><strong>상황</strong> — 코드만 먼저 끝내고 배포 설정을 뒤로 미루면, dev 에서만 도는 서비스가 되기 쉽습니다.</li>
 <li><strong>선택</strong> — Helm 템플릿, 4개 환경 매니페스트, 게이트웨이 route, CI 배포 job 을 코드와 같은 주에 한 세트로 넣었습니다.</li>
-<li><strong>이유·결과</strong> — <a href="#d-devfirst">dev 선행 배포</a> 원칙과 짝을 이룹니다. 서비스가 만들어지는 즉시 모든 환경에 올릴 수 있는 상태가 됩니다.</li>
+<li><strong>이유·결과</strong> — 서비스가 만들어지는 즉시 모든 환경에 올릴 수 있는 상태가 됩니다.</li>
 </ul>
 <h2 id="d-jitter">jitter 와 timer — 정책 갱신을 흩뿌리는 방법 ✅</h2>
 <p><strong>2026 Q1</strong></p>
@@ -385,7 +378,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <li><strong>이유·결과</strong> — 응답 크기가 일정해졌고, 큰 데이터를 쪼개는 것보다 <strong>받는 쪽이 어떻게 조립하는지</strong>를 정해 두는 것이 핵심이었습니다.</li>
 </ul>
 </article>
-<aside class="toc"><p class="t">목차</p><ul><li><a href="#design-decisions">Design Decisions</a><ul><li><a href="#timeline">시기별 목차</a></li><li><a href="#d-facade">파사드 단에서 입력을 검사한다 ✅</a></li><li><a href="#d-preempt">확인 대신 선점한다 ✅</a></li><li><a href="#d-validator">검증은 건마다가 아니라 목록 조회로 ✅</a></li><li><a href="#d-devfirst">test/qa 승격 전에 dev 에 먼저 배포한다 ✅</a></li><li><a href="#d-split">레이어를 나누고 컨슈머를 일반화한다 ✅</a></li><li><a href="#d-idempotent">북마크는 멱등이 기본 ✅</a></li><li><a href="#d-proto">proto 저장소는 도메인별 모듈로 ✅</a></li><li><a href="#d-unique">트랜잭션 해시를 유니크 키로 ✅</a></li><li><a href="#d-dlq">비정상 이벤트는 DB 가 아니라 DLQ ✅</a></li><li><a href="#d-count">카운트는 요청 경로가 아니라 이벤트로 ✅</a></li><li><a href="#d-cursor">페이지네이션은 커서로 🔁</a></li><li><a href="#d-lock">동시 적재 정합성 — 이벤트 종류별 방어 ✅</a></li><li><a href="#d-cdc">서비스는 데이터 파이프라인에 직접 쓰지 않는다 ✅</a></li><li><a href="#d-worldpay">벤더 응답은 200+outcome 과 에러로 분기 ✅</a></li><li><a href="#d-lua">일일 횟수 카운터는 Lua 로 🔁</a></li><li><a href="#d-notify">통합 알림 — 3가지 결정 ✅</a></li><li><a href="#d-ttl">캐시 무효화 대신 짧은 TTL ✅</a></li><li><a href="#d-naming">컬럼 이름에 용도를 넣지 않는다 🔁</a></li><li><a href="#d-settle">롤백 토픽 대신 결과 토픽 ✅</a></li><li><a href="#d-sentinel">정책 전용 서비스로 분리 ✅</a></li><li><a href="#d-deployset">서비스 신설은 배포 설정까지 한 세트 ✅</a></li><li><a href="#d-jitter">jitter 와 timer — 정책 갱신을 흩뿌리는 방법 ✅</a></li><li><a href="#d-enum">정책은 코드 분기가 아니라 enum/설정으로 ✅</a></li><li><a href="#d-rollback">롤백에서 배운 것 ↩️</a></li><li><a href="#d-lock-email">잠금은 Redis 가 아니라 컬럼으로 ✅</a></li><li><a href="#d-stream">대량 수신자는 스트리밍으로 나눠 받는다 ✅</a></li></ul></li></ul></aside>
+<aside class="toc"><p class="t">목차</p><ul><li><a href="#design-decisions">Design Decisions</a><ul><li><a href="#timeline">시기별 목차</a></li><li><a href="#d-facade">파사드 단에서 입력을 검사한다 ✅</a></li><li><a href="#d-preempt">확인 대신 선점한다 ✅</a></li><li><a href="#d-validator">검증은 건마다가 아니라 목록 조회로 ✅</a></li><li><a href="#d-split">레이어를 나누고 컨슈머를 일반화한다 ✅</a></li><li><a href="#d-idempotent">북마크는 멱등이 기본 ✅</a></li><li><a href="#d-proto">proto 저장소는 도메인별 모듈로 ✅</a></li><li><a href="#d-unique">트랜잭션 해시를 유니크 키로 ✅</a></li><li><a href="#d-dlq">비정상 이벤트는 DB 가 아니라 DLQ ✅</a></li><li><a href="#d-count">카운트는 요청 경로가 아니라 이벤트로 ✅</a></li><li><a href="#d-cursor">페이지네이션은 커서로 🔁</a></li><li><a href="#d-lock">동시 적재 정합성 — 이벤트 종류별 방어 ✅</a></li><li><a href="#d-cdc">서비스는 데이터 파이프라인에 직접 쓰지 않는다 ✅</a></li><li><a href="#d-worldpay">벤더 응답은 200+outcome 과 에러로 분기 ✅</a></li><li><a href="#d-lua">일일 횟수 카운터는 Lua 로 🔁</a></li><li><a href="#d-notify">통합 알림 — 3가지 결정 ✅</a></li><li><a href="#d-ttl">캐시 무효화 대신 짧은 TTL ✅</a></li><li><a href="#d-naming">컬럼 이름에 용도를 넣지 않는다 🔁</a></li><li><a href="#d-settle">롤백 토픽 대신 결과 토픽 ✅</a></li><li><a href="#d-sentinel">정책 전용 서비스로 분리 ✅</a></li><li><a href="#d-deployset">서비스 신설은 배포 설정까지 한 세트 ✅</a></li><li><a href="#d-jitter">jitter 와 timer — 정책 갱신을 흩뿌리는 방법 ✅</a></li><li><a href="#d-enum">정책은 코드 분기가 아니라 enum/설정으로 ✅</a></li><li><a href="#d-rollback">롤백에서 배운 것 ↩️</a></li><li><a href="#d-lock-email">잠금은 Redis 가 아니라 컬럼으로 ✅</a></li><li><a href="#d-stream">대량 수신자는 스트리밍으로 나눠 받는다 ✅</a></li></ul></li></ul></aside>
 </div>
 <button class="toc-btn" aria-label="목차">☰</button>
 <footer><div class="in"><span>Last updated 2026-10-30</span><span class="links"><a href="mailto:shalwxy@gmail.com" rel="me noopener">Email</a><a href="https://github.com/shalwxy" rel="me noopener">GitHub</a><a href="https://www.linkedin.com/in/seungha-lee-2aa442229" rel="me noopener">LinkedIn</a><a href="https://shalwxy.github.io/" rel="me noopener">Blog</a></span><span>공개용으로 정제된 요약이며 사내 식별자·운영 정보는 포함하지 않습니다.</span></div></footer>

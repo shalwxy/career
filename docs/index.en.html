@@ -188,14 +188,13 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <h3 id="what-i-did">What I did</h3>
 <h4 id="1-on-chain-off-chain-synchronization-data-engine"><span class="phase">1</span> On-chain / off-chain synchronization (Data Engine)</h4>
 <p class="period">Main work Nov 2023 – Apr 2024</p>
-<p class="chips"><span class="chip">Go</span><span class="chip">Saga</span><span class="chip">Redis distributed lock</span><span class="chip">Helm</span></p>
+<p class="chips"><span class="chip">Go</span><span class="chip">Saga</span><span class="chip">Redis distributed lock</span></p>
 <div class="impact"><span class="impact-k">Impact</span> Fixed nickname duplication at character mint with <strong>Redis-lock preemption</strong> · turned per-item NFT validation lookups into <strong>one list query</strong></div>
 
 <ul>
 <li>Added input validation, request/response conversion with unit tests, and gRPC error handling while wiring a new core service into the game-facing gRPC service (business-provider)</li>
 <li>Added currency/character validators for the <a href="#" class="dg" data-dg="saga" title="Diagram">Saga v2</a> migration and reworked NFT item validation from per-item state lookups to a single list query</li>
 <li>Fixed nickname duplication at character mint: dropped the existence check, <strong>preempted with a Redis lock</strong>, released only on successful mint — a small fix, but a pattern I kept reusing</li>
-<li>Ran Helm rollouts for new services and deployed to dev first before test/qa promotion</li>
 </ul>
 <h4 id="2-transaction-history-bookmarks-marketplace-bff"><span class="phase">2</span> Transaction history · bookmarks · marketplace BFF</h4>
 <p class="period">Main work Jun 2024 – Sep 2025 · maintained afterwards</p>
@@ -214,7 +213,6 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <li><strong>Bookmark / view-count service (<a href="#" class="dg" data-dg="bookmark" title="Diagram">api-bookmark</a>)</strong> — core features: idempotent writes, Redis counters moved to Kafka-driven aggregation, daily/total limits, account-deletion hook</li>
 <li><strong>Marketplace web BFF</strong> — moved bookmark/activity calls to the new services, implemented bookmark and on-sale listings in the inventory service, parallelized rendering</li>
 <li><a href="#" class="dg" data-dg="swapwarp" title="Diagram">Swap &amp; Warp</a> cross-chain transfer history and queries (incl. bff-swapnwarp)</li>
-<li>Added bookmark-event ingestion to a Java/Spring Kafka consumer; fixed bugs in the marketplace BFF and game-data service before launch</li>
 </ul>
 <h4 id="3-account-payment-unified-notifications"><span class="phase">3</span> Account · payment · unified notifications</h4>
 <p class="period">Main work Jul 2025 – Aug 2026</p>
@@ -232,7 +230,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <li><strong><a href="#" class="dg" data-dg="usdt" title="Diagram">Stablecoin (USDT) launch</a></strong> — extended the off-chain pre-deduction/rollback service for USDT (per-token limit tables, pre-deduction and row locking generalized per token), replaced the rollback topic with a dependency on transaction result topics, and added wallet-address validation to the blockchain supporter and BFF</li>
 <li><strong><a href="#" class="dg" data-dg="notification" title="Diagram">Unified notifications (SSE)</a></strong> — absorbed JWT verification to drop the account-service dependency, generated URLs server-side, and split bulk recipients into a <strong>gRPC streaming RPC</strong> (500-row chunks, 50,000 cap)</li>
 <li><strong>Full-user data migration batch for the KYC vendor change (Argos → Sumsub)</strong> — range-partitioned parallel runs, resumable cursor, call-quota management; completed in production</li>
-<li>Discord auto-badge and role-sync batch</li>
+<li>Discord auto-badge and role-sync batch — cut run time from about 2 hours to 20 minutes</li>
 </ul>
 <h4 id="4-policy-service-data-pipeline-ops-automation"><span class="phase">4</span> Policy service · data pipeline · ops automation</h4>
 <p class="period">Main work Jan 2026 – Nov 2026</p>
@@ -242,7 +240,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <ul>
 <li><strong>Policy service (<a href="#" class="dg" data-dg="sentinel" title="Diagram">api-sentinel</a>)</strong> — ACL (wallet/IP allow &amp; deny lists), rate limiting (sliding + fixed window with jitter), lockout after repeated OTP failures (keep/reset failure counts by configurable policy), runtime feature flags</li>
 <li><strong><a href="#" class="dg" data-dg="cdc" title="Diagram">PostgreSQL CDC → Snowflake</a></strong> — Debezium connectors, Stream/Task, a replication-slot keepalive job, conditional tasks to cut cost</li>
-<li><strong><a href="#" class="dg" data-dg="errorbot" title="Diagram">Error-triage bot</a></strong> — replies in-thread to Slack error alerts with an LLM first-pass analysis (GitLab commit diffing, OpenSearch history, escalation)</li>
+<li><strong><a href="#" class="dg" data-dg="errorbot" title="Diagram">Error-triage bot</a></strong> — replies in-thread to Slack error alerts with an LLM first-pass analysis (GitLab commit diffing, OpenSearch history, escalation). Guardrails — daily/monthly cost caps, PII masking, dedupe, a circuit breaker — run as independent components outside the service logic, and prompt rules are promoted from failure modes seen in real use</li>
 </ul>
 <h4 id="5-infrastructure-cicd-gateway"><span class="phase">5</span> Infrastructure · CI/CD · gateway</h4>
 <p class="period">Throughout</p>
@@ -261,7 +259,6 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <ul>
 <li>Back-office item/token sanctions (single, batch, bulk) and a sanction-history view</li>
 <li>Operations console — Discord message re-send, permission-domain split, wallet ↔ SNS lookups</li>
-<li>Item-probability disclosure service: data storage and versioning</li>
 </ul>
 <h3 id="tech-stack">Tech Stack</h3>
 <div class="stack">
@@ -325,8 +322,6 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <tr><td><strong>Information Security Engineer</strong></td><td>Ministry of Science and ICT</td><td>May 2023</td></tr>
 <tr><td><strong>Linux Master Level 1</strong></td><td>KAIT</td><td>May 2021</td></tr>
 <tr><td><strong>Network Administrator Level 1</strong></td><td>ICQA</td><td>May 2023</td></tr>
-<tr><td>Linux Master Level 2</td><td>KAIT</td><td>Jul 2020</td></tr>
-<tr><td>Network Administrator Level 2</td><td>ICQA</td><td>Jul 2020</td></tr>
 </tbody>
 </table>
 
