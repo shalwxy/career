@@ -66,7 +66,7 @@ AI | Vertex AI (LLM):2, Omniverse·IsaacSim:1
 - 게임 서버가 호출하는 gRPC 서비스(business-provider)에 새 코어 서비스를 연동하면서 **입력 유효성 검사 · 요청/응답 변환 · gRPC 에러 처리** 추가
 - [Saga v2](#dg:saga) 전환에 맞춰 **재화(neso/currency)·캐릭터 유효성 검사기 추가**, NFT 아이템 검사는 단건 반복 조회 → 목록 조회로 보완
 - 캐릭터 민트 **닉네임 중복 생성 이슈 수정** — 존재 확인 대신 Redis 락으로 선점, 민트 성공 시에만 해제
-- Helm 배포 운영 — 신규 서비스 배포, 장애 재현용 임시 배포/롤백, test/qa 승격 전 dev 선행 배포
+- Helm 배포 운영 — 신규 서비스 배포, test/qa 승격 전 dev 선행 배포
 
 #### <span class="phase">2</span> 트랜잭션 이력 · 북마크 · 거래소 BFF
 <p class="period">주 작업 2024.06 ~ 2025.09 · 이후 유지보수 · <a href="portfolio.html#activity">자세히 보기 →</a></p>
@@ -77,7 +77,7 @@ AI | Vertex AI (LLM):2, Omniverse·IsaacSim:1
 - **쿼리 튜닝·성능 개선** — DBA 와 협업한 OR → UNION ALL 전환, 커서 기반 무한 스크롤, 조건부 캐싱(공통 라이브러리의 캐시 데코레이터에 옵션 추가)
 - 거래 결과 확정 시 **알림 이벤트 발행**, Snowflake 적재를 Kafka 발행 → **CDC 로 전환**해 발행 실패 시 유실되던 경로 제거
 - **북마크/조회수 서비스([api-bookmark](#dg:bookmark))** 개발 — 멱등 처리, Redis 카운트 캐시 → Kafka 이벤트 집계, 하루/총량 제한, 회원 탈퇴 연동
-- **거래소 웹 BFF(bff-marketplace)** — 북마크·액티비티 호출을 신규 서비스로 이전, 인벤토리 서비스의 북마크·판매중 목록 조회 구현. 간헐적 pod 재시작을 로그 추적으로 비동기 루프 내 gRPC 호출 자원 점유로 좁혀 timeout·chunk 호출로 해결
+- **거래소 웹 BFF(bff-marketplace)** — 북마크·액티비티 호출을 신규 서비스로 이전, 인벤토리 서비스의 북마크·판매중 목록 조회 구현
 - 크로스체인 전송 이력·조회 도메인 [Swap & Warp](#dg:swapwarp) 추가(bff-swapnwarp 포함)
 - Java/Spring Kafka 컨슈머에 북마크 이벤트 적재 추가, 런칭 전 거래소 BFF·게임데이터 버그 픽스
 
@@ -90,18 +90,17 @@ AI | Vertex AI (LLM):2, Omniverse·IsaacSim:1
 - **[스테이블 코인(USDT) 도입](#dg:usdt)** — 오프체인 선차감·롤백 서비스를 USDT 에 맞춰 확장(토큰 단위 한도 테이블 재설계, 선차감·행 잠금 로직을 토큰별로 일반화), 별도 롤백 토픽 대신 트랜잭션 결과 토픽을 구독해 실패 시만 되돌리도록 단순화, 블록체인 서포터·BFF 지갑주소 유효성 검사 추가
 - **[MSU 통합 알림(SSE)](#dg:notification)** — JWT 검증 자체 흡수로 의존 제거, 백엔드 URL 생성, 대량 수신자를 **gRPC streaming RPC**(500건 청크·5만 건 상한)로 분리
 - **KYC 업체 변경(Argos → Sumsub)에 따른 전 사용자 데이터 이관 배치** — 구간 분할 병렬 실행·재진입 가능한 커서·호출 한도 관리, live 이관 완료
-- 디스코드 자동 뱃지·역할 동기화 배치 개발, 공지 크롤링 봇에 게시판 추가·실패 지점 재개 확장
-- 이메일 변경 후 24시간 보안 옵션 변경 불가 — Redis TTL → DB 컬럼 영속화, 복제 지연으로 잠금이 늦게 보이는 구간은 Primary 조회로 제거
+- 디스코드 자동 뱃지·역할 동기화 배치 개발
 
 #### <span class="phase">4</span> 정책 서비스 · 데이터 파이프라인 · 운영 자동화
 <p class="period">주 작업 2026.01 ~ 2026.11 · <a href="portfolio.html#sentinel">자세히 보기 →</a></p>
 <p class="chips"><span class="chip">Debezium</span><span class="chip">Snowflake Stream/Task</span><span class="chip">Vertex AI</span><span class="chip">OpenSearch</span></p>
-<div class="impact"><span class="impact-k">Impact</span> 흩어진 제어 로직을 <strong>정책 서비스 1개로 통합</strong>(4개 서비스가 단일 진입점 사용) · 배치 동기화 잡을 <strong>CDC 파이프라인</strong>으로 대체 · 운영 에러 1차 분석 자동화, 벤더 모델 폐기 장애 <strong>3일 내 1차 대응</strong>(재발 시 재교체)</div>
+<div class="impact"><span class="impact-k">Impact</span> 흩어진 제어 로직을 <strong>정책 서비스 1개로 통합</strong>(4개 서비스가 단일 진입점 사용) · 배치 동기화 잡을 <strong>CDC 파이프라인</strong>으로 대체 · 운영 에러 <strong>1차 분석 자동화</strong></div>
 
 - **비즈니스 정책 서비스([api-sentinel](#dg:sentinel)) 신설** — 여러 서비스에 흩어져 있던 제어 로직을 단일 서비스로 통합
     - **ACL** (지갑/IP 화이트·블랙리스트), **Rate Limit** (Sliding/Fixed Window + jitter), **Lockout** (OTP 반복 실패 시 차단, 실패 횟수 유지/초기화 정책을 설정으로), **Feature Flag** (런타임 변경)
 - **[PostgreSQL CDC → Snowflake 파이프라인](#dg:cdc)** — Debezium 커넥터, Stream/Task, replication slot keepalive 배치, 조건부 task 로 비용 최적화
-- **[에러시로봇(운영 AI)](#dg:errorbot)** — 운영 중 Slack 에러 알림을 LLM 으로 1차 분석해 스레드에 답하는 봇 (GitLab 커밋 대조·OpenSearch 히스토리·escalation). 벤더 모델 폐기 장애를 모델 교체·재시도/백오프·세마포어로 3일 내 대응
+- **[에러시로봇(운영 AI)](#dg:errorbot)** — 운영 중 Slack 에러 알림을 LLM 으로 1차 분석해 스레드에 답하는 봇 (GitLab 커밋 대조·OpenSearch 히스토리·escalation)
 
 #### <span class="phase">5</span> 인프라 · CI/CD · 게이트웨이
 <p class="period">전 기간 · <a href="portfolio.html#infra">자세히 보기 →</a></p>

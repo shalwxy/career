@@ -195,7 +195,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <li>Added input validation, request/response conversion with unit tests, and gRPC error handling while wiring a new core service into the game-facing gRPC service (business-provider)</li>
 <li>Added currency/character validators for the <a href="#" class="dg" data-dg="saga" title="Diagram">Saga v2</a> migration and reworked NFT item validation from per-item state lookups to a single list query</li>
 <li>Fixed nickname duplication at character mint: dropped the existence check, <strong>preempted with a Redis lock</strong>, released only on successful mint — a small fix, but a pattern I kept reusing</li>
-<li>Ran Helm rollouts for new services, reproduced an incident with throwaway deploys and rollbacks, and deployed to dev first before test/qa promotion</li>
+<li>Ran Helm rollouts for new services and deployed to dev first before test/qa promotion</li>
 </ul>
 <h4 id="2-transaction-history-bookmarks-marketplace-bff"><span class="phase">2</span> Transaction history · bookmarks · marketplace BFF</h4>
 <p class="period">Main work Jun 2024 – Sep 2025 · maintained afterwards</p>
@@ -212,7 +212,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <li><strong>Query performance</strong> — OR → UNION ALL rewrite with the DBA, cursor-based infinite scroll, a conditional-caching option added to the shared cache decorator</li>
 <li>Emitted notification events when a transaction result is finalized; moved Snowflake ingestion from Kafka publishes to <strong>CDC</strong>, removing the publish-failure loss path</li>
 <li><strong>Bookmark / view-count service (<a href="#" class="dg" data-dg="bookmark" title="Diagram">api-bookmark</a>)</strong> — core features: idempotent writes, Redis counters moved to Kafka-driven aggregation, daily/total limits, account-deletion hook</li>
-<li><strong>Marketplace web BFF</strong> — moved bookmark/activity calls to the new services, implemented bookmark and on-sale listings in the inventory service, parallelized rendering. Traced intermittent pod restarts to gRPC calls inside async loops holding resources and fixed them with timeouts and chunked calls</li>
+<li><strong>Marketplace web BFF</strong> — moved bookmark/activity calls to the new services, implemented bookmark and on-sale listings in the inventory service, parallelized rendering</li>
 <li><a href="#" class="dg" data-dg="swapwarp" title="Diagram">Swap &amp; Warp</a> cross-chain transfer history and queries (incl. bff-swapnwarp)</li>
 <li>Added bookmark-event ingestion to a Java/Spring Kafka consumer; fixed bugs in the marketplace BFF and game-data service before launch</li>
 </ul>
@@ -232,18 +232,17 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <li><strong><a href="#" class="dg" data-dg="usdt" title="Diagram">Stablecoin (USDT) launch</a></strong> — extended the off-chain pre-deduction/rollback service for USDT (per-token limit tables, pre-deduction and row locking generalized per token), replaced the rollback topic with a dependency on transaction result topics, and added wallet-address validation to the blockchain supporter and BFF</li>
 <li><strong><a href="#" class="dg" data-dg="notification" title="Diagram">Unified notifications (SSE)</a></strong> — absorbed JWT verification to drop the account-service dependency, generated URLs server-side, and split bulk recipients into a <strong>gRPC streaming RPC</strong> (500-row chunks, 50,000 cap)</li>
 <li><strong>Full-user data migration batch for the KYC vendor change (Argos → Sumsub)</strong> — range-partitioned parallel runs, resumable cursor, call-quota management; completed in production</li>
-<li>Discord auto-badge and role-sync batch; extended the community-notice crawler with new boards and resumable failures</li>
-<li>24-hour lock on security-option changes after an e-mail change — moved from Redis TTL to a persisted column, with primary reads to close the replication-lag window</li>
+<li>Discord auto-badge and role-sync batch</li>
 </ul>
 <h4 id="4-policy-service-data-pipeline-ops-automation"><span class="phase">4</span> Policy service · data pipeline · ops automation</h4>
 <p class="period">Main work Jan 2026 – Nov 2026</p>
 <p class="chips"><span class="chip">Debezium</span><span class="chip">Snowflake Stream/Task</span><span class="chip">Vertex AI</span><span class="chip">OpenSearch</span></p>
-<div class="impact"><span class="impact-k">Impact</span> Consolidated scattered control logic into <strong>one policy service</strong> used by four callers · replaced batch sync jobs with a <strong>CDC pipeline</strong> · automated first-pass error triage and shipped the first fix for a vendor model-deprecation outage <strong>within 3 days</strong> (re-swapped on recurrence)</div>
+<div class="impact"><span class="impact-k">Impact</span> Consolidated scattered control logic into <strong>one policy service</strong> used by four callers · replaced batch sync jobs with a <strong>CDC pipeline</strong> · <strong>automated first-pass error triage</strong></div>
 
 <ul>
 <li><strong>Policy service (<a href="#" class="dg" data-dg="sentinel" title="Diagram">api-sentinel</a>)</strong> — ACL (wallet/IP allow &amp; deny lists), rate limiting (sliding + fixed window with jitter), lockout after repeated OTP failures (keep/reset failure counts by configurable policy), runtime feature flags</li>
 <li><strong><a href="#" class="dg" data-dg="cdc" title="Diagram">PostgreSQL CDC → Snowflake</a></strong> — Debezium connectors, Stream/Task, a replication-slot keepalive job, conditional tasks to cut cost</li>
-<li><strong><a href="#" class="dg" data-dg="errorbot" title="Diagram">Error-triage bot</a></strong> — replies in-thread to Slack error alerts with an LLM first-pass analysis (GitLab commit diffing, OpenSearch history, escalation); handled a vendor model deprecation with model swap, retry/backoff and a semaphore</li>
+<li><strong><a href="#" class="dg" data-dg="errorbot" title="Diagram">Error-triage bot</a></strong> — replies in-thread to Slack error alerts with an LLM first-pass analysis (GitLab commit diffing, OpenSearch history, escalation)</li>
 </ul>
 <h4 id="5-infrastructure-cicd-gateway"><span class="phase">5</span> Infrastructure · CI/CD · gateway</h4>
 <p class="period">Throughout</p>
@@ -347,7 +346,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <aside class="toc"><p class="t">Contents</p><ul><li><a href="#career-description">Career Description</a></li><li><a href="#skills">Skills</a></li><li><a href="#work-experience">Work Experience</a><ul><li><a href="#nexon-universe-maplestory-universe">NEXON UNIVERSE — MapleStory Universe</a></li><li><a href="#uclick-ai-engineering-rd">UCLICK — AI Engineering R&amp;D</a></li><li><a href="#uclick-backend-developer">UCLICK — Backend Developer</a></li></ul></li><li><a href="#how-i-work">How I Work</a><ul><li><a href="#design">Design</a></li><li><a href="#operations">Operations</a></li><li><a href="#collaboration">Collaboration</a></li></ul></li><li><a href="#other-experiences">Other Experiences</a><ul><li><a href="#certifications">Certifications</a></li><li><a href="#korea-national-open-university-computer-science">Korea National Open University — Computer Science</a></li><li><a href="#korea-polytechnic-data-convergence-software">Korea Polytechnic — Data Convergence Software</a></li><li><a href="#ewha-womans-university-mathematics-education">Ewha Womans University — Mathematics Education</a></li></ul></li></ul></aside>
 </div>
 <button class="toc-btn" aria-label="목차">☰</button>
-<footer><div class="in"><span>Last updated 2026-10-28</span><span class="links"><a href="mailto:shalwxy@gmail.com" rel="me noopener">Email</a><a href="https://github.com/shalwxy" rel="me noopener">GitHub</a><a href="https://www.linkedin.com/in/seungha-lee-2aa442229" rel="me noopener">LinkedIn</a><a href="https://shalwxy.github.io/" rel="me noopener">Blog</a></span><span>Public summary. Internal identifiers and operational details are intentionally omitted.</span></div></footer>
+<footer><div class="in"><span>Last updated 2026-10-30</span><span class="links"><a href="mailto:shalwxy@gmail.com" rel="me noopener">Email</a><a href="https://github.com/shalwxy" rel="me noopener">GitHub</a><a href="https://www.linkedin.com/in/seungha-lee-2aa442229" rel="me noopener">LinkedIn</a><a href="https://shalwxy.github.io/" rel="me noopener">Blog</a></span><span>Public summary. Internal identifiers and operational details are intentionally omitted.</span></div></footer>
 <div class="modal" role="dialog" aria-modal="true"><div class="box"><div class="hd"><h3></h3><button class="zoom" type="button">Zoom</button><button class="close" type="button">Close ✕</button></div><div class="bd"><div class="mm"></div><p class="legend"><i></i>Highlighted boxes are the parts I designed and built. Internal identifiers are omitted.</p></div></div></div>
 <script type="text/plain" id="dg-src-saga" data-title="DE — Saga execution, character mint &amp; nickname pre-emption (as of 2024-04)">
 sequenceDiagram

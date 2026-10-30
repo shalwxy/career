@@ -68,7 +68,7 @@ I started on the on-chain/off-chain synchronization layer and went on to work on
 - Added input validation, request/response conversion with unit tests, and gRPC error handling while wiring a new core service into the game-facing gRPC service (business-provider)
 - Added currency/character validators for the [Saga v2](#dg:saga) migration and reworked NFT item validation from per-item state lookups to a single list query
 - Fixed nickname duplication at character mint: dropped the existence check, **preempted with a Redis lock**, released only on successful mint — a small fix, but a pattern I kept reusing
-- Ran Helm rollouts for new services, reproduced an incident with throwaway deploys and rollbacks, and deployed to dev first before test/qa promotion
+- Ran Helm rollouts for new services and deployed to dev first before test/qa promotion
 
 #### <span class="phase">2</span> Transaction history · bookmarks · marketplace BFF
 <p class="period">Main work Jun 2024 – Sep 2025 · maintained afterwards</p>
@@ -82,7 +82,7 @@ I started on the on-chain/off-chain synchronization layer and went on to work on
 - **Query performance** — OR → UNION ALL rewrite with the DBA, cursor-based infinite scroll, a conditional-caching option added to the shared cache decorator
 - Emitted notification events when a transaction result is finalized; moved Snowflake ingestion from Kafka publishes to **CDC**, removing the publish-failure loss path
 - **Bookmark / view-count service ([api-bookmark](#dg:bookmark))** — core features: idempotent writes, Redis counters moved to Kafka-driven aggregation, daily/total limits, account-deletion hook
-- **Marketplace web BFF** — moved bookmark/activity calls to the new services, implemented bookmark and on-sale listings in the inventory service, parallelized rendering. Traced intermittent pod restarts to gRPC calls inside async loops holding resources and fixed them with timeouts and chunked calls
+- **Marketplace web BFF** — moved bookmark/activity calls to the new services, implemented bookmark and on-sale listings in the inventory service, parallelized rendering
 - [Swap & Warp](#dg:swapwarp) cross-chain transfer history and queries (incl. bff-swapnwarp)
 - Added bookmark-event ingestion to a Java/Spring Kafka consumer; fixed bugs in the marketplace BFF and game-data service before launch
 
@@ -99,17 +99,16 @@ I started on the on-chain/off-chain synchronization layer and went on to work on
 - **[Stablecoin (USDT) launch](#dg:usdt)** — extended the off-chain pre-deduction/rollback service for USDT (per-token limit tables, pre-deduction and row locking generalized per token), replaced the rollback topic with a dependency on transaction result topics, and added wallet-address validation to the blockchain supporter and BFF
 - **[Unified notifications (SSE)](#dg:notification)** — absorbed JWT verification to drop the account-service dependency, generated URLs server-side, and split bulk recipients into a **gRPC streaming RPC** (500-row chunks, 50,000 cap)
 - **Full-user data migration batch for the KYC vendor change (Argos → Sumsub)** — range-partitioned parallel runs, resumable cursor, call-quota management; completed in production
-- Discord auto-badge and role-sync batch; extended the community-notice crawler with new boards and resumable failures
-- 24-hour lock on security-option changes after an e-mail change — moved from Redis TTL to a persisted column, with primary reads to close the replication-lag window
+- Discord auto-badge and role-sync batch
 
 #### <span class="phase">4</span> Policy service · data pipeline · ops automation
 <p class="period">Main work Jan 2026 – Nov 2026</p>
 <p class="chips"><span class="chip">Debezium</span><span class="chip">Snowflake Stream/Task</span><span class="chip">Vertex AI</span><span class="chip">OpenSearch</span></p>
-<div class="impact"><span class="impact-k">Impact</span> Consolidated scattered control logic into <strong>one policy service</strong> used by four callers · replaced batch sync jobs with a <strong>CDC pipeline</strong> · automated first-pass error triage and shipped the first fix for a vendor model-deprecation outage <strong>within 3 days</strong> (re-swapped on recurrence)</div>
+<div class="impact"><span class="impact-k">Impact</span> Consolidated scattered control logic into <strong>one policy service</strong> used by four callers · replaced batch sync jobs with a <strong>CDC pipeline</strong> · <strong>automated first-pass error triage</strong></div>
 
 - **Policy service ([api-sentinel](#dg:sentinel))** — ACL (wallet/IP allow & deny lists), rate limiting (sliding + fixed window with jitter), lockout after repeated OTP failures (keep/reset failure counts by configurable policy), runtime feature flags
 - **[PostgreSQL CDC → Snowflake](#dg:cdc)** — Debezium connectors, Stream/Task, a replication-slot keepalive job, conditional tasks to cut cost
-- **[Error-triage bot](#dg:errorbot)** — replies in-thread to Slack error alerts with an LLM first-pass analysis (GitLab commit diffing, OpenSearch history, escalation); handled a vendor model deprecation with model swap, retry/backoff and a semaphore
+- **[Error-triage bot](#dg:errorbot)** — replies in-thread to Slack error alerts with an LLM first-pass analysis (GitLab commit diffing, OpenSearch history, escalation)
 
 #### <span class="phase">5</span> Infrastructure · CI/CD · gateway
 <p class="period">Throughout</p>

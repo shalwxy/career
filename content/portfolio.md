@@ -48,7 +48,6 @@
 | 2025 Q1 | 크로스체인([Swap & Warp](#dg:swapwarp)) 도메인 추가, OR 조회 → UNION ALL, 커서 기반 무한 스크롤 |
 | 2025 Q2~Q3 | Redis NX(거래·자산·Swap) + PostgreSQL advisory lock(Warp) 으로 동시 적재 정합성, 결과 적재 시 알림 이벤트 발행, 브릿지-인 확장 |
 | 2026 Q1 | Snowflake 적재를 Kafka 발행에서 **CDC 로 전환** — 발행 실패 유실 경로 제거 |
-| 2026 Q3 | 출금 지연 피처 구현 중 기존 결함(DB 에러 삼킴·커밋 전 알림 발행·갱신 조건) 발견·수정 → 피처 전체 롤백에 함께 되돌아감 |
 
 **Deep dive — [Kafka 순서 비보장과 동시 적재](#dg:activity-lock).**
 
@@ -58,11 +57,7 @@
     - 요청과 결과가 뒤집혀 올 수 있는 Warp: 스키마를 nullable 로 설계하고, 트랜잭션 범위 advisory lock 안에서 먼저 조회해 없으면 생성, 있으면 수정합니다. 먼저 온 쪽이 먼저 저장되고, 나중에 온 쪽이 채웁니다.
 - **보완** — 2026년 출금 지연 작업 때 락 시드와 조회 키를 다시 맞추는 보완을 넣었으나 피처 롤백에 함께 되돌아갔습니다.
 
-**Deep dive — 롤백된 피처에서 배운 것.**
-
-- **상황** — 2026 Q3 에 보안 요건으로 "출금 지연" 피처를 7개 저장소(서비스 4 · proto · DDL · 게이트웨이)에 걸쳐 구현했으나 기획 변경으로 전체 롤백되었습니다.
-- **함께 고친 기존 결함** — DB 에러를 삼켜 "commit unexpectedly resulted in rollback" 으로 끝나던 경로, 알림이 커밋 전에 나가던 경로, 갱신 조건이 식별자가 아니던 문제.
-- **교훈** — 이 수정들이 피처 커밋 흐름에 섞여 있어 롤백에 함께 되돌아갔습니다. 결함 수정은 피처와 분리해 먼저 머지해야 합니다.
+**교훈 — 결함 수정은 피처와 분리.** 2026 Q3 "출금 지연" 피처 구현 중 발견한 기존 결함(DB 에러 삼킴·커밋 전 알림 발행·갱신 조건)을 피처 커밋 흐름에 섞어 수정했다가, 기획 변경으로 피처가 전체 롤백되면서 수정도 함께 되돌아갔습니다. 이후부터 결함 수정은 피처와 분리해 먼저 머지합니다.
 
 <p class="more">관련 설계 결정: <a href="decisions.html#d-unique">유니크 키 승격</a> · <a href="decisions.html#d-lock">동시 적재 정합성</a> · <a href="decisions.html#d-cdc">publish 대신 CDC</a> · <a href="decisions.html#d-rollback">롤백에서 배운 것</a></p>
 
@@ -198,13 +193,7 @@
 - [봇](#dg:errorbot)이 스택트레이스에서 파일을 추출해 **각 파일의 최근 커밋을 GitLab API 로 조회**하고, 회귀 후보로 프롬프트에 주입합니다.
 - 과거 분석을 OpenSearch 에 signature 키로 저장해 재사용·dedupe·escalation 하고, 최초 감지 시각과 스레드 영구 링크를 함께 응답합니다.
 - Slack 긴 메시지의 preview 잘림을 감지해 원문을 재조회합니다.
-- 에러가 폭주할 때 LLM 동시 실행을 세마포어로 제한합니다.
-
-**장애 대응.**
-
-- LLM 벤더가 사용 중이던 모델을 폐기(404)해 봇 전체가 멈췄습니다.
-- 모델 교체에 그치지 않고 429/5xx 재시도(Retry-After 우선, 지수 백오프 + 지터), 에러 타입 분기, 테이블 테스트까지 3일 내 반영했습니다.
-- 나흘 뒤 교체한 모델마저 폐기돼 재교체했고, **"교체 전에 벤더 카탈로그에서 가용 모델을 확인했어야 한다"**는 교훈을 남겼습니다.
+- 에러가 폭주할 때 LLM 동시 실행을 세마포어로 제한하고, 벤더 429/5xx 는 Retry-After 우선·지수 백오프 + 지터로 재시도합니다.
 
 ---
 
@@ -222,9 +211,9 @@
 **한 일.**
 
 - **CI 파이프라인 운영** — 담당 서비스 3개의 `.gitlab-ci.yml`·Dockerfile: 누락된 go test 단계 보완, Go 1.23 → 1.26 · Docker · Node 런타임 업그레이드, semantic-release 빌드 깨짐 수정(버전 고정), 신설 서비스의 배포 job 연결.
-- **신설 서비스의 배포 세트** — api-sentinel 신설 때 Helm 템플릿(dev) · 4개 환경 매니페스트(Deployment · HPA · Service) · Envoy route · CI 배포 job 을 코드와 같은 주에 한 세트로 추가. 레지스트리 deploy token 만료 시 dockerconfigjson 교체.
-- **Kubernetes 매니페스트 운영** (gotohelm · deploy-scripts) — liveness/readiness probe 보정, 서비스 포트 추가, 서비스명 변경, test/qa/stage pod 리소스 감축(비용 절감 요청 건), live 로그 레벨 정리, DE 서비스 초기 배포.
-- **Envoy 게이트웨이** (marina) — 서비스가 늘어날 때마다 gRPC → REST 연결 규칙(route)을 추가·정리, 인증 적용·skip 설정, 미사용 cluster 제거, live 에서 특정 인증 호출 차단.
+- **신설 서비스의 배포 세트** — api-sentinel 신설 때 Helm 템플릿(dev) · 4개 환경 매니페스트(Deployment · HPA · Service) · Envoy route · CI 배포 job 을 코드와 같은 주에 한 세트로 추가.
+- **Kubernetes 매니페스트 운영** (gotohelm · deploy-scripts) — liveness/readiness probe 보정, 서비스 포트 추가, 서비스명 변경, DE 서비스 초기 배포.
+- **Envoy 게이트웨이** (marina) — 서비스가 늘어날 때마다 gRPC → REST 연결 규칙(route)을 추가·정리, 인증 적용·skip 설정.
 - **운영 저장소** (portal-ops) — PostgreSQL DDL 을 DBA 검토 흐름으로 관리, Debezium/Kafka Connect · Snowflake Stream/Task 설정([CDC](#dg:cdc)), MongoDB TTL 정책.
 - **전사 proto 저장소** — 도메인별 모듈로 재구성해 한 도메인의 변경이 전 서비스 리빌드를 부르지 않게 했습니다([설계 결정](decisions.html#d-proto)).
 - **외부 노출 API 영향성 조사** — 스왑워프·통합알림·BFF 의 외부 노출 API 를 전수 조사하고 인증을 추가했습니다(팀 3인).
