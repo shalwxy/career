@@ -146,7 +146,7 @@ I started on the on-chain/off-chain synchronization layer and went on to work on
 
 ---
 
-## UCLICK — AI Engineering R&D
+## TURTLE KNOWLEDGE — AI Engineering R&D
 
 <p class="meta">AI Engineering R&D · AI Service Team 1 · Jan 2022 – Oct 2023 (1 yr 10 mo)</p>
 
@@ -155,7 +155,7 @@ I started on the on-chain/off-chain synchronization layer and went on to work on
 - **NVIDIA GPU MIG support (Mar – Apr 2022)** — on-site MIG enablement for a Korean financial client's dev/prod servers; shell script that recreates MIG profiles after reboot
 - **GPU monitoring with NVIDIA deepops (Jan – Feb 2022, sole owner)** — Prometheus/Grafana via Ansible; repackaged as scripts and images for air-gapped networks
 
-## UCLICK — Backend Developer
+## TURTLE KNOWLEDGE — Backend Developer
 
 <p class="meta">Backend Developer · R&D Lab 2 · Nov 2019 – Dec 2021 (2 years)</p>
 

@@ -138,9 +138,9 @@ AI | Vertex AI (LLM):2, Omniverse·IsaacSim:1
 
 ---
 
-## UCLICK — AI Engineering R&D
+## TURTLE KNOWLEDGE — AI Engineering R&D
 
-<p class="meta">AI Engineering R&D · 유클릭 AI사업본부 AI서비스1팀 · 2022.01 ~ 2023.10 (1년 10개월)</p>
+<p class="meta">AI Engineering R&D · 터틀날리지 AI사업본부 AI서비스1팀 · 2022.01 ~ 2023.10 (1년 10개월)</p>
 
 <p class="badges">
 <span class="b">Python</span>
@@ -210,9 +210,9 @@ NVIDIA GPU를 사용하는 Kubernetes 및 Slurm 클러스터 용도 인프라 �
 
 ---
 
-## UCLICK — Backend Developer
+## TURTLE KNOWLEDGE — Backend Developer
 
-<p class="meta">Backend Developer · 유클릭 기술연구소 연구2실 · 2019.11 ~ 2021.12 (2년)</p>
+<p class="meta">Backend Developer · 터틀날리지 기술연구소 연구2실 · 2019.11 ~ 2021.12 (2년)</p>
 
 <p class="badges">
 <span class="b">Java</span>
