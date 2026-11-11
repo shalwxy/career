@@ -4,7 +4,7 @@ Hi, I'm Seungha Lee — a backend engineer who enjoys nothing more than the time
 
 **Seven years in software and engineering** — Java backend (2 years) → AI/GPU infrastructure R&D (about 2 years) → **Go backend (3 years)**.
 
-In my current role I work on payments, notifications, transaction history and data pipelines, mainly designing for **data consistency in distributed systems** (pre-emption, idempotency, recovery), and I also handle **CI/CD, Kubernetes manifests, the gateway and DB DDL** for my services. I design the failure path first and turn review feedback into written team principles. I'm applying for both backend and DevOps roles.
+In my current role I work on payments, notifications, transaction history and data pipelines, mainly designing for **data consistency in distributed systems** (pre-emption, idempotency, recovery), and I also handle **CI/CD, Kubernetes manifests, the gateway and DB DDL** for my services. I design the failure path first and document review feedback as team principles that carry into the next piece of work.
 
 ---
 
