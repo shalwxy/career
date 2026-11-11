@@ -60,7 +60,7 @@ I started on the on-chain/off-chain synchronization layer and went on to work on
 
 ### What I did
 
-#### <span class="phase">1</span> On-chain / off-chain synchronization (Data Engine)
+#### <span class="phase">1</span> On-chain / off-chain synchronization
 <p class="period">Main work Nov 2023 – Apr 2024</p>
 <p class="chips"><span class="chip">Go</span><span class="chip">Saga</span><span class="chip">Redis distributed lock</span></p>
 <div class="impact"><span class="impact-k">Impact</span> Fixed nickname duplication at character mint with <strong>Redis-lock preemption</strong> · turned per-item NFT validation lookups into <strong>one list query</strong></div>

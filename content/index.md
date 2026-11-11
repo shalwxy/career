@@ -58,8 +58,8 @@ AI | Vertex AI (LLM):2, Omniverse·IsaacSim:1
 
 ### What did I do
 
-#### <span class="phase">1</span> 온체인-오프체인 동기화 (DE)
-<p class="period">주 작업 2023.11 ~ 2024.04 · <a href="portfolio.html#de">자세히 보기 →</a></p>
+#### <span class="phase">1</span> 온체인-오프체인 동기화
+<p class="period">주 작업 2023.11 ~ 2024.04 · <a href="portfolio.html#onchain">자세히 보기 →</a></p>
 <p class="chips"><span class="chip">Go</span><span class="chip">Saga</span><span class="chip">Redis 분산 락</span></p>
 <div class="impact"><span class="impact-k">Impact</span> 캐릭터 민트 시 <strong>닉네임 중복 생성 이슈를 Redis 락 선점으로 수정</strong> · NFT 아이템 유효성 검사의 건별 반복 조회를 <strong>목록 조회 1회</strong>로 개선</div>
 

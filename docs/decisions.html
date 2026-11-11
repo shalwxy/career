@@ -317,8 +317,8 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <h2 id="d-naming">컬럼 이름에 용도를 넣지 않는다 🔁</h2>
 <p><strong>2025 Q4 ~ 2026 Q2</strong></p>
 <ul>
-<li><strong>상황</strong> — 해시 컬럼 이름을 기획 변경에 맞춰 세 번 바꿨고(검사 자체가 없어지기도 했습니다), 정책 테이블과 필드 이름도 여러 번 바꿨습니다.</li>
-<li><strong>선택</strong> — 이름에 용도나 토큰 이름을 넣지 않고 중립적으로 짓습니다.</li>
+<li><strong>상황</strong> — 민감 정보인 카드 소유자명을 해싱해 중복 검사용 컬럼에 저장했는데, 이후 검사 기획 자체가 빠지면서 컬럼 이름과 로직을 세 번 바꿔야 했습니다(정책 테이블과 필드 이름도 여러 번 바뀌었습니다).</li>
+<li><strong>선택</strong> — 컬럼 이름에 &ldquo;검증&rdquo;처럼 언제든 바뀔 수 있는 비즈니스 용도 대신, &ldquo;해시된 소유자명&rdquo;처럼 데이터 자체의 본질을 담아 중립적으로 짓습니다.</li>
 <li><strong>이유·결과</strong> — 이름이 바뀔 때마다 DBA 검토, 마이그레이션, 코드 리뷰가 다시 필요합니다. 처음부터 중립적으로 지었다면 줄일 수 있었던 비용입니다.</li>
 </ul>
 <h2 id="d-settle"><a href="#" class="dg" data-dg="usdt" title="도식 보기">롤백 토픽 대신 결과 토픽</a> ✅</h2>
@@ -381,9 +381,9 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <aside class="toc"><p class="t">목차</p><ul><li><a href="#design-decisions">Design Decisions</a><ul><li><a href="#timeline">시기별 목차</a></li><li><a href="#d-facade">파사드 단에서 입력을 검사한다 ✅</a></li><li><a href="#d-preempt">확인 대신 선점한다 ✅</a></li><li><a href="#d-validator">검증은 건마다가 아니라 목록 조회로 ✅</a></li><li><a href="#d-split">레이어를 나누고 컨슈머를 일반화한다 ✅</a></li><li><a href="#d-idempotent">북마크는 멱등이 기본 ✅</a></li><li><a href="#d-proto">proto 저장소는 도메인별 모듈로 ✅</a></li><li><a href="#d-unique">트랜잭션 해시를 유니크 키로 ✅</a></li><li><a href="#d-dlq">비정상 이벤트는 DB 가 아니라 DLQ ✅</a></li><li><a href="#d-count">카운트는 요청 경로가 아니라 이벤트로 ✅</a></li><li><a href="#d-cursor">페이지네이션은 커서로 🔁</a></li><li><a href="#d-lock">동시 적재 정합성 — 이벤트 종류별 방어 ✅</a></li><li><a href="#d-cdc">서비스는 데이터 파이프라인에 직접 쓰지 않는다 ✅</a></li><li><a href="#d-worldpay">벤더 응답은 200+outcome 과 에러로 분기 ✅</a></li><li><a href="#d-lua">일일 횟수 카운터는 Lua 로 🔁</a></li><li><a href="#d-notify">통합 알림 — 3가지 결정 ✅</a></li><li><a href="#d-ttl">캐시 무효화 대신 짧은 TTL ✅</a></li><li><a href="#d-naming">컬럼 이름에 용도를 넣지 않는다 🔁</a></li><li><a href="#d-settle">롤백 토픽 대신 결과 토픽 ✅</a></li><li><a href="#d-sentinel">정책 전용 서비스로 분리 ✅</a></li><li><a href="#d-deployset">서비스 신설은 배포 설정까지 한 세트 ✅</a></li><li><a href="#d-jitter">jitter 와 timer — 정책 갱신을 흩뿌리는 방법 ✅</a></li><li><a href="#d-enum">정책은 코드 분기가 아니라 enum/설정으로 ✅</a></li><li><a href="#d-rollback">롤백에서 배운 것 ↩️</a></li><li><a href="#d-lock-email">잠금은 Redis 가 아니라 컬럼으로 ✅</a></li><li><a href="#d-stream">대량 수신자는 스트리밍으로 나눠 받는다 ✅</a></li></ul></li></ul></aside>
 </div>
 <button class="toc-btn" aria-label="목차">☰</button>
-<footer><div class="in"><span>Last updated 2026-11-10</span><span class="links"><a href="mailto:shalwxy@gmail.com" rel="me noopener">Email</a><a href="https://github.com/shalwxy" rel="me noopener">GitHub</a><a href="https://www.linkedin.com/in/seungha-lee-2aa442229" rel="me noopener">LinkedIn</a><a href="https://shalwxy.github.io/" rel="me noopener">Blog</a></span><span>공개용으로 정제된 요약이며 사내 식별자·운영 정보는 포함하지 않습니다.</span></div></footer>
+<footer><div class="in"><span>Last updated 2026-11-11</span><span class="links"><a href="mailto:shalwxy@gmail.com" rel="me noopener">Email</a><a href="https://github.com/shalwxy" rel="me noopener">GitHub</a><a href="https://www.linkedin.com/in/seungha-lee-2aa442229" rel="me noopener">LinkedIn</a><a href="https://shalwxy.github.io/" rel="me noopener">Blog</a></span><span>공개용으로 정제된 요약이며 사내 식별자·운영 정보는 포함하지 않습니다.</span></div></footer>
 <div class="modal" role="dialog" aria-modal="true"><div class="box"><div class="hd"><h3></h3><button class="zoom" type="button">확대</button><button class="close" type="button">닫기 ✕</button></div><div class="bd"><div class="mm"></div><p class="legend"><i></i>강조된 상자가 제가 설계·구현한 부분입니다. 내부 식별자는 생략했습니다.</p></div></div></div>
-<script type="text/plain" id="dg-src-saga" data-title="DE — Saga 실행과 캐릭터 민트·닉네임 선점 (2024-04 기준)">
+<script type="text/plain" id="dg-src-saga" data-title="Saga 실행과 캐릭터 민트·닉네임 선점 (2024-04 기준)">
 sequenceDiagram
     autonumber
     participant G as 게임 서버
