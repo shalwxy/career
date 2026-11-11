@@ -98,7 +98,7 @@ AI | Vertex AI (LLM):2, Omniverse·IsaacSim:1
 - **비즈니스 정책 서비스([api-sentinel](#dg:sentinel)) 신설** — 여러 서비스에 흩어져 있던 제어 로직을 단일 서비스로 통합
     - **ACL** (지갑/IP 화이트·블랙리스트), **Rate Limit** (Sliding/Fixed Window + jitter), **Lockout** (OTP 반복 실패 시 차단, 실패 횟수 유지/초기화 정책을 설정으로), **Feature Flag** (런타임 변경)
 - **[PostgreSQL CDC → Snowflake 파이프라인](#dg:cdc)** — Debezium 커넥터, Stream/Task, replication slot keepalive 배치, 조건부 task 로 비용 최적화
-- **[에러시로봇(운영 AI)](#dg:errorbot)** — 운영 중 Slack 에러 알림을 LLM 으로 1차 분석해 스레드에 답하는 봇 (GitLab 커밋 대조·OpenSearch 히스토리·escalation). 일/월 비용 상한·PII 마스킹·dedupe·서킷브레이커 같은 **가드레일을 서비스 로직 밖에 독립 장치로** 두고, 프롬프트는 실사용 실패 모드를 규칙으로 승격해 관리
+- **[에러 분석 봇(운영 AI)](#dg:errorbot)** — 운영 중 Slack 에러 알림을 LLM 으로 1차 분석해 스레드에 답하는 봇 (GitLab 커밋 대조·OpenSearch 히스토리·escalation). 일/월 비용 상한·PII 마스킹·dedupe·서킷브레이커 같은 **가드레일을 서비스 로직 밖에 독립 장치로** 두고, 프롬프트는 실사용 실패 모드를 규칙으로 승격해 관리
 
 #### <span class="phase">5</span> 인프라 · CI/CD · 게이트웨이
 <p class="period">전 기간 · <a href="portfolio.html#infra">자세히 보기 →</a></p>

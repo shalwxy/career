@@ -33,9 +33,9 @@
 
 ## 2. 트랜잭션 이력 플랫폼 — 구조 개선부터 CDC 전환까지 {#activity}
 
-<span class="tag">2024-06 ~ 2026-11</span> <span class="tag">Go · Kafka · PostgreSQL · Redis · Snowflake</span>
+<span class="tag">2024-06 ~ 2026-01</span> <span class="tag">Go · Kafka · PostgreSQL · Redis · Snowflake</span>
 
-**맥락.** 플랫폼의 블록체인 트랜잭션(거래·민팅·전송·크로스체인 전송·스테이블 코인)을 [수집·조회·알림 발행하는 서비스](#dg:activity). 2024년 6월부터 2년 반, 가장 오래 담당했습니다.
+**맥락.** 플랫폼의 블록체인 트랜잭션(거래·민팅·전송·크로스체인 전송·스테이블 코인)을 [수집·조회·알림 발행하는 서비스](#dg:activity). 2024년 6월부터 1년 7개월간, 가장 오래 담당했습니다.
 
 **단계별 진화.**
 
