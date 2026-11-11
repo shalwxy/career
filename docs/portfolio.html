@@ -307,7 +307,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <h2 id="notification">6. 통합 알림 서비스 — SSE 와 streaming RPC</h2>
 <p><span class="tag">2025-07 ~ 2026-11</span> <span class="tag">Go · SSE · gRPC streaming · MongoDB</span></p>
 <ul>
-<li>계정 서비스를 호출해 하던 JWT 검증을 알림 서비스가 <strong>자체 흡수</strong>해, SSE 연결마다 계정 서비스를 때리던 비용과 의존을 제거했습니다.</li>
+<li>계정 서비스가 처리하던 JWT 검증을 알림 서비스가 <strong>자체 흡수</strong>해, SSE 연결마다 계정 서비스를 호출하던 비용과 의존을 제거했습니다.</li>
 <li>&ldquo;모든 사용자에게 통합 알림&rdquo; 기능은 기획과 합의해 <strong>제거</strong> — 대량 fan-out 은 알림 서비스가 지지 않습니다.</li>
 <li>알림 URL·타이틀·본문을 백엔드에서 생성해 프론트별 조립 중복을 없앴습니다(URL 생성과 payload 다수 담당).</li>
 <li>백오피스 알림의 수신자 목록(수만 건)이 상세 조회 응답에 통째로 실리던 것을 <strong><a href="#" class="dg" data-dg="notification" title="도식 보기">gRPC streaming RPC</a></strong>(500건 청크, 상한 명시)로 분리하고, 수신 규약(&ldquo;대상은 chunk 프레임으로만&rdquo;)을 수신 측 코드에 명시했습니다. 큰 응답을 쪼개는 것보다 <strong>수신측이 어떻게 조립하는지</strong>를 정하는 게 설계의 핵심이었습니다.</li>
