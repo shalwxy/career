@@ -20,7 +20,7 @@ OUT_DIR = ROOT / "docs"
 CONFIG = {
     "name": "이승하",
     "name_en": "Seungha Lee",
-    "title": "Software Engineer · Backend / DevOps · Go / gRPC / Kafka",
+    "title": "Software Engineer · Backend · Go / gRPC / Kafka",
     "links": {                # 값이 비어 있으면 숨김. 상단 바와 푸터에 표시
         "Email": "mailto:shalwxy@gmail.com",
         "GitHub": "https://github.com/shalwxy",
@@ -369,10 +369,8 @@ def build_page(stem: str, label: str, with_toc: bool, lang: str) -> None:
         title = "Contents" if lang == "en" else "목차"
         toc = f'<aside class="toc"><p class="t">{title}</p>{toc_html(md.toc_tokens, depth=2)}</aside>'
     name = CONFIG["name_en"] if lang == "en" else CONFIG["name"]
-    hero = ""
-    if stem == "index":
-        hero = (f'<div class="hero"><div class="in"><h1>{html.escape(name)}</h1>'
-                f'<p>{html.escape(CONFIG["title"])}</p></div></div>')
+    hero = (f'<div class="hero"><div class="in"><h1>{html.escape(name)}</h1>'
+            f'<p>{html.escape(CONFIG["title"])}</p></div></div>')
     page = PAGE.format(
         lang=lang, name=html.escape(name), title=html.escape(CONFIG["title"]),
         page_title=html.escape(label), css=CSS, js=JS,
