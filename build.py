@@ -324,8 +324,8 @@ def inject_diagrams(body: str, lang: str) -> tuple[str, str]:
 
 SKILLS_RE = re.compile(r"^::: *skills *\n(.*?)^::: *$", re.S | re.M)
 SKILL_LEGEND = {
-    "ko": ("1: 기초 수준", "2: 운영 경험 있음", "3: Production 설계·운영 가능"),
-    "en": ("1: Basic", "2: Used in operations", "3: Can design & run in production"),
+    "ko": ("1: 탐색·R&D 활용", "2: 운영 경험 있음", "3: Production 설계·운영 가능"),
+    "en": ("1: Exploratory / R&D use", "2: Used in operations", "3: Can design & run in production"),
 }
 
 
