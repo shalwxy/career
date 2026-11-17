@@ -65,7 +65,7 @@ I started on the on-chain/off-chain synchronization layer and went on to work on
 <p class="chips"><span class="chip">Go</span><span class="chip">Saga</span><span class="chip">Redis distributed lock</span></p>
 <div class="impact"><span class="impact-k">Impact</span> Fixed nickname duplication at character mint with <strong>Redis-lock preemption</strong> · turned per-item NFT validation lookups into <strong>one list query</strong></div>
 
-- Added input validation, request/response conversion with unit tests, and gRPC error handling while wiring a new core service into the game-facing gRPC service (business-provider)
+- Added input validation, request/response conversion with unit tests, and gRPC error handling while wiring a new core service into the game-facing gRPC service
 - Added currency/character validators for the [Saga v2](#dg:saga) migration and reworked NFT item validation from per-item state lookups to a single list query
 - Fixed nickname duplication at character mint: dropped the existence check, **preempted with a Redis lock**, released only on successful mint — a small fix, but a pattern I kept reusing
 
@@ -74,15 +74,15 @@ I started on the on-chain/off-chain synchronization layer and went on to work on
 <p class="chips"><span class="chip">gRPC</span><span class="chip">Kafka</span><span class="chip">PostgreSQL advisory lock</span><span class="chip">Redis NX</span><span class="chip">CDC</span><span class="chip">Snowflake</span></p>
 <div class="impact"><span class="impact-k">Impact</span> Restructured and extended transaction history and built bookmarks, both <strong>through to production</strong> · <strong>per-event-type defence</strong> against concurrent duplicate writes (Redis NX · advisory locks) · narrowed intermittent BFF pod restarts to a cause and fixed them</div>
 
-- **High-volume transaction ledger ([api-activity](#dg:activity))**
+- **[High-volume transaction ledger](#dg:activity)**
     - Reorganized layers, generalized the consumer and moved to message format v2, then extended it to trades, mints, transfers, Swap & Warp, bridge-in and USDT
     - Promoted the transaction hash to a unique key and routed malformed events to a DLQ
     - Protected [concurrent ingestion](#dg:activity-lock) with Redis NX + PostgreSQL advisory locks
 - **Query performance** — OR → UNION ALL rewrite with the DBA, cursor-based infinite scroll, a conditional-caching option added to the shared cache decorator
 - Emitted notification events when a transaction result is finalized; moved Snowflake ingestion from Kafka publishes to **CDC**, removing the publish-failure loss path
-- **Bookmark / view-count service ([api-bookmark](#dg:bookmark))** — core features: idempotent writes, Redis counters moved to Kafka-driven aggregation, daily/total limits, account-deletion hook
+- **[Bookmark / view-count service](#dg:bookmark)** — core features: idempotent writes, Redis counters moved to Kafka-driven aggregation, daily/total limits, account-deletion hook
 - **Marketplace web BFF** — moved bookmark/activity calls to the new services, implemented bookmark and on-sale listings in the inventory service, parallelized rendering
-- [Swap & Warp](#dg:swapwarp) cross-chain transfer history and queries (incl. bff-swapnwarp)
+- [Swap & Warp](#dg:swapwarp) cross-chain transfer history and queries (incl. a dedicated BFF)
 
 #### <span class="phase">3</span> Account · payment · unified notifications
 <p class="period">Main work Jul 2025 – Aug 2026</p>
@@ -104,7 +104,7 @@ I started on the on-chain/off-chain synchronization layer and went on to work on
 <p class="chips"><span class="chip">Debezium</span><span class="chip">Snowflake Stream/Task</span><span class="chip">Vertex AI</span><span class="chip">OpenSearch</span></p>
 <div class="impact"><span class="impact-k">Impact</span> Consolidated scattered control logic into <strong>one policy service</strong> used by four callers · replaced batch sync jobs with a <strong>CDC pipeline</strong> · <strong>automated first-pass error triage</strong></div>
 
-- **Policy service ([api-sentinel](#dg:sentinel))** — ACL (wallet/IP allow & deny lists), rate limiting (sliding + fixed window with jitter), lockout after repeated OTP failures (keep/reset failure counts by configurable policy), runtime feature flags
+- **[Policy service](#dg:sentinel)** — ACL (wallet/IP allow & deny lists), rate limiting (sliding + fixed window with jitter), lockout after repeated OTP failures (keep/reset failure counts by configurable policy), runtime feature flags
 - **[PostgreSQL CDC → Snowflake](#dg:cdc)** — Debezium connectors, Stream/Task, a replication-slot keepalive job, conditional tasks to cut cost
 - **[Error-triage bot](#dg:errorbot)** — replies in-thread to Slack error alerts with an LLM first-pass analysis (GitLab commit diffing, OpenSearch history, escalation). Guardrails — daily/monthly cost caps, PII masking, dedupe, a circuit breaker — run as independent components outside the service logic, and prompt rules are promoted from failure modes seen in real use
 

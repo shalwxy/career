@@ -21,7 +21,7 @@
 
 <span class="tag">2023-11 ~ 2024-04</span> <span class="tag">Go · gRPC · Redis · Saga</span>
 
-**맥락.** 게임 자산(아이템·캐릭터·재화·닉네임)의 오프체인 상태와 온체인 트랜잭션을 Saga 로 동기화하는 조직에서 첫 업무를 시작했습니다. 게임 서버가 호출하는 gRPC 파사드(business-provider)와 Saga 실행기([saga-provider](#dg:saga)), 이벤트 저장소(event-service)를 다뤘습니다. 입사 첫 5개월의 작업이고, 이후 작업 방식의 출발점이 된 것들입니다.
+**맥락.** 게임 자산(아이템·캐릭터·재화·닉네임)의 오프체인 상태와 온체인 트랜잭션을 Saga 로 동기화하는 조직에서 첫 업무를 시작했습니다. 게임 서버가 호출하는 gRPC 파사드와 [Saga 실행기](#dg:saga), 이벤트 저장소를 다뤘습니다. 입사 첫 5개월의 작업이고, 이후 작업 방식의 출발점이 된 것들입니다.
 
 **유효성 검사 추가·보완.** 신규 코어 서비스 연동 코드를 BP(파사드)에 만들면서 입력 유효성 검사, proto ↔ 도메인 변환기(단위 테스트 포함), gRPC 에러 래핑을 추가했습니다. 이어 Saga v2 전환 브랜치에서 재화(neso/currency)·캐릭터 유효성 검사기를 추가하고, NFT 아이템 검사가 건마다 상태 서비스를 호출하던 것을 **목록 조회 1회**로 바꿨습니다.
 
@@ -209,12 +209,12 @@
 **한 일.**
 
 - **CI 파이프라인 운영** — 담당 서비스 3개의 `.gitlab-ci.yml`·Dockerfile 운영과 런타임 업그레이드, 신설 서비스의 배포 job 연결.
-- **신설 서비스의 배포 세트** — api-sentinel 신설 때 Helm 템플릿(dev) · 4개 환경 매니페스트(Deployment · HPA · Service) · Envoy route · CI 배포 job 을 코드와 같은 주에 한 세트로 추가.
-- **Envoy 게이트웨이** (marina) — 서비스가 늘어날 때마다 gRPC → REST 연결 규칙(route)을 추가·정리, 인증 적용·skip 설정.
-- **운영 저장소** (portal-ops) — PostgreSQL DDL 을 DBA 검토 흐름으로 관리, Debezium/Kafka Connect · Snowflake Stream/Task 설정([CDC](#dg:cdc)).
+- **신설 서비스의 배포 세트** — 정책 서비스 신설 때 Helm 템플릿(dev) · 4개 환경 매니페스트(Deployment · HPA · Service) · Envoy route · CI 배포 job 을 코드와 같은 주에 한 세트로 추가.
+- **Envoy 게이트웨이** — 서비스가 늘어날 때마다 gRPC → REST 연결 규칙(route)을 추가·정리, 인증 적용·skip 설정.
+- **운영 저장소** — PostgreSQL DDL 을 DBA 검토 흐름으로 관리, Debezium/Kafka Connect · Snowflake Stream/Task 설정([CDC](#dg:cdc)).
 - **전사 proto 저장소** — 도메인별 모듈로 재구성해 한 도메인의 변경이 전 서비스 리빌드를 부르지 않게 했습니다([설계 결정](decisions.html#d-proto)).
 - **외부 노출 API 영향성 조사** — 스왑워프·통합알림·BFF 의 외부 노출 API 를 전수 조사하고 인증을 추가했습니다(팀 3인).
-- **공용 Go 라이브러리** (platform-lib) — PostgreSQL 드라이버 `target_session_attrs`(읽기 복제본 라우팅), 캐시 데코레이터에 조건부 캐싱 옵션 추가.
+- **공용 Go 라이브러리** — PostgreSQL 드라이버 `target_session_attrs`(읽기 복제본 라우팅), 캐시 데코레이터에 조건부 캐싱 옵션 추가.
 
 **결과.** 서비스 신설·확장 시 애플리케이션 코드와 배포 설정을 같은 MR 흐름에서 함께 끝낼 수 있었습니다.
 

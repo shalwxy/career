@@ -63,21 +63,21 @@ AI | Vertex AI (LLM):2, Omniverse·IsaacSim:1
 <p class="chips"><span class="chip">Go</span><span class="chip">Saga</span><span class="chip">Redis 분산 락</span></p>
 <div class="impact"><span class="impact-k">Impact</span> 캐릭터 민트 시 <strong>닉네임 중복 생성 이슈를 Redis 락 선점으로 수정</strong> · NFT 아이템 유효성 검사의 건별 반복 조회를 <strong>목록 조회 1회</strong>로 개선</div>
 
-- 게임 서버가 호출하는 gRPC 서비스(business-provider)에 새 코어 서비스를 연동하면서 **입력 유효성 검사 · 요청/응답 변환 · gRPC 에러 처리** 추가
+- 게임 서버가 호출하는 gRPC 서비스에 새 코어 서비스를 연동하면서 **입력 유효성 검사 · 요청/응답 변환 · gRPC 에러 처리** 추가
 - [Saga v2](#dg:saga) 전환에 맞춰 **재화(neso/currency)·캐릭터 유효성 검사기 추가**, NFT 아이템 검사는 단건 반복 조회 → 목록 조회로 보완
 - 캐릭터 민트 **닉네임 중복 생성 이슈 수정** — 존재 확인 대신 Redis 락으로 선점, 민트 성공 시에만 해제
 
 #### <span class="phase">2</span> 트랜잭션 이력 · 북마크 · 거래소 BFF
 <p class="period">주 작업 2024.06 ~ 2025.09 · 이후 유지보수 · <a href="portfolio.html#activity">자세히 보기 →</a></p>
 <p class="chips"><span class="chip">gRPC</span><span class="chip">Kafka</span><span class="chip">PostgreSQL advisory lock</span><span class="chip">Redis NX</span><span class="chip">CDC</span><span class="chip">Snowflake</span></p>
-<div class="impact"><span class="impact-k">Impact</span> api-activity 구조 개선·확장과 api-bookmark 개발을 <strong>라이브까지</strong> · 이벤트 종류별 <strong>동시 적재 방어</strong>(Redis NX · advisory lock) · 간헐적 pod 재시작 원인 규명·해결</div>
+<div class="impact"><span class="impact-k">Impact</span> 트랜잭션 이력 서비스 구조 개선·확장과 북마크 서비스 개발을 <strong>라이브까지</strong> · 이벤트 종류별 <strong>동시 적재 방어</strong>(Redis NX · advisory lock) · 간헐적 pod 재시작 원인 규명·해결</div>
 
-- **대용량 트랜잭션 이력 서비스([api-activity](#dg:activity))** — 레이어 재정비·컨슈머 일반화·메시지 포맷 v2 후 거래/민팅/전송/Swap&Warp/USDT 를 차례로 확장. 트랜잭션 해시 유니크 승격, Redis NX + PostgreSQL advisory lock 으로 [동시 적재 정합성](#dg:activity-lock), 비정상 이벤트는 DLQ
+- **[대용량 트랜잭션 이력 서비스](#dg:activity)** — 레이어 재정비·컨슈머 일반화·메시지 포맷 v2 후 거래/민팅/전송/Swap&Warp/USDT 를 차례로 확장. 트랜잭션 해시 유니크 승격, Redis NX + PostgreSQL advisory lock 으로 [동시 적재 정합성](#dg:activity-lock), 비정상 이벤트는 DLQ
 - **쿼리 튜닝·성능 개선** — DBA 와 협업한 OR → UNION ALL 전환, 커서 기반 무한 스크롤, 조건부 캐싱(공통 라이브러리의 캐시 데코레이터에 옵션 추가)
 - 거래 결과 확정 시 **알림 이벤트 발행**, Snowflake 적재를 Kafka 발행 → **CDC 로 전환**해 발행 실패 시 유실되던 경로 제거
-- **북마크/조회수 서비스([api-bookmark](#dg:bookmark))** 개발 — 멱등 처리, Redis 카운트 캐시 → Kafka 이벤트 집계, 하루/총량 제한, 회원 탈퇴 연동
-- **거래소 웹 BFF(bff-marketplace)** — 북마크·액티비티 호출을 신규 서비스로 이전, 인벤토리 서비스의 북마크·판매중 목록 조회 구현
-- 크로스체인 전송 이력·조회 도메인 [Swap & Warp](#dg:swapwarp) 추가(bff-swapnwarp 포함)
+- **[북마크/조회수 서비스](#dg:bookmark)** 개발 — 멱등 처리, Redis 카운트 캐시 → Kafka 이벤트 집계, 하루/총량 제한, 회원 탈퇴 연동
+- **거래소 웹 BFF** — 북마크·액티비티 호출을 신규 서비스로 이전, 인벤토리 서비스의 북마크·판매중 목록 조회 구현
+- 크로스체인 전송 이력·조회 도메인 [Swap & Warp](#dg:swapwarp) 추가(전용 BFF 포함)
 
 #### <span class="phase">3</span> 계정 · 결제 · 통합 알림
 <p class="period">주 작업 2025.07 ~ 2026.08 · <a href="portfolio.html#creditcard">자세히 보기 →</a></p>
@@ -95,7 +95,7 @@ AI | Vertex AI (LLM):2, Omniverse·IsaacSim:1
 <p class="chips"><span class="chip">Debezium</span><span class="chip">Snowflake Stream/Task</span><span class="chip">Vertex AI</span><span class="chip">OpenSearch</span></p>
 <div class="impact"><span class="impact-k">Impact</span> 흩어진 제어 로직을 <strong>정책 서비스 1개로 통합</strong>(4개 서비스가 단일 진입점 사용) · 배치 동기화 잡을 <strong>CDC 파이프라인</strong>으로 대체 · 운영 에러 <strong>1차 분석 자동화</strong></div>
 
-- **비즈니스 정책 서비스([api-sentinel](#dg:sentinel)) 신설** — 여러 서비스에 흩어져 있던 제어 로직을 단일 서비스로 통합
+- **[비즈니스 정책 서비스 신설](#dg:sentinel)** — 여러 서비스에 흩어져 있던 제어 로직을 단일 서비스로 통합
     - **ACL** (지갑/IP 화이트·블랙리스트), **Rate Limit** (Sliding/Fixed Window + jitter), **Lockout** (OTP 반복 실패 시 차단, 실패 횟수 유지/초기화 정책을 설정으로), **Feature Flag** (런타임 변경)
 - **[PostgreSQL CDC → Snowflake 파이프라인](#dg:cdc)** — Debezium 커넥터, Stream/Task, replication slot keepalive 배치, 조건부 task 로 비용 최적화
 - **[에러 분석 봇(운영 AI)](#dg:errorbot)** — 운영 중 Slack 에러 알림을 LLM 으로 1차 분석해 스레드에 답하는 봇 (GitLab 커밋 대조·OpenSearch 히스토리·escalation). 일/월 비용 상한·PII 마스킹·dedupe·서킷브레이커 같은 **가드레일을 서비스 로직 밖에 독립 장치로** 두고, 프롬프트는 실사용 실패 모드를 규칙으로 승격해 관리
