@@ -25,7 +25,7 @@ CONFIG = {
         "Email": "mailto:shalwxy@gmail.com",
         "GitHub": "https://github.com/shalwxy",
         "LinkedIn": "https://www.linkedin.com/in/seungha-lee-2aa442229",
-        "Blog": "https://shalwxy.github.io/",
+        "Blog": "https://persica.co.kr/lab",
     },
     # (파일 stem, KR 라벨, EN 라벨, 사이드 목차 표시)
     "pages": [
