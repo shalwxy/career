@@ -4,12 +4,12 @@ sequenceDiagram
     autonumber
     participant G as 게임 서버
     box rgb(219,234,254) 내가 기여한 부분 ★
-    participant BP as business-provider<br/>(입력 검증 ★)
-    participant S as saga-provider<br/>(Saga 실행 · 유효성 검사 ★)
+    participant BP as gRPC 파사드<br/>(입력 검증 ★)
+    participant S as Saga 실행기<br/>(Saga 실행 · 유효성 검사 ★)
     participant A as 트랜잭션 분석 워커<br/>(일부 기여 ★)
     end
     participant R as Redis
-    participant E as event-service<br/>(상태 저장)
+    participant E as 이벤트 처리 서비스<br/>(상태 저장)
     participant BC as 블록체인
     G->>BP: 캐릭터 민트 요청
     BP->>BP: 입력 검증

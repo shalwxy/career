@@ -388,12 +388,12 @@ sequenceDiagram
     autonumber
     participant G as 게임 서버
     box rgb(219,234,254) 내가 기여한 부분 ★
-    participant BP as business-provider<br/>(입력 검증 ★)
-    participant S as saga-provider<br/>(Saga 실행 · 유효성 검사 ★)
+    participant BP as gRPC 파사드<br/>(입력 검증 ★)
+    participant S as Saga 실행기<br/>(Saga 실행 · 유효성 검사 ★)
     participant A as 트랜잭션 분석 워커<br/>(일부 기여 ★)
     end
     participant R as Redis
-    participant E as event-service<br/>(상태 저장)
+    participant E as 이벤트 처리 서비스<br/>(상태 저장)
     participant BC as 블록체인
     G->>BP: 캐릭터 민트 요청
     BP->>BP: 입력 검증
@@ -453,11 +453,11 @@ sequenceDiagram
     participant U as 사용자
     participant GW as API 게이트웨이
     box rgb(219,234,254) ★ = 내가 구현한 부분
-    participant A as api-account ★
+    participant A as 계정 서비스 ★
     end
     participant R as Redis
     participant W as Worldpay
-    participant N as api-notification
+    participant N as 통합 알림 서비스
     U->>GW: 카드 인증 요청
     GW->>A: authorize
     A->>R: 일일 시도 횟수 확인
@@ -493,10 +493,10 @@ sequenceDiagram
     participant U as 사용자
     participant GW as 블록체인 게이트웨이
     box rgb(219,234,254) ★ = 내가 구현한 부분
-    participant S as api-blockchain-supporter ★
+    participant S as 블록체인 서포터 ★
     end
-    participant P as 정책 (sentinel)
-    participant AC as api-account
+    participant P as 정책 서비스
+    participant AC as 계정 서비스
     participant BC as 블록체인
     participant K as 트랜잭션 결과 토픽
     U->>GW: 출금 요청 (USDT · NXPC)
@@ -518,16 +518,16 @@ sequenceDiagram
     end
     note over GW,AC: 선차감이 곧 확정 — 실패일 때만 되돌림
 </script>
-<script type="text/plain" id="dg-src-sentinel" data-title="api-sentinel — 정책 서비스 단일 소유자">
+<script type="text/plain" id="dg-src-sentinel" data-title="정책 서비스 — 단일 소유자">
 flowchart LR
     subgraph CALL[런타임 호출자 — 조회만]
-        AC[api-account<br/>인증메일 · 카드 · 가입 제한<br/>OTP 잠금 · 접근 제어]
-        BC["api-blockchain-supporter<br/>출금 예외 · 국가 제한"]
-        AI["portal-ai<br/>에러 중복 판정"]
-        CS[portal-console<br/>Discord 답장 제한]
+        AC[계정 서비스<br/>인증메일 · 카드 · 가입 제한<br/>OTP 잠금 · 접근 제어]
+        BC["블록체인 서포터<br/>출금 예외 · 국가 제한"]
+        AI["에러 분석 봇<br/>에러 중복 판정"]
+        CS[운영 콘솔<br/>Discord 답장 제한]
     end
-    CON[portal-console · 백오피스<br/>정책 관리]
-    subgraph SEN[api-sentinel ★]
+    CON[운영 콘솔 · 백오피스<br/>정책 관리]
+    subgraph SEN[정책 서비스 ★]
         RT[런타임 gRPC<br/>호출 제한 · 잠금 · 접근 제어 · 기능 플래그]
         RF[정책 주기 갱신]
         BOG[백오피스 gRPC]
@@ -597,10 +597,10 @@ flowchart TB
 </script>
 <script type="text/plain" id="dg-src-notification" data-title="통합 알림 — SSE 와 대량 수신자 스트리밍">
 flowchart TB
-    AC[api-account<br/>KYC · 재인증 · 카드 · 밴 등]
+    AC[계정 서비스<br/>KYC · 재인증 · 카드 · 밴 등]
     K[[도메인 이벤트 토픽<br/>거래소 · Swap/Warp 결과 · 리액터]]
-    CON[portal-console<br/>운영자 대량 알림]
-    subgraph NT["api-notification · ★ = 내가 구현한 부분 · 점선 = 일부 기여"]
+    CON[운영 콘솔<br/>운영자 대량 알림]
+    subgraph NT["통합 알림 서비스 · ★ = 내가 구현한 부분 · 점선 = 일부 기여"]
         G1["gRPC Notify<br/>알림 종류 추가 ★"]
         C[도메인 컨슈머]
         Q[[내부 큐 · 단건 / 대량]]

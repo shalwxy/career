@@ -155,7 +155,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <h2 id="nexon-universe-maplestory-universe">NEXON UNIVERSE — MapleStory Universe</h2>
 <p class="meta">Backend Developer · Platform Development Team · Nov 2023 – Nov 2026 (3 years)</p>
 
-<p>NEXON UNIVERSE (founded 2022, a Nexon affiliate) builds MapleStory Universe (MSU), a Web3 platform that brings blockchain to the MapleStory IP. I developed its backend on the platform development team.</p>
+<p>NEXON UNIVERSE (founded 2022, a Nexon affiliate) builds MapleStory Universe (MSU), a Web3 platform that brings blockchain to the MapleStory IP. The platform has 5M cumulative signups, 300K DAU, and up to 50K concurrent users, with its API gateway handling peak traffic of 24,000 RPS (per Datadog). I developed its backend on the platform development team.</p>
 <p>I started on the on-chain/off-chain synchronization layer and went on to work on transaction history, bookmarks, the marketplace BFF, account/payment, unified notifications, a policy service, a CDC data pipeline and an operations AI bot.</p>
 <div class="stats">
 <div><strong>3 yrs</strong><span>at the company<br/>Nov 2023 – Nov 2026</span></div>
@@ -212,7 +212,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 <li>Emitted notification events when a transaction result is finalized; moved Snowflake ingestion from Kafka publishes to <strong>CDC</strong>, removing the publish-failure loss path</li>
 <li><strong><a href="#" class="dg" data-dg="bookmark" title="Diagram">Bookmark / view-count service</a></strong> — core features: idempotent writes, Redis counters moved to Kafka-driven aggregation, daily/total limits, account-deletion hook</li>
 <li><strong>Marketplace web BFF</strong> — moved bookmark/activity calls to the new services, implemented bookmark and on-sale listings in the inventory service, parallelized rendering</li>
-<li><a href="#" class="dg" data-dg="swapwarp" title="Diagram">Swap &amp; Warp</a> cross-chain transfer history and queries (incl. a dedicated BFF)</li>
+<li><a href="#" class="dg" data-dg="swapwarp" title="Diagram">Swap &amp; Warp</a> cross-chain transfer history and queries (incl. a SwapWarp BFF)</li>
 </ul>
 <h4 id="3-account-payment-unified-notifications"><span class="phase">3</span> Account · payment · unified notifications</h4>
 <p class="period">Main work Jul 2025 – Aug 2026</p>
@@ -346,12 +346,12 @@ sequenceDiagram
     autonumber
     participant G as Game server
     box rgb(219,234,254) My contributions ★
-    participant BP as business-provider<br/>(input validation ★)
-    participant S as saga-provider<br/>(Saga runner · validators ★)
+    participant BP as the gRPC facade<br/>(input validation ★)
+    participant S as Saga runner<br/>(Saga runner · validators ★)
     participant A as Transaction analyzer<br/>(partial ★)
     end
     participant R as Redis
-    participant E as event-service<br/>(state store)
+    participant E as event processing service<br/>(state store)
     participant BC as Blockchain
     G->>BP: Mint character
     BP->>BP: Validate input
@@ -370,14 +370,14 @@ sequenceDiagram
     end
     S->>R: Release character lock ★
 </script>
-<script type="text/plain" id="dg-src-activity" data-title="api-activity — transaction ledger ingest · query · notify">
+<script type="text/plain" id="dg-src-activity" data-title="Transaction ledger service — ingest · query · notify">
 flowchart LR
     subgraph IN[Event sources]
         MK[Marketplace trade events]
         DE1[DE asset events<br/>items · characters · nicknames]
         DE2[DE cross-chain events<br/>Swap · Warp]
     end
-    subgraph ACT[api-activity ★]
+    subgraph ACT[Transaction ledger service ★]
         C[Kafka consumers]
         DD[Redis SET NX<br/>blocks duplicate trade · asset · Swap handling]
         LK[advisory lock<br/>orders Warp request/result]
@@ -387,9 +387,9 @@ flowchart LR
         Q[gRPC query server]
         RT[[Retry queue → DLQ]]
     end
-    N[api-notification<br/>result notifications]
-    BCS[api-blockchain-supporter<br/>rolls back pre-deduction on failure]
-    B[bff-swapnwarp · bff-marketplace]
+    N[Notification service<br/>result notifications]
+    BCS[Blockchain supporter<br/>rolls back pre-deduction on failure]
+    B[SwapWarp BFF · Marketplace BFF]
     SF[(Snowflake)]
     MK & DE1 --> C
     DE2 --> C
@@ -425,21 +425,21 @@ flowchart TB
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
     class R,W1,P,S,N mine
 </script>
-<script type="text/plain" id="dg-src-bookmark" data-title="api-bookmark — bookmarks / view counts and marketplace BFFs">
+<script type="text/plain" id="dg-src-bookmark" data-title="Bookmark service — view counts &amp; marketplace BFF integration">
 flowchart LR
-    subgraph BFF["Marketplace BFFs — bookmark parts of bff-marketplace ★"]
-        M[bff-marketplace<br/>bookmarks · views · bookmarked inventory]
-        NV[bff-navigator<br/>bookmarks · views]
+    subgraph BFF["Marketplace BFFs — bookmark parts ★"]
+        M[Marketplace BFF<br/>bookmarks · views · bookmarked inventory]
+        NV[Navigator BFF<br/>bookmarks · views]
     end
-    subgraph BK[api-bookmark ★]
+    subgraph BK[Bookmark service ★]
         H[Bookmark / UnBookmark / SetView<br/>duplicate request = success]
         L["Bookmark count limits"]
         PG[(Bookmarks)]
         RD[(Redis counters)]
     end
-    AC[api-account<br/>bulk delete on account closure]
-    NT[api-notification<br/>who bookmarked a target]
-    GD[api-gamedata<br/>item · character details]
+    AC[Account service<br/>bulk delete on account closure]
+    NT[Notification service<br/>who bookmarked a target]
+    GD[Game-data service<br/>item · character details]
     EX[exchange<br/>sale cards]
     K[[Bookmark · view events]]
     M & NV --> H --> L --> PG
@@ -452,14 +452,14 @@ flowchart LR
 </script>
 <script type="text/plain" id="dg-src-swapwarp" data-title="Swap &amp; Warp — cross-chain transfer history">
 flowchart LR
-    U[User] --> SW[bff-swapnwarp<br/>swap · warp queries ★]
+    U[User] --> SW[SwapWarp BFF<br/>swap · warp queries ★]
     U --> BC[Blockchain<br/>swap · bridge]
     BC --> DEA[DE Swap/Warp analyzer]
-    DEA -- cross-chain history events --> ACT[api-activity ★<br/>orders Warp request/result]
-    ACT -- result event --> NT[api-notification<br/>result notifications]
-    ACT -- result event --> BCS[api-blockchain-supporter<br/>rolls back pre-deduction on failure ★]
+    DEA -- cross-chain history events --> ACT[Transaction ledger service ★<br/>orders Warp request/result]
+    ACT -- result event --> NT[Notification service<br/>result notifications]
+    ACT -- result event --> BCS[Blockchain supporter<br/>rolls back pre-deduction on failure ★]
     SW --> ACT
-    SW --> GD[api-account · api-gamedata<br/>nickname · profile image]
+    SW --> GD[Account service · Game-data service<br/>nickname · profile image]
     classDef mine fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
     class SW,ACT,BCS mine
 </script>
@@ -469,11 +469,11 @@ sequenceDiagram
     participant U as User
     participant GW as API gateway
     box rgb(219,234,254) ★ = built by me
-    participant A as api-account ★
+    participant A as Account service ★
     end
     participant R as Redis
     participant W as Worldpay
-    participant N as api-notification
+    participant N as Notification service
     U->>GW: Card verification request
     GW->>A: authorize
     A->>R: Check daily attempt count
@@ -509,10 +509,10 @@ sequenceDiagram
     participant U as User
     participant GW as Blockchain gateway
     box rgb(219,234,254) ★ = built by me
-    participant S as api-blockchain-supporter ★
+    participant S as Blockchain supporter ★
     end
-    participant P as Policy (sentinel)
-    participant AC as api-account
+    participant P as Policy service
+    participant AC as Account service
     participant BC as Blockchain
     participant K as Transaction result topics
     U->>GW: Withdrawal (USDT · NXPC)
@@ -536,10 +536,10 @@ sequenceDiagram
 </script>
 <script type="text/plain" id="dg-src-notification" data-title="Unified notifications — SSE and bulk-recipient streaming">
 flowchart TB
-    AC[api-account<br/>KYC · re-verification · card · ban, etc.]
+    AC[Account service<br/>KYC · re-verification · card · ban, etc.]
     K[[Domain event topics<br/>marketplace · Swap/Warp results · reactor]]
-    CON[portal-console<br/>operator bulk notifications]
-    subgraph NT["api-notification · ★ = built by me · dashed = partial"]
+    CON[Operations console<br/>operator bulk notifications]
+    subgraph NT["Notification service · ★ = built by me · dashed = partial"]
         G1["gRPC Notify<br/>added notification types ★"]
         C[Domain consumers]
         Q[[Internal queues · single / bulk]]
@@ -564,16 +564,16 @@ flowchart TB
     class ST mine
     class G1,CR,SSE,G part
 </script>
-<script type="text/plain" id="dg-src-sentinel" data-title="api-sentinel — single owner of business policies">
+<script type="text/plain" id="dg-src-sentinel" data-title="Policy service — single owner of business policies">
 flowchart LR
     subgraph CALL[Runtime callers — read only]
-        AC[api-account<br/>auth-mail · card · sign-up limits<br/>OTP lockout · access control]
-        BC["api-blockchain-supporter<br/>withdrawal exemptions · country limits"]
-        AI["portal-ai<br/>error de-duplication"]
-        CS[portal-console<br/>Discord reply limit]
+        AC[Account service<br/>auth-mail · card · sign-up limits<br/>OTP lockout · access control]
+        BC["Blockchain supporter<br/>withdrawal exemptions · country limits"]
+        AI["Error-triage bot<br/>error de-duplication"]
+        CS[Operations console<br/>Discord reply limit]
     end
-    CON[portal-console · back office<br/>policy management]
-    subgraph SEN[api-sentinel ★]
+    CON[Operations console · back office<br/>policy management]
+    subgraph SEN[Policy service ★]
         RT[Runtime gRPC<br/>rate limit · lockout · access control · feature flags]
         RF[Periodic policy refresh]
         BOG[Back-office gRPC]
@@ -608,9 +608,9 @@ sequenceDiagram
     autonumber
     participant S as Slack error channel
     box rgb(219,234,254) ★ = built by me
-    participant B as portal-ai error-triage bot ★
+    participant B as Error-triage bot ★
     end
-    participant P as Policy (sentinel)
+    participant P as Policy service
     participant O as OpenSearch (analysis history)
     participant G as GitLab API
     participant L as Vertex AI (LLM)

@@ -5,10 +5,10 @@ sequenceDiagram
     participant U as 사용자
     participant GW as 블록체인 게이트웨이
     box rgb(219,234,254) ★ = 내가 구현한 부분
-    participant S as api-blockchain-supporter ★
+    participant S as 블록체인 서포터 ★
     end
-    participant P as 정책 (sentinel)
-    participant AC as api-account
+    participant P as 정책 서비스
+    participant AC as 계정 서비스
     participant BC as 블록체인
     participant K as 트랜잭션 결과 토픽
     U->>GW: 출금 요청 (USDT · NXPC)

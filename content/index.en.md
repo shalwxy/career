@@ -27,7 +27,7 @@ AI | Vertex AI (LLM):2, Omniverse·IsaacSim:1
 
 <p class="meta">Backend Developer · Platform Development Team · Nov 2023 – Nov 2026 (3 years)</p>
 
-NEXON UNIVERSE (founded 2022, a Nexon affiliate) builds MapleStory Universe (MSU), a Web3 platform that brings blockchain to the MapleStory IP. I developed its backend on the platform development team.
+NEXON UNIVERSE (founded 2022, a Nexon affiliate) builds MapleStory Universe (MSU), a Web3 platform that brings blockchain to the MapleStory IP. The platform has 5M cumulative signups, 300K DAU, and up to 50K concurrent users, with its API gateway handling peak traffic of 24,000 RPS (per Datadog). I developed its backend on the platform development team.
 
 I started on the on-chain/off-chain synchronization layer and went on to work on transaction history, bookmarks, the marketplace BFF, account/payment, unified notifications, a policy service, a CDC data pipeline and an operations AI bot.
 
@@ -82,7 +82,7 @@ I started on the on-chain/off-chain synchronization layer and went on to work on
 - Emitted notification events when a transaction result is finalized; moved Snowflake ingestion from Kafka publishes to **CDC**, removing the publish-failure loss path
 - **[Bookmark / view-count service](#dg:bookmark)** — core features: idempotent writes, Redis counters moved to Kafka-driven aggregation, daily/total limits, account-deletion hook
 - **Marketplace web BFF** — moved bookmark/activity calls to the new services, implemented bookmark and on-sale listings in the inventory service, parallelized rendering
-- [Swap & Warp](#dg:swapwarp) cross-chain transfer history and queries (incl. a dedicated BFF)
+- [Swap & Warp](#dg:swapwarp) cross-chain transfer history and queries (incl. a SwapWarp BFF)
 
 #### <span class="phase">3</span> Account · payment · unified notifications
 <p class="period">Main work Jul 2025 – Aug 2026</p>

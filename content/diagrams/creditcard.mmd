@@ -5,11 +5,11 @@ sequenceDiagram
     participant U as 사용자
     participant GW as API 게이트웨이
     box rgb(219,234,254) ★ = 내가 구현한 부분
-    participant A as api-account ★
+    participant A as 계정 서비스 ★
     end
     participant R as Redis
     participant W as Worldpay
-    participant N as api-notification
+    participant N as 통합 알림 서비스
     U->>GW: 카드 인증 요청
     GW->>A: authorize
     A->>R: 일일 시도 횟수 확인

@@ -1,19 +1,19 @@
-%% title: api-bookmark — 북마크·조회수와 거래소 BFF
-%% title_en: api-bookmark — bookmarks / view counts and marketplace BFFs
+%% title: 북마크 서비스 — 조회수·거래소 BFF 연동
+%% title_en: Bookmark service — view counts & marketplace BFF integration
 flowchart LR
-    subgraph BFF["거래소 BFF — bff-marketplace 북마크 부분 ★"]
-        M[bff-marketplace<br/>북마크 · 조회수 · 북마크 인벤토리]
-        NV[bff-navigator<br/>북마크 · 조회수]
+    subgraph BFF["거래소 BFF — 북마크 부분 ★"]
+        M[거래소 BFF<br/>북마크 · 조회수 · 북마크 인벤토리]
+        NV[네비게이터 BFF<br/>북마크 · 조회수]
     end
-    subgraph BK[api-bookmark ★]
+    subgraph BK[북마크 서비스 ★]
         H[Bookmark / UnBookmark / SetView<br/>중복 요청은 성공 처리]
         L["북마크 개수 제한"]
         PG[(북마크)]
         RD[(Redis 카운트)]
     end
-    AC[api-account<br/>탈퇴 시 일괄 삭제]
-    NT[api-notification<br/>북마크한 사용자 조회]
-    GD[api-gamedata<br/>아이템 · 캐릭터 상세]
+    AC[계정 서비스<br/>탈퇴 시 일괄 삭제]
+    NT[통합 알림 서비스<br/>북마크한 사용자 조회]
+    GD[게임 데이터 서비스<br/>아이템 · 캐릭터 상세]
     EX[exchange<br/>판매 카드]
     K[[북마크 · 조회수 이벤트]]
     M & NV --> H --> L --> PG

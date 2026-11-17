@@ -1,12 +1,12 @@
-%% title: api-activity — 트랜잭션 이력 적재·조회·알림
-%% title_en: api-activity — transaction ledger ingest · query · notify
+%% title: 트랜잭션 이력 서비스 — 적재·조회·알림
+%% title_en: Transaction ledger service — ingest · query · notify
 flowchart LR
     subgraph IN[이벤트 소스]
         MK[거래소 거래 이벤트]
         DE1[DE 자산 이벤트<br/>아이템 · 캐릭터 · 닉네임]
         DE2[DE 크로스체인 이벤트<br/>Swap · Warp]
     end
-    subgraph ACT[api-activity ★]
+    subgraph ACT[트랜잭션 이력 서비스 ★]
         C[Kafka 컨슈머]
         DD[Redis SET NX<br/>거래 · 자산 · Swap 중복 처리 차단]
         LK[advisory lock<br/>Warp 요청·결과 순서 보정]
@@ -16,9 +16,9 @@ flowchart LR
         Q[gRPC 조회 서버]
         RT[[재시도 큐 → DLQ]]
     end
-    N[api-notification<br/>결과 알림]
-    BCS[api-blockchain-supporter<br/>실패 시 선차감 롤백]
-    B[bff-swapnwarp · bff-marketplace]
+    N[통합 알림 서비스<br/>결과 알림]
+    BCS[블록체인 서포터<br/>실패 시 선차감 롤백]
+    B[스왑워프 BFF · 거래소 BFF]
     SF[(Snowflake)]
     MK & DE1 --> C
     DE2 --> C

@@ -1,9 +1,9 @@
 %% title: Unified notifications — SSE and bulk-recipient streaming
 flowchart TB
-    AC[api-account<br/>KYC · re-verification · card · ban, etc.]
+    AC[Account service<br/>KYC · re-verification · card · ban, etc.]
     K[[Domain event topics<br/>marketplace · Swap/Warp results · reactor]]
-    CON[portal-console<br/>operator bulk notifications]
-    subgraph NT["api-notification · ★ = built by me · dashed = partial"]
+    CON[Operations console<br/>operator bulk notifications]
+    subgraph NT["Notification service · ★ = built by me · dashed = partial"]
         G1["gRPC Notify<br/>added notification types ★"]
         C[Domain consumers]
         Q[[Internal queues · single / bulk]]

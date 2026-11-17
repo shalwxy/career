@@ -1,14 +1,14 @@
-%% title: api-sentinel — 정책 서비스 단일 소유자
-%% title_en: api-sentinel — single owner of business policies
+%% title: 정책 서비스 — 단일 소유자
+%% title_en: Policy service — single owner of business policies
 flowchart LR
     subgraph CALL[런타임 호출자 — 조회만]
-        AC[api-account<br/>인증메일 · 카드 · 가입 제한<br/>OTP 잠금 · 접근 제어]
-        BC["api-blockchain-supporter<br/>출금 예외 · 국가 제한"]
-        AI["portal-ai<br/>에러 중복 판정"]
-        CS[portal-console<br/>Discord 답장 제한]
+        AC[계정 서비스<br/>인증메일 · 카드 · 가입 제한<br/>OTP 잠금 · 접근 제어]
+        BC["블록체인 서포터<br/>출금 예외 · 국가 제한"]
+        AI["에러 분석 봇<br/>에러 중복 판정"]
+        CS[운영 콘솔<br/>Discord 답장 제한]
     end
-    CON[portal-console · 백오피스<br/>정책 관리]
-    subgraph SEN[api-sentinel ★]
+    CON[운영 콘솔 · 백오피스<br/>정책 관리]
+    subgraph SEN[정책 서비스 ★]
         RT[런타임 gRPC<br/>호출 제한 · 잠금 · 접근 제어 · 기능 플래그]
         RF[정책 주기 갱신]
         BOG[백오피스 gRPC]

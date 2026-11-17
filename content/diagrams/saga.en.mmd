@@ -3,12 +3,12 @@ sequenceDiagram
     autonumber
     participant G as Game server
     box rgb(219,234,254) My contributions ★
-    participant BP as business-provider<br/>(input validation ★)
-    participant S as saga-provider<br/>(Saga runner · validators ★)
+    participant BP as the gRPC facade<br/>(input validation ★)
+    participant S as Saga runner<br/>(Saga runner · validators ★)
     participant A as Transaction analyzer<br/>(partial ★)
     end
     participant R as Redis
-    participant E as event-service<br/>(state store)
+    participant E as event processing service<br/>(state store)
     participant BC as Blockchain
     G->>BP: Mint character
     BP->>BP: Validate input

@@ -1,18 +1,18 @@
-%% title: api-bookmark — bookmarks / view counts and marketplace BFFs
+%% title: Bookmark service — view counts & marketplace BFF integration
 flowchart LR
-    subgraph BFF["Marketplace BFFs — bookmark parts of bff-marketplace ★"]
-        M[bff-marketplace<br/>bookmarks · views · bookmarked inventory]
-        NV[bff-navigator<br/>bookmarks · views]
+    subgraph BFF["Marketplace BFFs — bookmark parts ★"]
+        M[Marketplace BFF<br/>bookmarks · views · bookmarked inventory]
+        NV[Navigator BFF<br/>bookmarks · views]
     end
-    subgraph BK[api-bookmark ★]
+    subgraph BK[Bookmark service ★]
         H[Bookmark / UnBookmark / SetView<br/>duplicate request = success]
         L["Bookmark count limits"]
         PG[(Bookmarks)]
         RD[(Redis counters)]
     end
-    AC[api-account<br/>bulk delete on account closure]
-    NT[api-notification<br/>who bookmarked a target]
-    GD[api-gamedata<br/>item · character details]
+    AC[Account service<br/>bulk delete on account closure]
+    NT[Notification service<br/>who bookmarked a target]
+    GD[Game-data service<br/>item · character details]
     EX[exchange<br/>sale cards]
     K[[Bookmark · view events]]
     M & NV --> H --> L --> PG
