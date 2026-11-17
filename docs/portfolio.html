@@ -188,7 +188,7 @@ article>h1{margin-top:1.4em;page-break-after:avoid}article h2,article h3{page-br
 </tr>
 </tbody>
 </table>
-<p>작업 철학은 네 가지입니다. <strong>실패 경로부터 설계한다</strong>(롤백·재시도·멱등이 본체), <strong>확인 대신 선점한다</strong>(존재 확인 후 생성은 경합 창이 있다), <strong>서비스는 데이터 파이프라인에 직접 쓰지 않는다</strong>(CDC), <strong>정책은 코드 분기가 아니라 설정/enum 으로 받는다</strong>.</p>
+<p>작업 철학은 네 가지입니다. <strong>장애 복구 경로를 기본값으로 설계한다(롤백·재시도·멱등 수렴까지가 하나의 트랜잭션이다)</strong>(롤백·재시도·멱등이 본체), <strong>확인 대신 선점한다</strong>(존재 확인 후 생성은 경합 창이 있다), <strong>서비스는 데이터 파이프라인에 직접 쓰지 않는다</strong>(CDC), <strong>정책은 코드 분기가 아니라 설정/enum 으로 받는다</strong>.</p>
 <hr>
 <h2 id="onchain">1. 온체인-오프체인 동기화 — 유효성 검사와 닉네임 선점</h2>
 <p><span class="tag">2023-11 ~ 2024-04</span> <span class="tag">Go · gRPC · Redis · Saga</span></p>
