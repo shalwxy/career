@@ -160,9 +160,7 @@ AI | Vertex AI (LLM):2, Omniverse·IsaacSim:1
 
 #### Description
 
-NVIDIA의 메타버스 제작 및 시뮬레이션 플랫폼인 Omniverse를 조사하고 Omniverse 애플리케이션에서 개발 및 프로젝트, PoC를 수행합니다.
-
-NVIDIA의 Metaverse(Industrial Digital Twin) Solution인 Omniverse 플랫폼에서 Python을 이용해서 협동 로봇 프로젝트를 수행합니다.
+NVIDIA의 메타버스 제작 및 시뮬레이션 플랫폼인 Omniverse를 조사하고, Python을 이용한 협동 로봇 프로젝트를 포함해 Omniverse 애플리케이션에서 개발·프로젝트·PoC를 수행했습니다.
 
 #### What did I do
 
@@ -175,7 +173,7 @@ NVIDIA의 Metaverse(Industrial Digital Twin) Solution인 Omniverse 플랫폼에�
 
 #### Description
 
-GPU를 이용한 학습 및 추론 솔루션(GPU를 여러 개로 분할해서 교육기관 내 다수의 학생이 각자의 계정과 이미지로 AI 학습 및 추론을 할 수 있도록 하는 플랫폼으로, 계정 관리 및 GPU 자원을 모니터링하는 관리자 화면이 포함된 솔루션)에 대해 솔루션 소스를 보유하여 장애 발생 시 원인을 진단하고 해결합니다.
+GPU를 이용한 학습 및 추론 솔루션(GPU를 여러 개로 분할해서 교육기관 내 다수의 학생이 각자의 계정과 이미지로 AI 학습 및 추론을 할 수 있도록 하는 플랫폼으로, 계정 관리 및 GPU 자원을 모니터링하는 관리자 화면이 포함된 솔루션)에 대해 솔루션 소스를 보유하여 장애 발생 시 원인을 진단하고 해결했습니다.
 
 #### What did I do
 
@@ -188,7 +186,7 @@ GPU를 이용한 학습 및 추론 솔루션(GPU를 여러 개로 분할해서 �
 
 #### Description
 
-NVIDIA GPU를 분할해서 사용 가능한 MIG 기능을 지원합니다.
+NVIDIA GPU를 분할해서 사용 가능한 MIG 기능을 지원했습니다.
 
 #### What did I do
 
@@ -201,7 +199,7 @@ NVIDIA GPU를 분할해서 사용 가능한 MIG 기능을 지원합니다.
 
 #### Description
 
-NVIDIA GPU를 사용하는 Kubernetes 및 Slurm 클러스터 용도 인프라 자동화 도구인 NVIDIA deepops(오픈소스)를 이용해서 GPU 모니터링 환경을 자동으로 구축하고, 폐쇄망 환경에서도 구축 가능하도록 패키지를 재구성합니다.
+NVIDIA GPU를 사용하는 Kubernetes 및 Slurm 클러스터 용도 인프라 자동화 도구인 NVIDIA deepops(오픈소스)를 이용해서 GPU 모니터링 환경을 자동으로 구축하고, 폐쇄망 환경에서도 구축 가능하도록 패키지를 재구성했습니다.
 
 #### What did I do
 
@@ -235,7 +233,7 @@ NVIDIA GPU를 사용하는 Kubernetes 및 Slurm 클러스터 용도 인프라 �
 
 #### Description
 
-동적 API를 생성·수정·서비스할 수 있는 OPEN API 플랫폼입니다. 메시지 검증 및 변환, 인가/인증, 유량 제어, 라우팅 등의 기능을 제공합니다.
+동적 API를 생성·수정·서비스할 수 있는 OPEN API 플랫폼이었습니다. 메시지 검증 및 변환, 인가/인증, 유량 제어, 라우팅 등의 기능을 제공했습니다.
 
 #### What did I do
 
@@ -251,7 +249,7 @@ NVIDIA GPU를 사용하는 Kubernetes 및 Slurm 클러스터 용도 인프라 �
 
 #### Description
 
-개발자가 UNO-GATEWAY에 API 요청 시 요청을 전문 데이터로 변환해 고객사 서버에 TCP 요청하고, TCP 응답으로 받은 전문 데이터를 다시 JSON 템플릿으로 변환해서 API 호출에 응답하는 프로젝트입니다.
+개발자가 UNO-GATEWAY에 API 요청 시 요청을 전문 데이터로 변환해 고객사 서버에 TCP 요청하고, TCP 응답으로 받은 전문 데이터를 다시 JSON 템플릿으로 변환해서 API 호출에 응답하는 프로젝트였습니다.
 
 #### What did I do
 
@@ -265,7 +263,7 @@ NVIDIA GPU를 사용하는 Kubernetes 및 Slurm 클러스터 용도 인프라 �
 
 #### Description
 
-Oracle Cloud Infrastructure를 이용하는 고객사·관리자를 대상으로 클라우드 자원·정보·자원 간 관계를 보여주는 대시보드와, 관리자가 직접 자원을 생성/수정/관리하는 페이지를 보유한 MSP(Managed Service Provider) 플랫폼입니다.
+Oracle Cloud Infrastructure를 이용하는 고객사·관리자를 대상으로 클라우드 자원·정보·자원 간 관계를 보여주는 대시보드와, 관리자가 직접 자원을 생성/수정/관리하는 페이지를 보유한 MSP(Managed Service Provider) 플랫폼이었습니다.
 
 #### What did I do
 
@@ -280,7 +278,7 @@ Oracle Cloud Infrastructure를 이용하는 고객사·관리자를 대상으로
 
 #### Description
 
-규격 엑셀 시트를 설문조사 페이지로 변환하여 설문 URL 링크를 제공하고, 관리자 화면에서는 설문 결과 통계를 대시보드로 보여주는 웹 애플리케이션입니다.
+규격 엑셀 시트를 설문조사 페이지로 변환하여 설문 URL 링크를 제공하고, 관리자 화면에서는 설문 결과 통계를 대시보드로 보여주는 웹 애플리케이션이었습니다.
 
 #### What did I do
 
