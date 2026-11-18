@@ -72,7 +72,7 @@ AI | Vertex AI (LLM):2, Omniverse·IsaacSim:1
 <p class="chips"><span class="chip">gRPC</span><span class="chip">Kafka</span><span class="chip">PostgreSQL advisory lock</span><span class="chip">Redis NX</span><span class="chip">CDC</span><span class="chip">Snowflake</span></p>
 <div class="impact"><span class="impact-k">Impact</span> 트랜잭션 이력 서비스 구조 개선·확장과 북마크 서비스 개발을 <strong>라이브까지</strong> · 이벤트 종류별 <strong>동시 적재 방어</strong>(Redis NX · advisory lock) · 간헐적 pod 재시작 원인 규명·해결</div>
 
-- **[대용량 트랜잭션 이력 서비스](#dg:activity)** — 레이어 재정비·컨슈머 일반화·메시지 포맷 v2 후 거래/민팅/전송/Swap&Warp/USDT 를 차례로 확장. 트랜잭션 해시 유니크 승격, Redis NX + PostgreSQL advisory lock 으로 [동시 적재 정합성](#dg:activity-lock), 비정상 이벤트는 DLQ
+- **[대용량 트랜잭션 이력 서비스](#dg:activity)** — 레이어 재정비·컨슈머 일반화·메시지 포맷 v2 후 거래/민팅/전송/Swap&Warp 를 차례로 확장. 트랜잭션 해시 유니크 승격, Redis NX + PostgreSQL advisory lock 으로 [동시 적재 정합성](#dg:activity-lock), 비정상 이벤트는 DLQ
 - **쿼리 튜닝·성능 개선** — DBA 와 협업한 OR → UNION ALL 전환, 커서 기반 무한 스크롤, 조건부 캐싱(공통 라이브러리의 캐시 데코레이터에 옵션 추가)
 - 거래 결과 확정 시 **알림 이벤트 발행**, Snowflake 적재를 Kafka 발행 → **CDC 로 전환**해 발행 실패 시 유실되던 경로 제거
 - **[북마크/조회수 서비스](#dg:bookmark)** 개발 — 멱등 처리, Redis 카운트 캐시 → Kafka 이벤트 집계, 하루/총량 제한, 회원 탈퇴 연동
